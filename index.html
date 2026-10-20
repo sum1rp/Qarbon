@@ -204,6 +204,7 @@
     </label>
     <label>Voice <select id="voice"></select></label>
     <span id="voiceinfo"></span>
+    <button id="starter">Add Beginner 150</button>
     <label>Import CSV <input type="file" id="file" accept=".csv"></label>
     <button id="export">Export backup</button>
     <label>Restore backup <input type="file" id="restore" accept=".json"></label>
@@ -224,7 +225,7 @@ window.addEventListener("error", e => showError((e.message || "unknown error") +
 window.addEventListener("unhandledrejection", e => showError(String((e.reason && e.reason.message) || e.reason)));
 
 // ================= basics =================
-const BUILD = "Qarbon build 5";
+const BUILD = "Qarbon build 6";
 const KEY = "flashcards-v1";   // same key as before, so existing progress carries over
 const $ = id => document.getElementById(id);
 const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -382,7 +383,7 @@ function render() {
     $("card").dataset.type = "";
     $("front").textContent = practicing
       ? "Practice complete! " + practice.right + " of " + practice.total + " right on the first try"
-      : state.cards.length ? "Done for today! Try “Practice all” to keep going." : "Import a CSV pack to begin";
+      : state.cards.length ? "Done for today! Try “Practice all” to keep going." : "Tap “Add Beginner 150” below to begin";
     $("answer").textContent = $("example").textContent = "";
     $("type1").textContent = $("type2").textContent = "";
     $("newbadge").hidden = $("gender").hidden = true;
@@ -649,11 +650,9 @@ $("perday").value = String(state.newPerDay);
 $("perday").onchange = e => { state.newPerDay = Number(e.target.value); save(); refresh(); };
 
 // ================= import a CSV pack =================
-$("file").addEventListener("change", async e => {
-  const f = e.target.files && e.target.files[0]; if (!f) return;
-  let rows;
-  try { rows = parseCSV(await f.text()); } catch (err) { $("msg").textContent = "Couldn't read that file."; return; }
-  e.target.value = "";
+// turns CSV text into cards and adds the ones you don't already have
+function importCSV(text) {
+  const rows = parseCSV(text);
   if (rows.length < 2) { $("msg").textContent = "That file is empty or has no card rows."; return; }
 
   const head = rows[0].map(h => h.trim().toLowerCase());
@@ -677,7 +676,27 @@ $("file").addEventListener("change", async e => {
     (dupes ? ", skipped " + dupes + " already in your deck" : "") +
     (bad ? ", ignored " + bad + " row(s) missing a front or back" : "");
   refresh();
+}
+
+$("file").addEventListener("change", async e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  let text;
+  try { text = await f.text(); } catch (err) { $("msg").textContent = "Couldn't read that file."; return; }
+  e.target.value = "";
+  importCSV(text);
 });
+
+// the Beginner 150 pack sits next to index.html on the site, so the app can fetch it directly
+$("starter").onclick = async () => {
+  $("msg").textContent = "Loading Beginner 150...";
+  try {
+    const res = await fetch("beginner150.csv");
+    if (!res.ok) throw new Error(res.status);
+    importCSV(await res.text());
+  } catch (err) {
+    $("msg").textContent = "Couldn't load the Beginner 150 pack. This button works on the website, not when the file is opened straight from your Mac.";
+  }
+};
 
 // ================= export and restore a backup =================
 $("export").onclick = () => {
