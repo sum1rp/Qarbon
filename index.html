@@ -40,8 +40,17 @@
   #boot.err { background:rgba(255,80,100,.18); border-color:rgba(255,100,120,.8); color:#ffd0d6; }
 
   /* ---------- timer ---------- */
-  #timer { display:flex; align-items:center; gap:10px; margin-bottom:14px; padding:6px 14px;
-           border:1px solid var(--line); border-radius:999px; background:rgba(20,20,45,.6); }
+  #timer { width:100%; max-width:340px; margin-bottom:14px; box-sizing:border-box;
+           border:1px solid var(--line); border-radius:18px; background:rgba(20,20,45,.6); }
+  /* closed: one line with the time in the middle, the phase on its left and the arrow on its right */
+  #timer summary { list-style:none; cursor:pointer; display:grid; grid-template-columns:1fr auto 1fr;
+                   align-items:center; gap:10px; padding:6px 14px; min-height:32px; }
+  #timer summary::-webkit-details-marker { display:none; }
+  #timer #phase { justify-self:end; }
+  #timer .arrow { justify-self:start; color:var(--muted); transition:transform .2s; }
+  #timer[open] .arrow { transform:rotate(180deg); }
+  /* open: the controls appear underneath */
+  #tcontrols { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; padding:4px 12px 10px; }
   #time { font-variant-numeric:tabular-nums; font-size:1.1rem; font-weight:600; min-width:3.6em; text-align:center; }
   #timer.done #time { color:#ffd447; }
   #timer button { padding:5px 12px; font-size:.85rem; }
@@ -102,6 +111,9 @@
   button, select, input[type="search"] { font-size:1rem; padding:10px 20px; border-radius:10px;
                    border:1px solid var(--line); background:rgba(30,30,62,.85); color:var(--text); cursor:pointer; }
   #show, #good { background:linear-gradient(135deg,#7b6cff,#4aa3ff); color:#fff; border:none; }
+  /* the small line under Again/Hard/Good/Easy: when you'd see the card next */
+  #buttons small { display:block; font-size:.75rem; font-weight:400; opacity:.8; }
+  #buttons small:empty { display:none; }
 
   /* ---------- deck view ---------- */
   #deckview { width:100%; max-width:560px; }
@@ -137,8 +149,8 @@
     /* the extra bottom padding keeps the fixed buttons from covering the settings */
     body { padding:calc(10px + env(safe-area-inset-top)) 16px 110px; }
     h1 { font-size:1.3rem; margin-bottom:6px; }
-    #timer { flex-wrap:wrap; justify-content:center; gap:6px; padding:6px 10px; margin-bottom:8px;
-             border-radius:18px; max-width:100%; box-sizing:border-box; }
+    #timer { margin-bottom:8px; }
+    #timer summary { min-height:44px; padding:0 14px; }
     #tabs { gap:6px; margin-bottom:6px; }
     #status { margin:0; }
     /* the card takes the height left between the top bars and the bottom buttons (measured in fitCard) */
@@ -147,7 +159,7 @@
     #buttons { position:fixed; left:0; right:0; bottom:0; z-index:5; gap:10px;
                padding:10px 16px calc(10px + env(safe-area-inset-bottom));
                background:var(--bg); border-top:1px solid var(--line); }
-    #buttons button { flex:1; min-height:56px; font-size:1.15rem; font-weight:600; }
+    #buttons button { flex:1; min-width:0; min-height:56px; padding:8px 4px; font-size:1.15rem; font-weight:600; }
     /* every tap target at least 44px tall (Apple's guideline) */
     #timer button, #timer select, #tabs button, #settings button, #settings select,
     #filters select, #filters input, #practicefiltered { min-height:44px; }
@@ -173,19 +185,21 @@
 
   <div id="boot">Starting Qarbon… If this message stays, the page's code did not finish loading (the file may have been cut off).</div>
 
-  <div id="timer">
+  <!-- <details> is a built-in dropdown panel: tap the <summary> line to open or close it -->
+  <details id="timer">
+    <summary><span id="phase">Focus</span><span id="time">25:00</span><span class="arrow">▾</span></summary>
+    <div id="tcontrols">
     <select id="tmode" title="Timer style">
       <option value="pomodoro">Pomodoro 25/5</option>
       <option value="m15">15 min</option>
       <option value="m30">30 min</option>
       <option value="hour">1 hour</option>
     </select>
-    <span id="phase">Focus</span>
-    <span id="time">25:00</span>
     <button id="tstart">Start</button>
     <button id="treset">Reset</button>
     <span id="sessions"></span>
-  </div>
+    </div>
+  </details>
 
   <div id="tabs">
     <button id="tab-daily">Daily review</button>
@@ -221,8 +235,10 @@
 
     <div id="buttons">
       <button id="show">Show answer</button>
-      <button id="again" hidden>Again (1)</button>
-      <button id="good" hidden>Good (2)</button>
+      <button id="again" hidden title="Key 1">Again<small></small></button>
+      <button id="hard" hidden title="Key 2">Hard<small></small></button>
+      <button id="good" hidden title="Key 3">Good<small></small></button>
+      <button id="easy" hidden title="Key 4">Easy<small></small></button>
     </div>
   </div>
 
@@ -264,7 +280,7 @@ window.addEventListener("error", e => showError((e.message || "unknown error") +
 window.addEventListener("unhandledrejection", e => showError(String((e.reason && e.reason.message) || e.reason)));
 
 // ================= basics =================
-const BUILD = "Qarbon build 8";
+const BUILD = "Qarbon build 9";
 const KEY = "flashcards-v1";   // same key as before, so existing progress carries over
 const $ = id => document.getElementById(id);
 const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -294,6 +310,7 @@ function clean(data) {
     .filter(c => c && typeof c.front === "string" && c.front.trim())
     .map(c => {
       c.interval = Number(c.interval) > 0 ? Number(c.interval) : 1;
+      c.ease = Number(c.ease) >= 1.3 ? Number(c.ease) : 2.5;   // cards from before Anki-style scheduling start at 2.5
       c.reviews = Number(c.reviews) || 0;
       c.correct = Number(c.correct) || 0;
       c.due = typeof c.due === "string" && c.due ? c.due : today();
@@ -412,10 +429,15 @@ function render() {
   $("status").textContent = practicing
     ? "Practice · " + left + " left · nothing here affects your schedule"
     : left + " card(s) left today · " + state.cards.length + " in deck";
-  $("again").textContent = practicing ? "Missed (1)" : "Again (1)";
-  $("good").textContent = practicing ? "Got it (2)" : "Good (2)";
+  // practice only has two answers; daily review has Anki's four, each showing when you'd see the card next
+  const names = practicing ? ["Missed", "", "Got it", ""] : ["Again", "Hard", "Good", "Easy"];
+  GRADES.forEach((g, i) => {
+    const b = $(g);
+    b.hidden = !current || !revealed || !names[i];
+    b.firstChild.textContent = names[i];
+    b.lastChild.textContent = current && revealed && !practicing ? preview(current, i + 1) : "";
+  });
   $("show").hidden = !current || revealed;
-  $("again").hidden = $("good").hidden = !current || !revealed;
   $("buttons").hidden = !current;
   $("card").classList.toggle("flipped", revealed);
   fitCard();
@@ -527,22 +549,59 @@ $("tab-daily").onclick = () => setMode("daily");
 $("tab-deck").onclick = () => setMode("deck");
 $("tab-practice").onclick = () => startPractice(state.cards);
 
+// ================= scheduling, the Anki way (SM-2) =================
+// grade: 1 = Again, 2 = Hard, 3 = Good, 4 = Easy.
+// Every card has an "ease" (starts at 2.5): how much its wait grows after a Good. Hard words get a lower ease.
+const GRADES = ["again", "hard", "good", "easy"];
+
+function schedule(c, grade) {
+  let ease = c.ease || 2.5, days;
+  if (c.reviews === 0) days = grade === 4 ? 4 : 1;                              // brand-new card
+  else if (grade === 1) { days = 1; ease -= 0.2; }                             // forgot it: start over
+  else if (grade === 2) { days = Math.max(c.interval * 1.2, c.interval); ease -= 0.15; }
+  else if (grade === 3) days = Math.max(c.interval * ease, c.interval + 1);
+  else { days = Math.max(c.interval * ease * 1.3, c.interval + 2); ease += 0.15; }
+  return { interval: Math.max(1, Math.round(days)), ease: Math.max(1.3, Math.round(ease * 100) / 100) };
+}
+
+// a card you pressed Again on earlier today (it's already scheduled for a later day)
+const relearning = c => c.reviews > 0 && c.due > today();
+
+// the little label under each button, like "3d" or "2mo"
+function preview(c, grade) {
+  if (grade === 1) return "soon";
+  if (relearning(c)) return "1d";
+  const d = schedule(c, grade).interval;
+  return d < 30 ? d + "d" : d < 365 ? Math.round(d / 30) + "mo" : (d / 365).toFixed(1) + "y";
+}
+
+// put a missed card back a few cards later, so you see it again today
+const againSoon = c => queue.splice(Math.min(3, queue.length), 0, c);
+
 // ================= answering =================
-function rate(good) {
+function rate(grade) {
   if (!current) return;
   if (mode === "practice") {
     // free review: nothing is saved, missed cards come back at the end
-    if (good) { if (!practice.missed.has(current.front)) practice.right++; }
+    if (grade > 1) { if (!practice.missed.has(current.front)) practice.right++; }
     else { practice.missed.add(current.front); queue.push(current); }
     next();
     return;
   }
+  if (relearning(current)) {   // second look at a missed card: its schedule is already set
+    if (grade === 1) againSoon(current);
+    next();
+    return;
+  }
   const wasNew = current.reviews === 0;
-  if (good) { current.interval = (current.interval || 1) * 2; current.correct = (current.correct || 0) + 1; }
-  else current.interval = 1;
+  const s = schedule(current, grade);
+  current.interval = s.interval;
+  current.ease = s.ease;
   current.reviews++;
-  current.due = addDays(current.interval);
+  if (grade > 1) current.correct = (current.correct || 0) + 1;
+  current.due = addDays(s.interval);
   if (wasNew) state.newDone++;
+  if (grade === 1) againSoon(current);
   save(); next();
 }
 
@@ -592,7 +651,7 @@ scene.addEventListener("pointerup", e => {
   slide((good ? 1 : -1) * window.innerWidth, true);
   scene.style.opacity = "0";
   setTimeout(() => {
-    rate(good);
+    rate(good ? 3 : 1);
     slide(0, false);
     void scene.offsetWidth;
     scene.style.transition = "opacity .2s ease";
@@ -684,6 +743,7 @@ function finishPhase() {
     : "Break over. Next focus session is ready. Press Start.";
 }
 
+$("timer").addEventListener("toggle", () => { if (mode !== "deck") fitCard(); });   // opening it pushes the card down, so re-fit
 $("tstart").onclick = () => ticking ? pauseTimer() : startTimer();
 $("treset").onclick = resetTimer;
 $("tmode").onchange = e => { state.timerMode = e.target.value; save(); resetTimer(); };
@@ -742,14 +802,15 @@ document.addEventListener("click", e => {
 
 // ================= buttons and keyboard =================
 $("show").onclick = () => { revealed = true; render(); };
-$("again").onclick = () => rate(false);
-$("good").onclick = () => rate(true);
+GRADES.forEach((g, i) => { $(g).onclick = () => rate(i + 1); });
 document.addEventListener("keydown", e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (mode === "deck" || !current || ["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)) return;
   if (!revealed && (e.key === " " || e.key === "Enter")) { e.preventDefault(); $("show").click(); }
-  else if (revealed && e.key === "1") rate(false);
-  else if (revealed && e.key === "2") rate(true);
+  else if (revealed && /^[1-4]$/.test(e.key)) {
+    const grade = Number(e.key);
+    if (mode !== "practice" || grade === 1 || grade === 3) rate(grade);   // practice only has Missed (1) and Got it (3)
+  }
 });
 
 $("perday").value = String(state.newPerDay);
