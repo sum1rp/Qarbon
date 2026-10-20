@@ -395,6 +395,18 @@
   #settings select { padding:6px 10px; font-size:.9rem; max-width:200px; }
   #voiceinfo { font-size:.8rem; }
   #setdone { background:var(--accent); color:#fff; border:none; }
+  /* ☁ Account & sync, inside the settings panel */
+  #account { flex-basis:100%; display:flex; flex-direction:column; gap:8px; padding-top:12px; border-top:1px solid var(--line); text-align:left; }
+  #account b { color:var(--text); }
+  #acct-form { display:flex; flex-direction:column; gap:8px; }
+  #acct-form input { font-size:16px; padding:10px 12px; border-radius:10px; border:1px solid var(--line);
+                     background:rgba(30,30,62,.85); color:var(--text); min-height:44px; box-sizing:border-box; }
+  .acctbtns { display:flex; gap:8px; }
+  .acctbtns button { flex:1; min-height:44px; }
+  #acct-signin, #acct-sync { background:linear-gradient(135deg,#7b6cff,#4aa3ff); color:#fff; border:none; }
+  #acct-form[hidden], #acct-in[hidden] { display:none; }
+  #acct-status { margin:0; font-size:.85rem; }
+  #acct-status:empty { display:none; }
 
   /* deck tab: buttons above the list, tappable rows, and the card editor */
   #deckactions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
@@ -597,6 +609,17 @@
     </div>
 
     <div class="howsec">
+      <h3>☁ Account and sync</h3>
+      <ul>
+        <li>In <b>⚙</b> settings, <b>Create account</b> (an email and a password of 6 or more characters) on your first device, then <b>Sign in</b> with the same email and password on your others.</li>
+        <li>Your cards, decks, books, reading time and settings then <b>sync between your devices</b>: when the app opens, a few seconds after you change something, and when you're back online. <b>Sync now</b> does it right away.</li>
+        <li>Each card, deck and book keeps <b>the newest version</b> from either device, so reviewing on your phone and adding a book on your Mac keeps both. Deleting something on one device deletes it on the others.</li>
+        <li>Offline? Everything still works and is saved on the device; it syncs when you're back online. The status line at the bottom of the study page shows when it last synced.</li>
+        <li><b>Sign out</b> keeps your progress on that device. Your saved progress is private: only your account can read it.</li>
+      </ul>
+    </div>
+
+    <div class="howsec">
       <h3>Saving and backups</h3>
       <ul>
         <li>Progress saves automatically, <b>in this browser on this device</b>. Your phone and your Mac keep separate progress.</li>
@@ -638,6 +661,26 @@
     <span id="voiceinfo"></span>
     <button id="export">Export backup</button>
     <label>Restore backup <input type="file" id="restore" accept=".json"></label>
+    <!-- account & syncing: sign in so your progress follows you between devices -->
+    <div id="account">
+      <b>☁ Account &amp; sync</b>
+      <form id="acct-form">
+        <input type="email" id="acct-email" placeholder="Email" autocomplete="username" autocapitalize="off" spellcheck="false">
+        <input type="password" id="acct-pass" placeholder="Password (6 or more characters)" autocomplete="current-password">
+        <div class="acctbtns">
+          <button type="submit" id="acct-signin">Sign in</button>
+          <button type="button" id="acct-create">Create account</button>
+        </div>
+      </form>
+      <div id="acct-in" hidden>
+        <span>Signed in as <b id="acct-who"></b></span>
+        <div class="acctbtns">
+          <button id="acct-sync">Sync now</button>
+          <button id="acct-out">Sign out</button>
+        </div>
+      </div>
+      <p id="acct-status"></p>
+    </div>
     <button id="setdone">Done</button>
   </div>
 
@@ -1247,7 +1290,7 @@ window.addEventListener("error", e => showError((e.message || "unknown error") +
 window.addEventListener("unhandledrejection", e => showError(String((e.reason && e.reason.message) || e.reason)));
 
 // ================= basics =================
-const BUILD = "Qarbon 1.1 (build 25)";
+const BUILD = "Qarbon 2.0 (build 26)";
 const KEY = "flashcards-v1";   // same key as before, so existing progress carries over
 const $ = id => document.getElementById(id);
 const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -1406,6 +1449,7 @@ function clean(data) {
       } else delete c.rev;
       if (c.suspended !== true) delete c.suspended;
       if (typeof c.key !== "string" || !c.key) delete c.key;
+      c.t = Number(c.t) || 0;   // when this card last changed (for syncing)
       return c;
     });
   // card direction per stack id, e.g. { beginner150: "both" }
@@ -1414,7 +1458,8 @@ function clean(data) {
   // your own decks: a name plus the list of words (French fronts) in it
   s.decks = (Array.isArray(s.decks) ? s.decks : [])
     .filter(d => d && typeof d.name === "string" && Array.isArray(d.words))
-    .map(d => ({ id: String(d.id || "deck-" + Math.random()), name: d.name, words: d.words.map(String), added: d.added || "" }));
+    .map(d => ({ id: String(d.id || "deck-" + Math.random()), name: d.name, words: d.words.map(String), added: d.added || "",
+                 t: Number(d.t) || 0 }));
   s.music = typeof s.music === "string" ? s.music : "";   // the YouTube/SoundCloud link you pasted
   // your books: title, author, chapter names, how many chapters are done, and reading time
   s.books = (Array.isArray(s.books) ? s.books : [])
@@ -1427,10 +1472,15 @@ function clean(data) {
                added: typeof b.added === "string" ? b.added : "", finished: typeof b.finished === "string" ? b.finished : "",
                log: Array.isArray(b.log) ? b.log.slice(-200) : [],
                meta: cleanMeta(b.meta),
-               open: !!b.open || !chapters.length };   // open = more chapters to come (the total isn't known yet)
+               open: !!b.open || !chapters.length,   // open = more chapters to come (the total isn't known yet)
+               t: Number(b.t) || 0 };
     });
   if (!s.books.some(b => b.id === s.readingBook)) s.readingBook = "";
-  s.stackId = typeof s.stackId === "string" ? s.stackId : "";   // the deck you used last   // the book you're reading in the Focus page
+  s.stackId = typeof s.stackId === "string" ? s.stackId : "";   // the deck you used last
+  // for syncing: things you deleted ("card:chat" → when), and when your settings last changed
+  const del = s.deleted && typeof s.deleted === "object" ? s.deleted : {};
+  s.deleted = Object.fromEntries(Object.entries(del).filter(([k, v]) => /^(card|deck|book):/.test(k) && Number(v) > 0).map(([k, v]) => [k, Number(v)]));
+  s.settingsT = Number(s.settingsT) || 0;
   s.newPerDay = PER_DAY_CHOICES.includes(Number(s.newPerDay)) ? Number(s.newPerDay) : 10;
   s.newDone = Number(s.newDone) || 0;
   s.sessions = Number(s.sessions) || 0;
@@ -1448,10 +1498,96 @@ function load() {
   try { data = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
   return clean(data);
 }
-function save() {
+// ----- "last changed" times, so two devices can be merged item by item -----
+// Every card, deck and book has a "t" (when it last changed, in milliseconds), and your settings share one
+// "settingsT". Instead of stamping things all over the code, save() compares each item with how it looked at
+// the last save: whatever changed gets stamped "now", and whatever disappeared goes into state.deleted.
+const cardKey = c => c.key || c.front.trim().toLowerCase();   // same as wordKey(): the word a card is known by
+const SYNCED_SETTINGS = ["newPerDay", "voice", "timerMode", "customTimer", "music", "directions"];
+const settingsOf = s => Object.fromEntries(SYNCED_SETTINGS.map(k => [k, s[k]]));
+
+// a "fingerprint" (JSON text) of every item, without its t, by "kind:id"
+function snapshot(s) {
+  const out = {};
+  const add = (key, obj) => { const { t, ...rest } = obj; out[key] = JSON.stringify(rest); };
+  s.cards.forEach(c => add("card:" + cardKey(c), c));
+  s.decks.forEach(d => add("deck:" + d.id, d));
+  s.books.forEach(b => add("book:" + b.id, b));
+  out.settings = JSON.stringify(settingsOf(s));
+  out.counters = JSON.stringify([s.sessions, s.newDate, s.newDone]);   // not stamped, but worth syncing
+  return out;
+}
+let snap = {};   // the fingerprints at the last save
+
+// stamp whatever changed since the last save; returns true if anything did
+function stampChanges() {
+  const now = Date.now(), next = snapshot(state);
+  let changed = false;
+  [["card", state.cards, cardKey], ["deck", state.decks, d => d.id], ["book", state.books, b => b.id]].forEach(([kind, list, keyOf]) => {
+    for (const it of list) {
+      const key = kind + ":" + keyOf(it);
+      if (snap[key] !== next[key]) { it.t = now; delete state.deleted[key]; changed = true; }
+    }
+  });
+  if (snap.settings !== next.settings) { state.settingsT = now; changed = true; }
+  if (snap.counters !== next.counters) changed = true;
+  for (const key of Object.keys(snap))
+    if (key !== "settings" && key !== "counters" && !(key in next)) { state.deleted[key] = now; changed = true; }
+  snap = next;
+  return changed;
+}
+
+// quiet = these changes came from syncing, so don't stamp them as new (and don't sync again)
+function save(quiet) {
+  const changed = quiet ? (snap = snapshot(state), false) : stampChanges();
   try { localStorage.setItem(KEY, JSON.stringify(state)); storageOK = true; } catch (e) { storageOK = false; }
+  if (changed) syncSoon();
 }
 let state = load();
+snap = snapshot(state);   // what's saved right now; the next save compares against this
+
+// syncing: which account this device is signed in to (kept separately from your save, never in backups)
+const AUTH_KEY = "qarbon-auth";
+function loadAuth() {
+  try { const a = JSON.parse(localStorage.getItem(AUTH_KEY)); return a && a.refresh && a.id ? a : null; } catch (e) { return null; }
+}
+let auth = loadAuth();
+let syncTimer = null, syncing = false, syncAgain = false;
+
+// ----- merging two saves: this device's and the copy online -----
+// For each card, deck and book: the newer version wins. If both have the same time (e.g. old saves from
+// before syncing existed), the one with more progress wins. Deleting something wins over older versions.
+const PROGRESS = {
+  card: c => (c.reviews || 0) + (c.rev ? c.rev.reviews || 0 : 0),
+  deck: d => (d.words || []).length,
+  book: b => (b.done || 0) + (b.sessions || 0)
+};
+function mergeLists(kind, mine, theirs, keyOf, deleted) {
+  const out = new Map();   // keeps this device's order, with new items from the other added after
+  for (const it of [...mine, ...theirs]) {
+    const k = keyOf(it), have = out.get(k), ti = it.t || 0, th = have ? have.t || 0 : -1;
+    if (!have || ti > th || (ti === th && PROGRESS[kind](it) > PROGRESS[kind](have))) out.set(k, it);
+  }
+  return [...out.values()].filter(it => !((deleted[kind + ":" + keyOf(it)] || 0) > (it.t || 0)));
+}
+function mergeStates(a, b) {   // a = this device, b = online (both already cleaned)
+  const deleted = { ...a.deleted };
+  for (const [k, t] of Object.entries(b.deleted)) deleted[k] = Math.max(deleted[k] || 0, t);
+  const forgetBefore = Date.now() - 90 * 864e5;   // deletions older than 90 days are forgotten
+  for (const k of Object.keys(deleted)) if (deleted[k] < forgetBefore) delete deleted[k];
+  const later = (a.newDate || "") >= (b.newDate || "") ? a : b;
+  return {
+    cards: mergeLists("card", a.cards, b.cards, cardKey, deleted),
+    decks: mergeLists("deck", a.decks, b.decks, d => d.id, deleted),
+    books: mergeLists("book", a.books, b.books, x => x.id, deleted),
+    deleted,
+    settings: settingsOf(b.settingsT > a.settingsT ? b : a),
+    settingsT: Math.max(a.settingsT, b.settingsT),
+    sessions: Math.max(a.sessions, b.sessions),   // focus sessions done: the bigger count
+    newDate: later.newDate,                        // new cards started today: the bigger count, if it's the same day
+    newDone: a.newDate === b.newDate ? Math.max(a.newDone, b.newDone) : later.newDone
+  };
+}
 
 // ================= levels (read from each card's tags, like "A1;core") =================
 const LEVELS = { A1: "Beginner (A1)", A2: "Elementary (A2)", B1: "Intermediate (B1)", B2: "Upper intermediate (B2)" };
@@ -1563,7 +1699,8 @@ function updateDiag() {
   const t = today();
   const due = state.cards.filter(c => c.reviews > 0 && c.due <= t).length;
   $("diag").textContent = BUILD + " · " + state.cards.length + " cards loaded · " + due +
-    " due for review · saving " + (storageOK ? "on" : "OFF (this browser is blocking storage)");
+    " due for review · saving " + (storageOK ? "on" : "OFF (this browser is blocking storage)") +
+    (auth ? " · ☁ " + (auth.lastSync ? "synced " + ago(auth.lastSync) : "not synced yet") : "");
 }
 
 function render() {
@@ -2635,6 +2772,7 @@ function chooseStack(s, stay) {
 // ================= ⚙ settings panel =================
 function toggleSettings(open) {
   $("settings").hidden = !open;
+  if (open) showAccount();
   if (open) {   // the direction list belongs to the stack you're in
     setOptions($("direction"), Object.entries(DIRECTIONS), state.directions[stack ? stack.id : "all"] || "fr");
   }
@@ -2702,10 +2840,10 @@ let pendingMeta = null;   // details from the search result you picked, saved wi
 let searchRun = 0, pickRun = 0;   // which search / pick is the newest (late answers to older ones are ignored)
 
 // fetch with a time limit, so a slow server can't leave you waiting forever
-function fetchWithin(url, seconds) {
+function fetchWithin(url, seconds, options = {}) {
   const stop = new AbortController();
   const timer = setTimeout(() => stop.abort(), seconds * 1000);
-  return fetch(url, { signal: stop.signal }).finally(() => clearTimeout(timer));
+  return fetch(url, { ...options, signal: stop.signal }).finally(() => clearTimeout(timer));
 }
 
 async function searchBooks() {
@@ -3091,6 +3229,196 @@ showReadbar();
 $("gohome").onclick = () => show("home");
 $("logo").onclick = () => show("home");   // tapping the Qarbon logo also takes you back to the black hole
 
+// ================= ☁ account & syncing (Supabase) =================
+// Your save is kept in your own row of a table on Supabase (an online database). The table's privacy rules
+// ("row level security") let each account read and write only its own row. The publishable key is meant
+// to be public: it only says which project to talk to.
+const SUPABASE_URL = "https://sussnemfrojgdtbthueq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_U0aXYXWGg40BBJdaXmp8xw_jd_7VwvJ";
+
+// "2 min ago"
+function ago(time) {
+  const m = Math.round((Date.now() - time) / 60000);
+  return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " days ago";
+}
+
+// one request to Supabase. token = your sign-in ticket (needed for your own data)
+async function api(method, path, body, token) {
+  const headers = { apikey: SUPABASE_KEY, "Content-Type": "application/json" };
+  if (token) headers.Authorization = "Bearer " + token;
+  if (method === "POST" && path.startsWith("/rest/")) headers.Prefer = "resolution=merge-duplicates,return=minimal";   // insert, or update if it exists
+  const res = await fetchWithin(SUPABASE_URL + path, 20, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch (e) {}
+  return { ok: res.ok, status: res.status, data };
+}
+
+// remember (or forget) that this device is signed in
+function keepSession(d) {
+  auth = { access: d.access_token, refresh: d.refresh_token, expires: Date.now() + (d.expires_in || 3600) * 1000,
+           id: d.user.id, email: d.user.email, lastSync: auth && auth.id === d.user.id ? auth.lastSync : 0 };
+  try { localStorage.setItem(AUTH_KEY, JSON.stringify(auth)); } catch (e) {}
+}
+function forgetSession() {
+  auth = null;
+  try { localStorage.removeItem(AUTH_KEY); } catch (e) {}
+}
+
+// the sign-in ticket lasts an hour: swap it for a fresh one shortly before it runs out
+async function freshToken() {
+  if (Date.now() < auth.expires - 60000) return auth.access;
+  const r = await api("POST", "/auth/v1/token?grant_type=refresh_token", { refresh_token: auth.refresh });
+  if (r.ok) { keepSession(r.data); return auth.access; }
+  if (r.status === 400 || r.status === 401) throw new Error("signed-out");   // the ticket is no longer valid
+  throw new Error("server");
+}
+
+const syncNote = text => { $("acct-status").textContent = text; };
+
+// show the right half of the account panel: the sign-in form, or "Signed in as …".
+// keepNote = leave the status message alone (e.g. right after a sync, so "Offline: …" stays visible)
+function showAccount(keepNote) {
+  $("acct-form").hidden = !!auth;
+  $("acct-in").hidden = !auth;
+  if (auth) {
+    $("acct-who").textContent = auth.email;
+    if (!syncing && !keepNote) syncNote(auth.lastSync ? "Synced " + ago(auth.lastSync) + "." : "Not synced yet.");
+  }
+  updateDiag();
+}
+
+// Sign in, or create an account (create = true)
+async function signIn(create) {
+  const email = $("acct-email").value.trim(), password = $("acct-pass").value;
+  if (!email || !password) { syncNote("Enter your email and a password."); return; }
+  syncNote(create ? "Creating your account…" : "Signing in…");
+  let r;
+  try {
+    r = await api("POST", create ? "/auth/v1/signup" : "/auth/v1/token?grant_type=password", { email, password });
+  } catch (e) { syncNote("Couldn't reach the sync server. Check your internet connection."); return; }
+  if (!r.ok || !r.data || !r.data.access_token) {
+    const code = r.data && (r.data.error_code || r.data.code);
+    syncNote(code === "invalid_credentials" ? "Wrong email or password." :
+             code === "user_already_exists" ? "That email already has an account. Tap Sign in instead." :
+             code === "weak_password" ? "Pick a password with at least 6 characters." :
+             code === "email_address_invalid" || code === "validation_failed" ? "That doesn't look like an email address." :
+             "Couldn't sign in (" + ((r.data && (r.data.msg || r.data.message)) || "error " + r.status) + ").");
+    return;
+  }
+  keepSession(r.data);
+  $("acct-pass").value = "";
+  showAccount();
+  await syncNow();   // the first sync merges this device's progress with what's online
+}
+
+// the part of your save that goes online (things that belong to one device, like the book you're
+// reading right now or the last deck you opened, stay on that device)
+function syncedPart() {
+  return { v: 1, cards: state.cards, decks: state.decks, books: state.books, deleted: state.deleted,
+           settings: settingsOf(state), settingsT: state.settingsT, sessions: state.sessions,
+           newDate: state.newDate, newDone: state.newDone };
+}
+
+// tidy up the online copy the same way a loaded save is tidied (see clean)
+function cleanRemote(d) {
+  return clean({ ...(d.settings || {}), cards: d.cards, decks: d.decks, books: d.books, deleted: d.deleted,
+                 settingsT: d.settingsT, sessions: d.sessions, newDate: d.newDate, newDone: d.newDone });
+}
+
+// put a merged result into this device's save. Existing cards and books are updated in place (not
+// replaced), so a card you're looking at right now stays the same card.
+function applyMerged(m) {
+  const reuse = (list, merged, keyOf) => {
+    const mine = new Map(list.map(x => [keyOf(x), x]));
+    return merged.map(x => {
+      const own = mine.get(keyOf(x));
+      if (!own || own === x) return x;
+      for (const k of Object.keys(own)) if (!(k in x)) delete own[k];
+      return Object.assign(own, x);
+    });
+  };
+  const before = JSON.stringify(settingsOf(state));
+  state.cards = reuse(state.cards, m.cards, cardKey);
+  state.decks = reuse(state.decks, m.decks, d => d.id);
+  state.books = reuse(state.books, m.books, b => b.id);
+  state.deleted = m.deleted;
+  Object.assign(state, m.settings, { settingsT: m.settingsT, sessions: m.sessions, newDate: m.newDate, newDone: m.newDone });
+  if (!state.books.some(b => b.id === state.readingBook)) state.readingBook = "";
+  save(true);   // quiet: these came from syncing
+  // keep the screen in step with what arrived
+  if (stack && stack.custom) {
+    const d = state.decks.find(x => x.id === stack.id);
+    if (d) { stack.words = new Set(d.words); stack.name = d.name; } else stack = null;
+  }
+  if (JSON.stringify(settingsOf(state)) !== before) {
+    $("perday").value = String(state.newPerDay);
+    fillVoices();
+    if (!ticking) syncTimerUI();
+    showMusic(false);
+  }
+  showReadbar();
+  if (!$("study").hidden) render();
+}
+
+// sync: download the online copy, merge it with this device's, then upload the result
+async function syncNow() {
+  if (!auth) return;
+  if (syncing) { syncAgain = true; return; }
+  syncing = true;
+  clearTimeout(syncTimer); syncTimer = null;
+  syncNote("Syncing…");
+  try {
+    const token = await freshToken();
+    const r = await api("GET", "/rest/v1/qarbon_state?select=data&user_id=eq." + auth.id, undefined, token);
+    if (r.status === 401) throw new Error("signed-out");
+    if (!r.ok) throw new Error("server");
+    const online = r.data && r.data[0] && r.data[0].data;
+    if (online) applyMerged(mergeStates(state, cleanRemote(online)));
+    const w = await api("POST", "/rest/v1/qarbon_state",
+                        { user_id: auth.id, data: syncedPart(), updated_at: new Date().toISOString() }, token);
+    if (!w.ok) throw new Error(w.status === 401 ? "signed-out" : "server");
+    auth.lastSync = Date.now();
+    try { localStorage.setItem(AUTH_KEY, JSON.stringify(auth)); } catch (e) {}
+    syncNote("Synced just now.");
+  } catch (e) {
+    if (e.message === "signed-out") { forgetSession(); syncNote("You've been signed out. Please sign in again (your progress here is safe)."); }
+    else if (e.message === "server") syncNote("The sync server had a problem. Your progress is safe here; it'll try again later.");
+    else syncNote("Offline: your progress is saved on this device and will sync when you're back online.");
+  } finally {
+    syncing = false;
+    showAccount(true);
+    if (syncAgain) { syncAgain = false; syncSoon(); }
+  }
+}
+
+// after a change: sync a few seconds later (so a burst of changes becomes one sync)
+function syncSoon() {
+  if (!auth) return;
+  if (syncing) { syncAgain = true; return; }
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncNow, 3000);   // syncTimer stays set until it runs = "there are unsynced changes"
+}
+
+$("acct-form").addEventListener("submit", e => { e.preventDefault(); signIn(false); });
+$("acct-create").onclick = () => signIn(true);
+$("acct-sync").onclick = () => syncNow();
+$("acct-out").onclick = async () => {
+  if (!confirm("Sign out on this device? Your progress stays here, and it's also saved online.")) return;
+  const token = auth.access;
+  forgetSession();
+  showAccount();
+  syncNote("Signed out. Everything is still on this device.");
+  try { await api("POST", "/auth/v1/logout", {}, token); } catch (e) {}
+};
+// sync again when you come back online, or come back to the app after a while
+window.addEventListener("online", () => syncNow());
+document.addEventListener("visibilitychange", () => {
+  if (!auth) return;
+  if (document.hidden) { if (syncTimer) syncNow(); }   // leaving with unsynced changes: sync them now
+  else if (Date.now() - (auth.lastSync || 0) > 60000) syncNow();
+});
+
 // ================= export and restore a backup =================
 $("export").onclick = () => {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
@@ -3128,6 +3456,8 @@ $("restore").addEventListener("change", async e => {
 // ================= start =================
 syncTimerUI();
 show("home");
+showAccount();
+if (auth) setTimeout(syncNow, 500);   // signed in: catch up with your other devices
 if (!storageOK) $("msg").textContent = "Heads up: this browser is blocking saving (private window?). Progress won't be kept.";
 $("boot").hidden = true;   // only reached if everything above ran without a crash
 </script>
