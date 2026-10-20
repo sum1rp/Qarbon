@@ -1,0 +1,151 @@
+front,back,part_of_speech,gender,example_target,example_english,tags
+ouvrir,to open,verb,none,"Ouvre la porte, s'il te plaît.","Open the door, please.",A1;core
+fermer,to close,verb,none,Je ferme la fenêtre.,I am closing the window.,A1;core
+sortir,to go out / to leave,verb,none,Nous sortons ce soir.,We are going out tonight.,A1;core
+entrer,to enter / to come in,verb,none,"Entrez, je vous en prie.","Come in, please.",A1;core
+rentrer,to go home / to return,verb,none,Je rentre à six heures.,I am going home at six.,A1;core
+tomber,to fall,verb,none,Le livre tombe de la table.,The book falls off the table.,A1;core
+vivre,to live,verb,none,Ils vivent en France.,They live in France.,A1;core
+choisir,to choose,verb,none,Je choisis le café.,I choose the coffee.,A2;core
+chercher,to look for,verb,none,Je cherche mes clés.,I am looking for my keys.,A1;core
+porter,to carry / to wear,verb,none,Elle porte un manteau rouge.,She is wearing a red coat.,A2;core
+montrer,to show,verb,none,Il montre la photo à sa mère.,He shows the photo to his mother.,A2;core
+suivre,to follow,verb,none,Suivez-moi.,Follow me.,A2;core
+perdre,to lose,verb,none,J'ai peur de perdre mon téléphone.,I am afraid of losing my phone.,A2;core
+gagner,to win / to earn,verb,none,Notre équipe gagne le match.,Our team wins the match.,A2;core
+rencontrer,to meet,verb,none,Je rencontre mon ami au café.,I am meeting my friend at the café.,A2;core
+répondre,to answer,verb,none,Je réponds à ta question.,I am answering your question.,A1;core
+payer,to pay,verb,none,Je paie avec ma carte.,I pay with my card.,A1;core
+oublier,to forget,verb,none,N'oublie pas ton billet.,Do not forget your ticket.,A2;core
+dormir,to sleep,verb,none,Le bébé dort dans sa chambre.,The baby sleeps in his room.,A1;core
+marcher,to walk / to work (function),verb,none,Nous marchons jusqu'à la gare.,We walk to the station.,A1;core
+laisser,to leave (behind) / to let,verb,none,Je laisse mon sac ici.,I am leaving my bag here.,A2;core
+sentir,to feel / to smell,verb,none,Je sens une odeur de pain.,I smell bread.,A2;core
+recevoir,to receive,verb,none,Je reçois un message de ma soeur.,I receive a message from my sister.,A2;core
+envoyer,to send,verb,none,J'envoie une lettre à mon père.,I am sending a letter to my father.,A2;core
+aider,to help,verb,none,Peux-tu m'aider ?,Can you help me?,A1;core
+la tête,head,noun,f,J'ai mal à la tête.,I have a headache.,A1;core
+le mot,word,noun,m,Je ne connais pas ce mot.,I do not know this word.,A1;core
+la question,question,noun,f,J'ai une question.,I have a question.,A1;core
+la réponse,answer,noun,f,La réponse est facile.,The answer is easy.,A1;core
+le problème,problem,noun,m,Il n'y a pas de problème.,There is no problem.,A1;core
+la fois,time / occasion,noun,f,Une fois par semaine.,Once a week.,A1;core
+la place,seat / square / room,noun,f,Il y a une place ici.,There is a seat here.,A1;core
+la fin,end,noun,f,C'est la fin du film.,It is the end of the movie.,A1;core
+la porte,door,noun,f,La porte est ouverte.,The door is open.,A1;core
+la fenêtre,window,noun,f,La fenêtre est fermée.,The window is closed.,A1;core
+la chambre,bedroom,noun,f,Ma chambre est petite.,My bedroom is small.,A1;core
+la cuisine,kitchen / cooking,noun,f,Elle est dans la cuisine.,She is in the kitchen.,A1;core
+le jardin,garden,noun,m,Les enfants jouent dans le jardin.,The children play in the garden.,A1;core
+le chat,cat,noun,m,Le chat dort.,The cat is sleeping.,A1;core
+le chien,dog,noun,m,Le chien est dans le jardin.,The dog is in the garden.,A1;core
+le repas,meal,noun,m,Le repas est prêt.,The meal is ready.,A1;core
+l'eau,water,noun,f,Je voudrais de l'eau.,I would like some water.,A1;core
+le soleil,sun,noun,m,Le soleil brille.,The sun is shining.,A1;core
+la pluie,rain,noun,f,La pluie tombe depuis ce matin.,The rain has been falling since this morning.,A2;core
+le téléphone,phone,noun,m,Mon téléphone est sur la table.,My phone is on the table.,A1;core
+l'ordinateur,computer,noun,m,J'utilise mon ordinateur tous les jours.,I use my computer every day.,A1;core
+le film,movie,noun,m,Ce film est très bon.,This movie is very good.,A1;core
+la musique,music,noun,f,J'aime la musique française.,I like French music.,A1;core
+le voyage,trip / journey,noun,m,Le voyage est long.,The trip is long.,A1;core
+la gare,train station,noun,f,La gare est près d'ici.,The train station is near here.,A1;core
+le train,train,noun,m,Le train arrive à huit heures.,The train arrives at eight.,A1;core
+le billet,ticket,noun,m,J'ai un billet pour Paris.,I have a ticket for Paris.,A1;core
+le magasin,shop / store,noun,m,Le magasin ferme à sept heures.,The shop closes at seven.,A1;core
+le marché,market,noun,m,Nous allons au marché le samedi.,We go to the market on Saturdays.,A1;core
+le restaurant,restaurant,noun,m,Le restaurant est près de la gare.,The restaurant is near the station.,A1;core
+le prix,price / prize,noun,m,Quel est le prix ?,What is the price?,A1;core
+l'idée,idea,noun,f,C'est une bonne idée.,It is a good idea.,A1;core
+l'histoire,story / history,noun,f,C'est une belle histoire.,It is a lovely story.,A2;core
+la langue,language / tongue,noun,f,Le français est une belle langue.,French is a beautiful language.,A1;core
+le médecin,doctor,noun,m,Je vais chez le médecin.,I am going to the doctor.,A1;core
+le mois,month,noun,m,Je pars le mois prochain.,I am leaving next month.,A2;core
+le bureau,office / desk,noun,m,Je travaille au bureau.,I work at the office.,A1;core
+la photo,photo,noun,f,Je regarde la photo.,I am looking at the photo.,A1;core
+chaud / chaude,hot / warm,adjective,none,Le café est chaud.,The coffee is hot.,A1;core
+froid / froide,cold,adjective,none,L'eau est froide.,The water is cold.,A1;core
+cher / chère,expensive / dear,adjective,none,Ce livre est trop cher.,This book is too expensive.,A1;core
+prêt / prête,ready,adjective,none,Je suis prêt.,I am ready.,A1;core
+seul / seule,alone / only,adjective,none,Elle habite seule.,She lives alone.,A1;core
+heureux / heureuse,happy,adjective,none,Nous sommes très heureux.,We are very happy.,A1;core
+triste,sad,adjective,none,Le film est très triste.,The movie is very sad.,A1;core
+fatigué / fatiguée,tired,adjective,none,Je suis fatigué ce soir.,I am tired this evening.,A1;core
+malade,sick,adjective,none,Mon frère est malade.,My brother is sick.,A1;core
+libre,free,adjective,none,Je suis libre demain.,I am free tomorrow.,A1;core
+occupé / occupée,busy,adjective,none,Elle est très occupée.,She is very busy.,A1;core
+vrai / vraie,true / real,adjective,none,C'est vrai.,It is true.,A1;core
+gentil / gentille,kind / nice,adjective,none,Ma soeur est très gentille.,My sister is very kind.,A1;core
+important / importante,important,adjective,none,C'est très important.,It is very important.,A2;core
+possible,possible,adjective,none,Est-ce possible ?,Is it possible?,A2;core
+autre,other / another,adjective,none,Je veux un autre café.,I want another coffee.,A1;core
+chaque,each / every,determiner,none,Je lis chaque jour.,I read every day.,A1;core
+quel / quelle,which / what,determiner,none,Quel livre veux-tu ?,Which book do you want?,A1;core
+peut-être,maybe / perhaps,adverb,none,Peut-être demain.,Maybe tomorrow.,A1;core
+souvent,often,adverb,none,Je mange souvent ici.,I often eat here.,A1;core
+vite,quickly / fast,adverb,none,Il parle très vite.,He speaks very fast.,A1;core
+longtemps,for a long time,adverb,none,Il dort longtemps le dimanche.,He sleeps for a long time on Sundays.,A2;core
+ensemble,together,adverb,none,Nous voyageons ensemble.,We are traveling together.,A1;core
+presque,almost,adverb,none,Il est presque midi.,It is almost noon.,A1;core
+seulement,only,adverb,none,Je veux seulement un café.,I only want a coffee.,A1;core
+assez,enough / quite,adverb,none,J'ai assez de pain.,I have enough bread.,A1;core
+trop,too much / too many,adverb,none,Il y a trop de monde.,There are too many people.,A1;core
+enfin,finally / at last,adverb,none,"Enfin, le week-end !","Finally, the weekend!",A1;core
+ensuite,then / next,adverb,none,"Ensuite, nous mangeons.",Then we eat.,A1;core
+tard,late,adverb,none,Il est tard.,It is late.,A1;core
+tôt,early,adverb,none,Il arrive tôt le matin.,He arrives early in the morning.,A1;core
+dehors,outside,adverb,none,Il fait froid dehors.,It is cold outside.,A1;core
+donc,so / therefore,conjunction,none,"Il est tard, donc je rentre.","It is late, so I am going home.",A1;core
+rien,nothing,pronoun,none,Je ne fais rien.,I am doing nothing.,A1;core
+quelque chose,something,pronoun,none,Je veux quelque chose à boire.,I want something to drink.,A1;core
+quelqu'un,someone,pronoun,none,Quelqu'un est à la porte.,Someone is at the door.,A1;core
+combien,how much / how many,adverb,none,Combien ça coûte ?,How much does it cost?,A1;core
+deux,two,number,none,J'ai deux chats.,I have two cats.,A1;core
+trois,three,number,none,Il y a trois livres.,There are three books.,A1;core
+quatre,four,number,none,Nous sommes quatre.,There are four of us.,A1;core
+cinq,five,number,none,Il est cinq heures.,It is five o'clock.,A1;core
+six,six,number,none,Il y a six personnes ici.,There are six people here.,A1;core
+sept,seven,number,none,La semaine a sept jours.,The week has seven days.,A1;core
+huit,eight,number,none,Il est huit heures.,It is eight o'clock.,A1;core
+neuf,nine,number,none,Elle a neuf ans.,She is nine years old.,A1;core
+dix,ten,number,none,J'ai dix euros.,I have ten euros.,A1;core
+entendre,to hear,verb,none,J'entends un bruit dans la cuisine.,I hear a noise in the kitchen.,A1;core
+tenir,to hold / to keep,verb,none,Je tiens ton sac.,I am holding your bag.,A2;core
+devenir,to become,verb,none,Il veut devenir médecin.,He wants to become a doctor.,A2;core
+revenir,to come back,verb,none,Je reviens demain.,I am coming back tomorrow.,A1;core
+utiliser,to use,verb,none,Tu peux utiliser mon sac.,You can use my bag.,A1;core
+essayer,to try,verb,none,J'essaie de parler français.,I am trying to speak French.,A1;core
+continuer,to continue,verb,none,Nous continuons demain.,We are continuing tomorrow.,A1;core
+arrêter,to stop,verb,none,Il arrête la musique.,He stops the music.,A2;core
+expliquer,to explain,verb,none,Il explique la question.,He explains the question.,A2;core
+préparer,to prepare,verb,none,Je prépare le repas.,I am preparing the meal.,A1;core
+décider,to decide,verb,none,Nous décidons ensemble.,We decide together.,A2;core
+raconter,to tell (a story),verb,none,Elle raconte une belle histoire.,She tells a lovely story.,A2;core
+s'appeler,to be called (my name is...),verb,none,Je m'appelle Marie.,My name is Marie.,A1;core
+se lever,to get up,verb,none,Je me lève à sept heures.,I get up at seven.,A1;core
+le fromage,cheese,noun,m,J'aime le fromage français.,I like French cheese.,A1;core
+la pomme,apple,noun,f,La pomme est rouge.,The apple is red.,A1;core
+la viande,meat,noun,f,Je ne mange pas de viande.,I do not eat meat.,A1;core
+le poisson,fish,noun,m,Le poisson est frais.,The fish is fresh.,A1;core
+le lait,milk,noun,m,Je bois du lait le matin.,I drink milk in the morning.,A1;core
+le sac,bag,noun,m,Où est mon sac ?,Where is my bag?,A1;core
+la clé,key,noun,f,Je cherche ma clé.,I am looking for my key.,A1;core
+la carte,card / map / menu,noun,f,Voici la carte du restaurant.,Here is the restaurant menu.,A1;core
+la lettre,letter,noun,f,J'écris une lettre à ma soeur.,I am writing a letter to my sister.,A1;core
+la mer,sea,noun,f,La mer est très belle.,The sea is very beautiful.,A1;core
+la montagne,mountain,noun,f,Nous marchons dans la montagne.,We are walking in the mountains.,A1;core
+la couleur,color,noun,f,Quelle est ta couleur préférée ?,What is your favorite color?,A2;core
+le rendez-vous,appointment / meeting,noun,m,J'ai un rendez-vous demain.,I have an appointment tomorrow.,A1;core
+le bruit,noise,noun,m,Il y a trop de bruit ici.,There is too much noise here.,A1;core
+les vacances,vacation / holidays,noun,f,Nous sommes en vacances.,We are on vacation.,A1;core
+rouge,red,adjective,none,La voiture est rouge.,The car is red.,A1;core
+bleu / bleue,blue,adjective,none,Le ciel est bleu.,The sky is blue.,A1;core
+blanc / blanche,white,adjective,none,Le chat est blanc.,The cat is white.,A1;core
+noir / noire,black,adjective,none,Mon sac est noir.,My bag is black.,A1;core
+vert / verte,green,adjective,none,La pomme est verte.,The apple is green.,A1;core
+dernier / dernière,last,adjective,none,C'est le dernier train.,It is the last train.,A1;core
+prochain / prochaine,next,adjective,none,À la prochaine !,See you next time!,A1;core
+premier / première,first,adjective,none,C'est la première fois.,It is the first time.,A1;core
+long / longue,long,adjective,none,La rue est longue.,The street is long.,A1;core
+depuis,since / for,preposition,none,J'habite ici depuis un an.,I have lived here for a year.,A2;core
+vers,toward / around,preposition,none,Je rentre vers six heures.,I go home around six o'clock.,A2;core
+contre,against,preposition,none,Je suis contre cette idée.,I am against this idea.,A2;core

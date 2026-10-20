@@ -9,24 +9,92 @@
           --accent:#7b6cff; --line:rgba(150,140,255,.35); --type:#6b7a8f; }
   [hidden] { display:none !important; }
 
-  /* ---------- galaxy background ---------- */
+  /* ---------- space background (drawn by drawSky in the script) ---------- */
   body { font-family: system-ui, sans-serif; color:var(--text); margin:0; padding:24px;
          display:flex; flex-direction:column; align-items:center; min-height:100vh; box-sizing:border-box;
-         background:
-           radial-gradient(ellipse at 15% 5%, rgba(123,108,255,.30), transparent 50%),
-           radial-gradient(ellipse at 85% 25%, rgba(60,170,255,.20), transparent 55%),
-           radial-gradient(ellipse at 50% 100%, rgba(255,90,200,.16), transparent 50%),
-           var(--bg);
-         background-attachment: fixed; }
-  body::before { content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.8;
-         background-image:
-           radial-gradient(1px 1px at 20px 30px, #fff, transparent),
-           radial-gradient(1.5px 1.5px at 90px 120px, #cfd8ff, transparent),
-           radial-gradient(1px 1px at 160px 60px, #fff, transparent),
-           radial-gradient(1px 1px at 50px 170px, #ffd9ff, transparent),
-           radial-gradient(1.5px 1.5px at 130px 20px, #fff, transparent);
-         background-size:200px 200px; animation: twinkle 6s ease-in-out infinite alternate; }
-  @keyframes twinkle { from { opacity:.45; } to { opacity:.95; } }
+         background:#03040a; }
+  #sky, #twinkle { position:fixed; top:0; left:0; z-index:-1; pointer-events:none; }
+  html.zooming { overflow:hidden; }   /* no scrollbars while the nebula zooms past the screen edges */
+
+  /* ---------- home screen ---------- */
+  #home, #stacks { width:100%; max-width:560px; min-height:85svh; display:flex; flex-direction:column;
+                   align-items:center; justify-content:center; text-align:center; }
+  .welcome { font-size:1rem; font-weight:500; letter-spacing:.3em; color:var(--muted); background:none; margin:0; }
+  .welcome span { display:block; margin-top:8px; font-size:2.6rem; font-weight:700; letter-spacing:.22em;
+                  background:linear-gradient(90deg,#b9a9ff,#6fc3ff,#ff9be6); -webkit-background-clip:text;
+                  background-clip:text; color:transparent; }
+  .sub, .hint { color:var(--muted); margin:8px 0; }
+  .hint { font-size:.85rem; letter-spacing:.1em; animation:breathe 3s ease-in-out infinite alternate; }
+  @keyframes breathe { from { opacity:.45; } to { opacity:1; } }
+
+  /* the nebula: three layers of soft colored clouds, slowly turning in opposite directions */
+  #nebula { position:relative; width:min(72vw, 300px, 40svh); aspect-ratio:1; margin:32px 0 16px; padding:0;
+            border:none; border-radius:50%; background:none; cursor:pointer;
+            transition:transform .9s cubic-bezier(.5,0,.75,0), opacity .9s ease-in; }
+  #nebula::before, #nebula::after, #nebula span { content:""; position:absolute; inset:0; border-radius:50%; }
+  #nebula::before { filter:blur(6px); animation:swirl 40s linear infinite;
+    background:
+      radial-gradient(circle, rgba(255,255,255,.95) 0 2%, rgba(255,225,250,.55) 5%, transparent 16%),
+      radial-gradient(ellipse 40% 28% at 40% 45%, rgba(255,90,200,.55), transparent 70%),
+      radial-gradient(ellipse 45% 30% at 60% 58%, rgba(60,170,255,.5), transparent 70%),
+      radial-gradient(ellipse 55% 40% at 50% 50%, rgba(123,108,255,.55), transparent 72%); }
+  #nebula::after { filter:blur(10px); animation:swirl 60s linear infinite reverse;
+    background:
+      radial-gradient(ellipse 30% 50% at 35% 60%, rgba(255,150,120,.35), transparent 70%),
+      radial-gradient(ellipse 50% 22% at 62% 38%, rgba(140,120,255,.45), transparent 70%),
+      radial-gradient(ellipse 35% 35% at 70% 70%, rgba(255,90,200,.3), transparent 70%); }
+  #nebula span { background:radial-gradient(circle, rgba(123,108,255,.28), transparent 65%);
+                 animation:pulse 5s ease-in-out infinite alternate; }
+  @keyframes swirl { to { transform:rotate(360deg); } }
+  @keyframes pulse { from { transform:scale(.92); opacity:.7; } to { transform:scale(1.08); opacity:1; } }
+  /* tapping it: the nebula rushes toward you and everything else fades */
+  #home.entering #nebula { transform:scale(9); opacity:0; }
+  #home.entering .welcome, #home.entering .sub, #home.entering .hint { opacity:0; transition:opacity .4s; }
+
+  /* ---------- choose a stack ---------- */
+  #stacks h2 { font-size:1.5rem; margin:0; }
+  #stacklist { width:100%; display:flex; flex-direction:column; gap:12px; margin-top:20px; color:var(--muted); }
+  .stack { display:flex; flex-direction:column; align-items:flex-start; gap:3px; text-align:left;
+           padding:14px 18px; min-height:64px; border-radius:14px; background:rgba(20,20,45,.75); }
+  .stack b { font-size:1.15rem; color:var(--text); }
+  .stack span { color:var(--muted); font-size:.9rem; }
+  .stack small { color:#6fc3ff; font-size:.8rem; margin-top:3px; }
+  #newdeck { width:100%; box-sizing:border-box; margin-top:12px; padding:14px 18px; border:1px dashed var(--line);
+             border-radius:14px; color:var(--muted); cursor:pointer; min-height:52px; display:flex; align-items:center; justify-content:center; }
+  #stackmsg { color:var(--muted); font-size:.9rem; margin-top:10px; min-height:1.2em; }
+  #backhome { margin-top:20px; background:none; border:none; color:var(--muted); min-height:44px; }
+
+  /* ---------- studying ---------- */
+  #study { width:100%; display:flex; flex-direction:column; align-items:center; }
+  /* the ‹ button sits on the left of the title row; the title stays centered */
+  #studyhead { position:relative; width:100%; max-width:560px; min-height:44px; margin-bottom:10px;
+               display:flex; align-items:center; justify-content:center; }
+  #studyhead h1 { margin:0; }
+  #gohome, #gohelp, #gosettings, #howback, #focusback { position:absolute; left:0; top:0; width:44px; height:44px; padding:0; font-size:1.5rem; border-radius:50%; }
+  #gohelp { left:auto; right:0; font-size:1.2rem; }
+  #gosettings { left:auto; right:50px; font-size:1.2rem; }
+
+  /* your own decks get ✎ (rename) and 🗑 (delete) buttons on the stack screen */
+  .stackrow { position:relative; }
+  .stackrow .stack { width:100%; }
+  .stackrow.custom .stack { padding-right:112px; }
+  .stacktools { position:absolute; top:10px; right:10px; display:flex; gap:6px; }
+  .stacktools button { width:44px; height:44px; padding:0; font-size:1rem; border-radius:50%; }
+
+  /* ---------- how-to page ---------- */
+  #howto { width:100%; max-width:560px; text-align:left; }
+  .howhead { position:relative; min-height:44px; display:flex; align-items:center; justify-content:center; margin-bottom:4px; }
+  .howhead h2 { margin:0; font-size:1.3rem; }
+  .howsec { margin-top:12px; padding:14px 18px; border:1px solid var(--line); border-radius:14px; background:rgba(20,20,45,.75); }
+  .howsec h3 { margin:0 0 6px; font-size:1.05rem; color:#b9a9ff; }
+  .howsec ul { margin:0; padding-left:18px; color:var(--muted); font-size:.92rem; line-height:1.5; }
+  .howsec li { margin-top:4px; }
+  .howsec b { color:var(--text); font-weight:600; }
+  .linkbtn { background:none; border:none; color:var(--muted); text-decoration:underline; min-height:44px; font-size:.9rem; }
+  #howback2 { display:block; margin:12px auto 0; text-decoration:none; }
+  /* opacity only: a transform here would unpin the fixed answer buttons from the bottom of the screen */
+  .fadein { animation:fadein .5s ease; }
+  @keyframes fadein { from { opacity:0; } }
 
   h1 { font-size:1.9rem; margin:0 0 12px; letter-spacing:.22em; text-transform:uppercase;
        background:linear-gradient(90deg,#b9a9ff,#6fc3ff,#ff9be6); -webkit-background-clip:text;
@@ -51,6 +119,59 @@
   #timer[open] .arrow { transform:rotate(180deg); }
   /* open: the controls appear underneath */
   #tcontrols { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; padding:4px 12px 10px; }
+  /* music panels: one in the timer dropdown, one on the Focus page. Both use the same player. */
+  .musicpanel { display:flex; flex-direction:column; gap:8px; }
+  #timer .musicpanel { padding:8px 12px 12px; border-top:1px solid var(--line); }
+  .musicpanel .label { color:var(--muted); font-size:.85rem; }
+  /* the slot is an empty space the size of the player; the real player is laid on top of it (see placePlayer) */
+  .playerslot { width:100%; display:none; }
+  .playerslot.yt { display:block; aspect-ratio:16/9; }   /* YouTube: video shape */
+  .playerslot.sc { display:block; height:166px; }        /* SoundCloud: its standard player height */
+  #playerhost { position:absolute; left:-10000px; top:0; z-index:4; border-radius:10px; overflow:hidden; }
+  #playerhost iframe { display:block; width:100%; height:100%; border:0; }
+  .musicnav { display:flex; gap:8px; }
+  .musicnav button { flex:1; }
+  .musicnav[hidden] { display:none; }
+  .musicform { display:flex; gap:8px; }
+  .musicform input { flex:1; min-width:0; padding:8px 12px; font-size:.9rem; border-radius:10px;
+                     border:1px solid var(--line); background:rgba(30,30,62,.85); color:var(--text); }
+  .musicmsg { color:var(--muted); font-size:.85rem; }
+  .musicmsg:empty { display:none; }
+
+  /* ---------- Focus page: the timer and music on their own ---------- */
+  #focus { width:100%; max-width:480px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; }
+  #focus .howhead { width:100%; }
+  .fsub { color:var(--muted); font-size:.9rem; margin:-8px 0 0; }
+  /* the big clock: a ring that empties as time passes, with the time in the middle */
+  .fclock { position:relative; width:min(74vw, 280px); aspect-ratio:1; display:flex; flex-direction:column;
+            align-items:center; justify-content:center; }
+  .fclock svg { position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg); }
+  .fclock circle { fill:none; stroke-width:6; }
+  .fclock .track { stroke:rgba(150,140,255,.18); }
+  .fclock .bar { stroke:var(--accent); stroke-linecap:round; transition:stroke-dashoffset .5s linear; }
+  #focus.onbreak .fclock .bar { stroke:#2fbf9b; }
+  #fphase { font-size:.9rem; font-weight:600; padding:2px 12px; border-radius:999px; background:var(--accent); color:#fff; }
+  #focus.onbreak #fphase { background:#2fbf9b; }
+  #ftime { font-size:clamp(3rem, 16vw, 4.5rem); font-weight:700; font-variant-numeric:tabular-nums; margin:4px 0; }
+  #fsessions { color:var(--muted); font-size:.85rem; min-height:1.2em; }
+  .fbuttons { display:flex; gap:10px; width:100%; }
+  .fbuttons button { flex:1; min-height:52px; }
+  #fstart { background:linear-gradient(135deg,#7b6cff,#4aa3ff); color:#fff; border:none; font-weight:600; }
+  .fmode { color:var(--muted); font-size:.9rem; display:flex; gap:8px; align-items:center; }
+  #fcustom { display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; }
+  #fcustom[hidden] { display:none; }
+  #fcustom label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.8rem; text-align:left; }
+  #fcustom input { font-size:1rem; padding:8px 10px; border-radius:10px; border:1px solid var(--line);
+                   background:rgba(30,30,62,.85); color:var(--text); }
+  .focusmusic { width:100%; box-sizing:border-box; padding:12px; border:1px solid var(--line); border-radius:14px;
+                background:rgba(20,20,45,.6); text-align:left; }
+  #fmsg { color:var(--muted); font-size:.9rem; min-height:1.2em; margin:0; }
+  .homebtn { margin-top:4px; min-height:44px; border-radius:999px; }
+  /* the Focus page shown as a tab inside the flashcards page: no title or back button (the tabs do that job) */
+  #focus.embedded .howhead, #focus.embedded .fsub { display:none; }
+  /* a little ♪ next to the time when music is set, placed so it doesn't push the time off-center */
+  #time { position:relative; }
+  #timer.hasmusic #time::after { content:"♪"; position:absolute; left:100%; margin-left:4px; font-size:.8em; color:var(--muted); }
   #time { font-variant-numeric:tabular-nums; font-size:1.1rem; font-weight:600; min-width:3.6em; text-align:center; }
   #timer.done #time { color:#ffd447; }
   #timer button { padding:5px 12px; font-size:.85rem; }
@@ -102,7 +223,7 @@
              padding:10px; font-size:.9rem; color:var(--muted); min-height:64px; }
 
   /* audio buttons */
-  .speak { margin-top:8px; background:none; border:1px solid rgba(150,140,255,.45);
+  .speak, .burnspeak { margin-top:8px; background:none; border:1px solid rgba(150,140,255,.45);
            border-radius:999px; padding:4px 12px; font-size:1.1rem; cursor:pointer; }
   .textbox .speak { margin:0 0 0 6px; padding:2px 8px; font-size:1rem; }
 
@@ -114,6 +235,54 @@
   /* the small line under Again/Hard/Good/Easy: when you'd see the card next */
   #buttons small { display:block; font-size:.75rem; font-weight:400; opacity:.8; }
   #buttons small:empty { display:none; }
+
+  /* ---------- Burn After Reading ---------- */
+  #burnview { width:100%; max-width:420px; text-align:center; }
+  .burntitle { font-size:1.2rem; margin:4px 0 10px; letter-spacing:.08em;
+               background:linear-gradient(90deg,#ffb347,#ff5d8f,#7b6cff); -webkit-background-clip:text;
+               background-clip:text; color:transparent; }
+  .burnpanel { display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .burnnote, .burncount { color:var(--muted); font-size:.9rem; margin:0; }
+  .burnnote:empty { display:none; }
+  /* the card: dark inside, with a fiery orange → pink → purple frame */
+  .burncard { width:100%; box-sizing:border-box; padding:28px 16px 20px; border-radius:20px; border:3px solid transparent;
+              background:linear-gradient(var(--card), var(--card)) padding-box,
+                         linear-gradient(135deg,#ffb347,#ff5d8f,#7b6cff) border-box;
+              box-shadow:0 6px 24px rgba(0,0,0,.5); }
+  .burnfr { font-size:2rem; font-weight:700; }
+  .burnen { font-size:1.2rem; color:var(--muted); margin-top:8px; }
+  .burnbig { width:100%; min-height:56px; font-size:1.1rem; font-weight:600; border:none; color:#fff;
+             background:linear-gradient(135deg,#ff8a3d,#ff5d8f); }
+  .burnprompt { font-size:1.6rem; font-weight:700; }
+  #burn-options { width:100%; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  #burn-options button { min-height:56px; padding:8px; font-size:1.1rem; }
+  #burn-options button:disabled { cursor:default; opacity:1; color:var(--text); -webkit-text-fill-color:var(--text); }
+  #burn-options button.right { background:rgba(47,191,155,.3); border-color:#2fbf9b; }
+  #burn-options button.wrong { background:rgba(255,107,107,.3); border-color:#ff6b6b; }
+  .burnfeedback { min-height:1.4em; margin:0; font-weight:600; }
+  .burnscore { font-size:1.6rem; font-weight:700; margin-top:8px; }
+  #burn-missed { width:100%; text-align:left; color:var(--muted); }
+  #burn-missed .row { border:1px solid var(--line); border-radius:10px; margin-top:6px; }
+  #burn-missed .w { color:var(--text); }   /* the French spelling stands out; the English stays dim */
+
+  /* the meteor: a little card stack that catches fire (::after), grows a tail (::before), and shoots off */
+  #meteor { position:relative; width:90px; height:120px; margin:70px auto 40px; border-radius:12px;
+            background:linear-gradient(160deg, var(--card), #2a2050); border:2px solid var(--accent);
+            box-shadow:6px -6px 0 -1px rgba(123,108,255,.5), 12px -12px 0 -2px rgba(123,108,255,.3); }
+  #meteor::after { content:""; position:absolute; inset:-2px; border-radius:inherit; opacity:0;
+                   background:radial-gradient(circle at 35% 35%, #fff6d5, #ffb347 30%, #ff5d3a 65%, #7b2cff); }
+  #meteor::before { content:""; position:absolute; top:50%; right:60%; width:0; height:16px; border-radius:8px;
+                    transform:translateY(-50%); filter:blur(2px);
+                    background:linear-gradient(to left, rgba(255,214,140,.95), rgba(255,93,143,.5) 40%, transparent); }
+  #meteor.go { animation:ignite .7s ease-in forwards, meteor 1.3s .7s cubic-bezier(.55,0,.9,.4) forwards; }
+  #meteor.go::after { animation:fire .7s ease-in forwards; }
+  #meteor.go::before { animation:tail 1.3s .7s forwards; }
+  @keyframes ignite { to { border-radius:50%; border-color:#ffb347; transform:rotate(-40deg) scale(.6);
+                           box-shadow:0 0 30px #ff8a3d, 0 0 70px rgba(255,93,143,.7); } }
+  @keyframes fire { to { opacity:1; } }
+  @keyframes tail { to { width:320px; } }
+  @keyframes meteor { from { transform:rotate(-40deg) scale(.6); }
+                      to { transform:translate(70vw, -70vh) rotate(-40deg) scale(.1); opacity:0; } }
 
   /* ---------- deck view ---------- */
   #deckview { width:100%; max-width:560px; }
@@ -133,10 +302,33 @@
   .row .s.due { color:#ffd447; }
   .row .s.n { color:#6fc3ff; }
 
-  #settings { margin-top:28px; display:flex; flex-wrap:wrap; gap:12px; align-items:center;
-              justify-content:center; color:var(--muted); font-size:.9rem; max-width:560px; }
+  /* settings panel, opened with ⚙ */
+  #settings { width:100%; max-width:560px; box-sizing:border-box; margin:0 0 12px; padding:12px 14px;
+              display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:center;
+              border:1px solid var(--line); border-radius:14px; background:rgba(20,20,45,.85);
+              color:var(--muted); font-size:.9rem; }
   #settings select { padding:6px 10px; font-size:.9rem; max-width:200px; }
   #voiceinfo { font-size:.8rem; }
+  #setdone { background:var(--accent); color:#fff; border:none; }
+
+  /* deck tab: buttons above the list, tappable rows, and the card editor */
+  #deckactions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  #deckactions #practicefiltered { margin-bottom:0; }
+  #decklist .row { cursor:pointer; }
+  .row .s.sus { color:#ff6b6b; }
+  #editor { display:flex; flex-direction:column; gap:10px; }
+  #editor h3 { margin:0; }
+  #editor label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.85rem; }
+  #editor input, #editor select { font-size:1rem; padding:10px 12px; border-radius:10px; border:1px solid var(--line);
+                                  background:rgba(30,30,62,.85); color:var(--text); }
+  #ed-msg { margin:0; color:var(--muted); font-size:.85rem; min-height:1.2em; }
+  #edbuttons { display:flex; flex-wrap:wrap; gap:8px; }
+  #ed-save { background:linear-gradient(135deg,#7b6cff,#4aa3ff); color:#fff; border:none; }
+  #ed-delete { border-color:rgba(255,107,107,.6); color:#ffb3b3; }
+  #ed-delete:disabled { opacity:.4; cursor:default; }
+
+  /* the "EN → FR" badge on English-first cards */
+  .new.dir { background:var(--accent); color:#fff; margin-right:4px; }
 
   /* ---------- swiping the card ---------- */
   /* pan-y: up/down drags still scroll the page, sideways drags are ours */
@@ -146,12 +338,14 @@
 
   /* ---------- phones (like the iPhone 16, 393px wide): one-handed layout ---------- */
   @media (max-width: 480px) {
-    /* the extra bottom padding keeps the fixed buttons from covering the settings */
-    body { padding:calc(10px + env(safe-area-inset-top)) 16px 110px; }
+    body { padding:calc(10px + env(safe-area-inset-top)) 16px 16px; }
+    #study { padding-bottom:94px; }   /* room so the fixed buttons never cover the settings */
     h1 { font-size:1.3rem; margin-bottom:6px; }
     #timer { margin-bottom:8px; }
     #timer summary { min-height:44px; padding:0 14px; }
     #tabs { gap:6px; margin-bottom:6px; }
+    #tabs button { padding:8px 12px; }   /* narrower, so all five tabs fit on one row */
+    .tablabel { display:none; }           /* 🔥 and ⏱ show as icons only on phones */
     #status { margin:0; }
     /* the card takes the height left between the top bars and the bottom buttons (measured in fitCard) */
     #scene { height:clamp(180px, calc(100svh - var(--above, 230px) - var(--below, 96px)), 440px); margin:8px 0; }
@@ -162,11 +356,14 @@
     #buttons button { flex:1; min-width:0; min-height:56px; padding:8px 4px; font-size:1.15rem; font-weight:600; }
     /* every tap target at least 44px tall (Apple's guideline) */
     #timer button, #timer select, #tabs button, #settings button, #settings select,
-    #filters select, #filters input, #practicefiltered { min-height:44px; }
+    #filters select, #filters input, #practicefiltered, #deckactions button, #edbuttons button { min-height:44px; }
+    #editor input, #editor select { min-height:44px; font-size:16px; }
     select { height:44px; }   /* iPhone ignores min-height on dropdowns */
-    .speak, .textbox .speak { min-width:44px; min-height:44px; }
+    .speak, .textbox .speak, .burnspeak { min-width:44px; min-height:44px; }
     /* iPhone zooms in on any text box smaller than 16px when you tap it */
     #filters select, #filters input, #settings select { font-size:16px; }
+    .musicform input, #fcustom input { font-size:16px; min-height:44px; }
+    .musicnav button { min-height:44px; }
     /* tighter spacing so everything stays inside the card when it's short */
     .face { padding:8px; }
     .inner { padding:10px; overflow:hidden; }
@@ -181,30 +378,253 @@
 </style>
 </head>
 <body>
-  <h1>Qarbon</h1>
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <canvas id="twinkle" aria-hidden="true"></canvas>
+  <!-- the one music player. It's moved on top of whichever music panel is showing,
+       so the music never restarts when you switch pages. -->
+  <div id="playerhost"></div>
 
   <div id="boot">Starting Qarbon… If this message stays, the page's code did not finish loading (the file may have been cut off).</div>
+
+  <!-- ===== screen 1: home ===== -->
+  <section id="home">
+    <h1 class="welcome">Welcome to <span>Qarbon</span></h1>
+    <p class="sub">Flashcards that connect us all</p>
+    <button id="nebula" aria-label="Enter the nebula"><span></span></button>
+    <p class="hint">Tap the nebula to enter</p>
+    <button id="homefocus" class="homebtn">⏱ Focus timer</button>
+    <button id="howtolink" class="linkbtn">How to use Qarbon</button>
+  </section>
+
+  <!-- ===== Focus page: the study timer and music on their own, for any kind of studying =====
+       It's the same timer and the same music as in the flashcards' timer dropdown. -->
+  <section id="focus" hidden>
+    <header class="howhead">
+      <button id="focusback" aria-label="Back" title="Back">‹</button>
+      <h2>Focus</h2>
+    </header>
+    <p class="fsub">A timer and music for any kind of studying</p>
+
+    <div class="musicpanel focusmusic">
+      <div class="label">♪ Music</div>
+      <div class="playerslot"></div>
+      <div class="musicnav" hidden><button class="musicprev">⏮ Previous</button><button class="musicnext">Next ⏭</button></div>
+      <div class="musicform">
+        <input type="url" class="musicurl" placeholder="Paste a YouTube or SoundCloud link" autocomplete="off">
+        <button class="musicset">Play</button>
+      </div>
+      <div class="musicmsg"></div>
+      <button class="musicclear" hidden>Remove music</button>
+    </div>
+
+    <div class="fclock">
+      <!-- the ring: a circle whose outline shrinks as the time runs down -->
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="track" cx="60" cy="60" r="54"></circle>
+        <circle id="fring" class="bar" cx="60" cy="60" r="54"></circle>
+      </svg>
+      <span id="fphase">Focus</span>
+      <span id="ftime">25:00</span>
+      <span id="fsessions"></span>
+    </div>
+
+    <div class="fbuttons">
+      <button id="fstart">Start</button>
+      <button id="freset">Reset</button>
+      <button id="fskip" title="Jump to the next part (break or focus)">Skip ⏭</button>
+    </div>
+
+    <label class="fmode">Timer style <select id="ftmode"></select></label>
+    <!-- only shown for the Custom style -->
+    <div id="fcustom" hidden>
+      <label>Focus (minutes)<input type="number" id="c-focus" min="1" max="180" inputmode="numeric"></label>
+      <label>Break (minutes)<input type="number" id="c-short" min="1" max="60" inputmode="numeric"></label>
+      <label>Long break (minutes)<input type="number" id="c-long" min="1" max="90" inputmode="numeric"></label>
+      <label>Long break after every … focus sessions<input type="number" id="c-every" min="1" max="12" inputmode="numeric"></label>
+    </div>
+    <p id="fmsg"></p>
+
+  </section>
+
+  <!-- ===== screen 2: choose a stack ===== -->
+  <section id="stacks" hidden>
+    <h2>Choose your stack</h2>
+    <div id="stacklist"></div>
+    <!-- clicking the label opens the hidden file picker -->
+    <label id="newdeck">+ New deck from a CSV file<input type="file" id="file" accept=".csv" hidden></label>
+    <div id="stackmsg"></div>
+    <button id="backhome">‹ Back</button>
+  </section>
+
+  <!-- ===== how-to page: everything Qarbon can do (opened from home or the ? button) ===== -->
+  <section id="howto" hidden>
+    <header class="howhead">
+      <button id="howback" aria-label="Back" title="Back">‹</button>
+      <h2>How to use Qarbon</h2>
+    </header>
+
+    <div class="howsec">
+      <h3>Getting started</h3>
+      <ul>
+        <li>Tap the <b>nebula</b> on the home screen, then pick a <b>stack</b>.</li>
+        <li>Built-in stacks: <b>Beginner 150</b> and <b>Level 2</b> (150 more words). <b>All my cards</b> has everything.</li>
+        <li><b>Make your own deck:</b> on the stack screen, tap <b>+ New deck from a CSV file</b>, pick the file and name it. It stays saved. A word that's in two decks shares one set of progress.</li>
+        <li>Your own decks have <b>✎</b> to rename them and <b>🗑</b> to delete them. Deleting a deck keeps its cards in All my cards.</li>
+        <li><b>CSV format:</b> the first row needs <b>front</b> (French) and <b>back</b> (English). Optional columns: part_of_speech, gender (m, f or m/f), example_target, example_english, tags (levels like A1, A2, B1, B2, separated by <b>;</b>).</li>
+        <li>On the study page, <b>‹</b> (top left) goes back to your stacks, <b>⚙</b> opens the settings, and <b>?</b> opens this page.</li>
+      </ul>
+    </div>
+
+    <div class="howsec">
+      <h3>Review</h3>
+      <ul>
+        <li>Shows the cards due today, plus a few new ones (set how many under <b>New cards per day</b>).</li>
+        <li><b>Flip:</b> tap the card, tap <b>Show answer</b>, or press Space/Enter. Tap again to peek back at the front.</li>
+        <li><b>Rate it:</b> Again, Hard, Good or Easy (keys 1 to 4). The small text under each button is when you'll see the card next.</li>
+        <li><b>Swipe</b> right for Good, left for Again (after flipping).</li>
+        <li><b>Again</b> brings the card back a few cards later today, and again tomorrow.</li>
+        <li><b>Scheduling works like Anki:</b> every card has an "ease" (starts at 2.5). Good multiplies the wait by it. Hard grows the wait a little and lowers the ease. Easy jumps further and raises it. Again resets the card to 1 day. Words you find hard come back more often.</li>
+        <li>🔊 says the word or the example sentence. The card's frame color shows the word type: noun green, verb pink, adjective orange, adverb purple, pronoun blue.</li>
+        <li><b>Reverse cards:</b> in <b>⚙ → Card direction</b>, each stack can be <b>French → English</b>, <b>English → French</b> (you answer in French; the card shows <b>EN → FR</b>), or <b>Both</b>. Each direction has its own schedule. With Both, a new word's English → French side unlocks once you've seen it French-first.</li>
+      </ul>
+    </div>
+
+    <div class="howsec">
+      <h3>Deck</h3>
+      <ul>
+        <li>Browse every card in the stack: search, filter by level or word type, and see each card's status (new, due today, or its next date).</li>
+        <li><b>Practice these</b> practices just the cards you filtered.</li>
+        <li><b>Tap a card</b> to edit it. Change the spelling, meaning, word type, gender, example or tags; its progress stays.</li>
+        <li><b>Suspend</b> a card to stop it coming up in Review, Practice and Burn (it shows as "suspended" in the list). Unsuspend it any time.</li>
+        <li><b>Delete</b> removes a card and its progress. Words from Beginner 150 and Level 2 can be suspended but not deleted.</li>
+        <li><b>+ Add card</b> makes a new card. In your own deck it goes into that deck; otherwise it goes into All my cards.</li>
+      </ul>
+    </div>
+
+    <div class="howsec">
+      <h3>Practice</h3>
+      <ul>
+        <li>Goes through every card in the stack in random order. <b>It never changes your schedule</b>, so practice as much as you like.</li>
+        <li>Cards you miss come back at the end, and you get a score when you finish.</li>
+      </ul>
+    </div>
+
+    <div class="howsec">
+      <h3>🔥 B.A.R. Exam (Burn After Reading)</h3>
+      <ul>
+        <li>Tap the <b>🔥 B.A.R. Exam</b> tab. It takes 10 cards you've never studied from the stack (fewer if that's all that's left).</li>
+        <li><b>Read</b> each one once, and hear it. There's no going back.</li>
+        <li>The cards <b>burn up</b>. Then for each English word, pick the exact French spelling out of 4: the right one, an accent trap, a spelling trap, and another real word.</li>
+        <li>Right counts as Good, wrong as Hard, and missed words go <b>first in your next Review</b>. The end screen shows how many "survived the burn".</li>
+      </ul>
+    </div>
+
+    <div class="howsec">
+      <h3>⏱ Focus page (timer and music for any studying)</h3>
+      <ul>
+        <li>Open it with <b>⏱ Focus timer</b> on the home screen (<b>‹</b> takes you back), or with the <b>⏱ Focus</b> tab next to 🔥 B.A.R. Exam on the flashcards page, where the tabs stay so you can switch straight back to Review. (On phones those two tabs show just their icons.)</li>
+        <li>The music player is at the top, then a big clock with a ring that empties as time passes. <b>Start/Pause</b>, <b>Reset</b>, and <b>Skip</b> (jump to the break, or back to focus; a skipped focus session isn't counted). On a computer, Space starts and pauses.</li>
+        <li>It's the <b>same timer and music</b> as the flashcards' dropdown: start it here, go study cards, and it keeps going.</li>
+      </ul>
+    </div>
+
+    <div class="howsec">
+      <h3>Timer and music</h3>
+      <ul>
+        <li>Tap the time to open the timer on the flashcards page, or use the Focus page.</li>
+        <li>Styles: <b>Pomodoro 25/5</b> (a 15 min break every 4th time), <b>Long Pomodoro 50/10</b> (a 30 min break every 3rd time), <b>52/17</b>, <b>Deep work 90/20</b>, <b>15 min</b>, <b>30 min</b>, <b>1 hour</b>, or <b>Custom</b>.</li>
+        <li><b>Custom</b> (set on the Focus page): choose the focus, break and long-break lengths, and after how many focus sessions the long break comes.</li>
+        <li>A chime plays when time is up, and the next part waits for you to press Start. Finished focus sessions are counted.</li>
+        <li><b>Music:</b> paste a <b>YouTube</b> or <b>SoundCloud</b> link and press Play. It keeps playing when you close the panel or switch pages (a ♪ shows next to the time). <b>Remove music</b> clears it.</li>
+        <li><b>⏮ Previous / Next ⏭</b> appear for playlists (YouTube playlists, and SoundCloud links with /sets/ in them).</li>
+        <li>YouTube may not play when index.html is opened straight from the Mac. It works on the website.</li>
+      </ul>
+    </div>
+
+    <div class="howsec">
+      <h3>Voice</h3>
+      <ul>
+        <li>Choose <b>Female (Amélie)</b> or <b>Male (Thomas)</b> in <b>⚙</b> settings. Qarbon uses the French voices installed on your device; if that one isn't there, it uses another French voice.</li>
+      </ul>
+    </div>
+
+    <div class="howsec">
+      <h3>Saving and backups</h3>
+      <ul>
+        <li>Progress saves automatically, <b>in this browser on this device</b>. Your phone and your Mac keep separate progress.</li>
+        <li>In <b>⚙</b> settings: <b>New cards per day</b> sets how many new words Review adds each day.</li>
+        <li><b>Export backup</b> (in ⚙) downloads a file with all your cards, progress, decks and settings. <b>Restore backup</b> replaces your progress with a backup (it asks first). Use these to move progress between devices.</li>
+        <li>Private browsing windows can block saving. Qarbon shows a warning if that happens.</li>
+      </ul>
+    </div>
+
+    <div class="howsec">
+      <h3>iPhone tips</h3>
+      <ul>
+        <li>In Safari, tap <b>Share → Add to Home Screen</b> to open Qarbon like an app.</li>
+        <li>Keep Safari's zoom at 100%.</li>
+        <li>Sound only starts after a tap (Apple's rule), and music stops when the screen locks.</li>
+        <li>The <b>build number</b> at the bottom of the study page tells you which version you have.</li>
+      </ul>
+    </div>
+
+    <button id="howback2" class="linkbtn">‹ Back</button>
+  </section>
+
+  <!-- ===== screen 3: studying (the app as it was before) ===== -->
+  <main id="study" hidden>
+  <header id="studyhead">
+    <button id="gohome" aria-label="Back to stacks" title="Back to stacks">‹</button>
+    <h1>Qarbon</h1>
+    <button id="gosettings" aria-label="Settings" title="Settings">⚙</button>
+    <button id="gohelp" aria-label="How to use Qarbon" title="How to use Qarbon">?</button>
+  </header>
+
+  <!-- settings: hidden until you tap ⚙ -->
+  <div id="settings" hidden>
+    <label>New cards per day
+      <select id="perday"><option>10</option><option>20</option><option>30</option></select>
+    </label>
+    <label>Card direction (this stack) <select id="direction"></select></label>
+    <label>Voice <select id="voice"></select></label>
+    <span id="voiceinfo"></span>
+    <button id="export">Export backup</button>
+    <label>Restore backup <input type="file" id="restore" accept=".json"></label>
+    <button id="setdone">Done</button>
+  </div>
 
   <!-- <details> is a built-in dropdown panel: tap the <summary> line to open or close it -->
   <details id="timer">
     <summary><span id="phase">Focus</span><span id="time">25:00</span><span class="arrow">▾</span></summary>
     <div id="tcontrols">
-    <select id="tmode" title="Timer style">
-      <option value="pomodoro">Pomodoro 25/5</option>
-      <option value="m15">15 min</option>
-      <option value="m30">30 min</option>
-      <option value="hour">1 hour</option>
-    </select>
+    <select id="tmode" title="Timer style"></select>   <!-- the styles are filled in by the script -->
     <button id="tstart">Start</button>
     <button id="treset">Reset</button>
     <span id="sessions"></span>
+    <button id="openfocus" title="Open the Focus page">⤢ Focus page</button>
+    </div>
+    <!-- music: paste a YouTube or SoundCloud link to play it while you study.
+         It keeps playing when this panel is closed. -->
+    <div class="musicpanel">
+      <div class="label">♪ Music while you study</div>
+      <div class="playerslot"></div>
+      <div class="musicnav" hidden><button class="musicprev">⏮ Previous</button><button class="musicnext">Next ⏭</button></div>
+      <div class="musicform">
+        <input type="url" class="musicurl" placeholder="Paste a YouTube or SoundCloud link" autocomplete="off">
+        <button class="musicset">Play</button>
+      </div>
+      <div class="musicmsg"></div>
+      <button class="musicclear" hidden>Remove music</button>
     </div>
   </details>
 
   <div id="tabs">
-    <button id="tab-daily">Daily review</button>
+    <button id="tab-daily">Review</button>
     <button id="tab-deck">Deck</button>
-    <button id="tab-practice">Practice all</button>
+    <button id="tab-practice">Practice</button>
+    <!-- on phones only the icons show (the words are hidden to fit five tabs); aria-label keeps them readable -->
+    <button id="tab-burn" title="B.A.R. Exam: Burn After Reading" aria-label="B.A.R. Exam (Burn After Reading)">🔥<span class="tablabel"> B.A.R. Exam</span></button>
+    <button id="tab-focus" title="Focus timer and music" aria-label="Focus">⏱<span class="tablabel"> Focus</span></button>
   </div>
 
   <div id="cardview">
@@ -214,11 +634,15 @@
         <div class="face front-face"><div class="inner">
           <div class="top">
             <span id="type1" class="pill"></span>
-            <span id="newbadge" class="new">New</span>
+            <span>
+              <span id="dirbadge" class="new dir" hidden>EN → FR</span>
+              <span id="newbadge" class="new">New</span>
+            </span>
           </div>
           <div class="art"><div>
             <div id="front"></div>
-            <button class="speak" data-speak="front" title="Hear it">🔊</button>
+            <!-- hidden when the English is on the front, so the sound doesn't give the answer away -->
+            <button id="speakfront" class="speak" data-speak="front" title="Hear it">🔊</button>
           </div></div>
           <div class="textbox">Think it through, then tap the card to flip it.</div>
         </div></div>
@@ -227,7 +651,11 @@
             <span id="type2" class="pill"></span>
             <span id="gender" class="pill"></span>
           </div>
-          <div class="art"><div id="answer"></div></div>
+          <div class="art"><div>
+            <div id="answer"></div>
+            <!-- shown when the answer is the French word (English → French cards) -->
+            <button id="speakanswer" class="speak" data-speak="answer" title="Hear it" hidden>🔊</button>
+          </div></div>
           <div class="textbox"><span id="example"></span><button class="speak" data-speak="example" title="Hear the sentence">🔊</button></div>
         </div></div>
       </div>
@@ -243,29 +671,405 @@
   </div>
 
   <div id="deckview" hidden>
-    <div id="filters">
-      <input type="search" id="search" placeholder="Search words or meanings...">
-      <select id="level"></select>
-      <select id="type"></select>
+    <!-- the list of cards (hidden while the editor below is open) -->
+    <div id="decklistview">
+      <div id="filters">
+        <input type="search" id="search" placeholder="Search words or meanings...">
+        <select id="level"></select>
+        <select id="type"></select>
+      </div>
+      <div id="deckactions">
+        <button id="practicefiltered">Practice these</button>
+        <button id="addcard">+ Add card</button>
+      </div>
+      <div id="decksummary"></div>
+      <div id="decklist"></div>
     </div>
-    <button id="practicefiltered">Practice these</button>
-    <div id="decksummary"></div>
-    <div id="decklist"></div>
+
+    <!-- the card editor: opened by tapping a card in the list, or "+ Add card" -->
+    <div id="editor" hidden>
+      <h3 id="edtitle">Edit card</h3>
+      <label>French (front)<input id="ed-front" autocomplete="off"></label>
+      <label>English (back)<input id="ed-back" autocomplete="off"></label>
+      <label>Word type<input id="ed-pos" list="postypes" autocomplete="off" placeholder="noun, verb, adjective…"></label>
+      <datalist id="postypes">
+        <option value="noun"><option value="verb"><option value="adjective"><option value="adverb">
+        <option value="pronoun"><option value="article"><option value="preposition"><option value="conjunction"><option value="phrase">
+      </datalist>
+      <label>Gender
+        <select id="ed-gender">
+          <option value="">none</option><option value="m">masculine</option><option value="f">feminine</option><option value="m/f">either</option>
+        </select>
+      </label>
+      <label>Example sentence (French)<input id="ed-exfr" autocomplete="off"></label>
+      <label>Example sentence (English)<input id="ed-exen" autocomplete="off"></label>
+      <label>Tags<input id="ed-tags" autocomplete="off" placeholder="A1;food"></label>
+      <p id="ed-msg"></p>
+      <div id="edbuttons">
+        <button id="ed-save">Save</button>
+        <button id="ed-cancel">Cancel</button>
+        <button id="ed-suspend">Suspend</button>
+        <button id="ed-delete">Delete</button>
+      </div>
+    </div>
   </div>
 
-  <div id="settings">
-    <label>New cards per day
-      <select id="perday"><option>10</option><option>20</option><option>30</option></select>
-    </label>
-    <label>Voice <select id="voice"></select></label>
-    <span id="voiceinfo"></span>
-    <button id="starter">Add Beginner 150</button>
-    <label>Import CSV <input type="file" id="file" accept=".csv"></label>
-    <button id="export">Export backup</button>
-    <label>Restore backup <input type="file" id="restore" accept=".json"></label>
+  <!-- ===== Burn After Reading: read new cards once, watch them burn, then test your spelling =====
+       Only one of the four panels below shows at a time (burnShow() in the script picks which). -->
+  <div id="burnview" hidden>
+    <h2 class="burntitle">Burn After Reading</h2>
+
+    <!-- 1. read phase: one card at a time, no going back -->
+    <div id="burn-read" class="burnpanel">
+      <p id="burn-note" class="burnnote"></p>
+      <p id="burn-count" class="burncount"></p>
+      <div class="burncard">
+        <div id="burn-fr" class="burnfr"></div>
+        <div id="burn-en" class="burnen"></div>
+        <button id="burn-hear" class="burnspeak" title="Hear it again">🔊</button>
+      </div>
+      <button id="burn-next" class="burnbig">Next</button>
+    </div>
+
+    <!-- 2. burn phase: the stack catches fire and flies off as a meteor -->
+    <div id="burn-fire" class="burnpanel" hidden>
+      <div id="meteor"></div>
+      <p class="burnnote">The cards are gone. What do you remember?</p>
+    </div>
+
+    <!-- 3. test phase: English word, pick the exact French spelling out of 4 -->
+    <div id="burn-test" class="burnpanel" hidden>
+      <p id="burn-qcount" class="burncount"></p>
+      <p class="burnnote">Which is the correct French spelling?</p>
+      <div id="burn-prompt" class="burnprompt"></div>
+      <div id="burn-options"></div>
+      <p id="burn-feedback" class="burnfeedback"></p>
+    </div>
+
+    <!-- 4. results -->
+    <div id="burn-end" class="burnpanel" hidden>
+      <div id="burn-score" class="burnscore"></div>
+      <div id="burn-missed"></div>
+      <button id="burn-back" class="burnbig">Back to review</button>
+    </div>
   </div>
+
   <div id="msg"></div>
   <div id="diag"></div>
+  </main>
+
+<!-- Built-in pack: a copy of beginner150.csv kept inside the page, so it works offline and when opened from the Mac.
+     type="text/csv" means the browser stores it as data and never runs it. -->
+<script type="text/csv" id="pack-beginner150">
+front,back,part_of_speech,gender,example_target,example_english,tags
+le / la,the,article,none,Le chat dort sur la table.,The cat sleeps on the table.,A1;core
+un / une,a / an,article,none,J'ai un frère et une soeur.,I have a brother and a sister.,A1;core
+de,of / from,preposition,none,Je viens de Paris.,I come from Paris.,A1;core
+et,and,conjunction,none,Du pain et du fromage.,Bread and cheese.,A1;core
+à,to / at,preposition,none,Nous allons à l'école.,We are going to school.,A1;core
+être,to be,verb,none,Je suis fatigué.,I am tired.,A1;core
+avoir,to have,verb,none,Elle a deux chats.,She has two cats.,A1;core
+je,I,pronoun,none,Je parle français.,I speak French.,A1;core
+tu,you (informal),pronoun,none,Tu es mon ami.,You are my friend.,A1;core
+il,he / it,pronoun,none,Il habite à Lyon.,He lives in Lyon.,A1;core
+elle,she / it,pronoun,none,Elle travaille ici.,She works here.,A1;core
+nous,we,pronoun,none,Nous mangeons à midi.,We eat at noon.,A1;core
+vous,you (formal or plural),pronoun,none,Vous êtes très gentil.,You are very kind.,A1;core
+ils,they (masculine or mixed),pronoun,none,Ils sont en vacances.,They are on vacation.,A1;core
+ne ... pas,not,adverb,none,Je ne sais pas.,I do not know.,A1;core
+que,that / what / than,conjunction,none,Je pense que c'est bon.,I think that it is good.,A1;core
+qui,who / which,pronoun,none,Qui est là ?,Who is there?,A1;core
+ce / cet / cette,this / that,determiner,none,Ce livre est intéressant.,This book is interesting.,A1;core
+pour,for,preposition,none,Ce cadeau est pour toi.,This gift is for you.,A1;core
+dans,in,preposition,none,Le livre est dans le sac.,The book is in the bag.,A1;core
+avec,with,preposition,none,Je voyage avec mon frère.,I travel with my brother.,A1;core
+sur,on,preposition,none,Le verre est sur la table.,The glass is on the table.,A1;core
+mais,but,conjunction,none,Je veux venir mais je suis occupé.,I want to come but I am busy.,A1;core
+ou,or,conjunction,none,Tu veux du thé ou du café ?,Do you want tea or coffee?,A1;core
+oui,yes,adverb,none,Oui je veux bien.,Yes I would like that.,A1;core
+non,no,adverb,none,Non merci.,No thank you.,A1;core
+très,very,adverb,none,Il fait très chaud.,It is very hot.,A1;core
+aussi,also / too,adverb,none,Moi aussi j'aime le café.,I like coffee too.,A1;core
+faire,to do / to make,verb,none,Je fais mes devoirs.,I am doing my homework.,A1;core
+aller,to go,verb,none,Nous allons au marché.,We are going to the market.,A1;core
+dire,to say / to tell,verb,none,Que dis-tu ?,What are you saying?,A1;core
+pouvoir,to be able to / can,verb,none,Je peux t'aider.,I can help you.,A1;core
+vouloir,to want,verb,none,Elle veut un café.,She wants a coffee.,A1;core
+savoir,to know (a fact or how to),verb,none,Je sais nager.,I know how to swim.,A1;core
+voir,to see,verb,none,Je vois la mer.,I see the sea.,A1;core
+venir,to come,verb,none,Tu viens ce soir ?,Are you coming tonight?,A1;core
+le temps,time / weather,noun,m,Je n'ai pas le temps.,I do not have time.,A1;core
+la personne,person,noun,f,Cette personne est très gentille.,This person is very kind.,A1;core
+le jour,day,noun,m,Quel jour sommes-nous ?,What day is it?,A1;core
+l'homme,man,noun,m,L'homme lit le journal.,The man reads the newspaper.,A1;core
+la femme,woman / wife,noun,f,La femme parle au téléphone.,The woman is talking on the phone.,A1;core
+l'enfant,child,noun,m/f,L'enfant joue dans le jardin.,The child plays in the garden.,A1;core
+la vie,life,noun,f,La vie est belle.,Life is beautiful.,A1;core
+le monde,world / people,noun,m,Il y a beaucoup de monde ici.,There are a lot of people here.,A1;core
+la maison,house / home,noun,f,Ma maison est petite.,My house is small.,A1;core
+bon / bonne,good,adjective,none,C'est un bon livre.,It is a good book.,A1;core
+grand / grande,big / tall,adjective,none,Mon frère est très grand.,My brother is very tall.,A1;core
+petit / petite,small / little,adjective,none,J'ai un petit chat.,I have a small cat.,A1;core
+nouveau / nouvelle,new,adjective,none,J'ai un nouveau travail.,I have a new job.,A1;core
+ici,here,adverb,none,Viens ici.,Come here.,A1;core
+
+donner,to give,verb,none,Je te donne mon numéro.,I give you my number.,A1;core
+prendre,to take,verb,none,Je prends le bus.,I take the bus.,A1;core
+mettre,to put,verb,none,Il met le livre sur la table.,He puts the book on the table.,A1;core
+devoir,to have to / must / to owe,verb,none,Je dois partir.,I have to leave.,A1;core
+il faut,it is necessary / one must,expression,none,Il faut du temps.,It takes time.,A1;core
+aimer,to like / to love,verb,none,J'aime le chocolat.,I like chocolate.,A1;core
+parler,to speak / to talk,verb,none,Elle parle trois langues.,She speaks three languages.,A1;core
+penser,to think,verb,none,Je pense à toi.,I am thinking of you.,A1;core
+trouver,to find,verb,none,Je ne trouve pas mes clés.,I cannot find my keys.,A1;core
+demander,to ask,verb,none,Il demande l'heure.,He asks the time.,A1;core
+passer,to pass / to spend (time),verb,none,Nous passons le week-end à la mer.,We spend the weekend at the sea.,A1;core
+comprendre,to understand,verb,none,Je ne comprends pas.,I do not understand.,A1;core
+attendre,to wait (for),verb,none,J'attends le bus.,I am waiting for the bus.,A1;core
+connaître,to know (a person or place),verb,none,Je connais ce restaurant.,I know this restaurant.,A1;core
+partir,to leave,verb,none,Le train part à huit heures.,The train leaves at eight.,A1;core
+arriver,to arrive / to happen,verb,none,Nous arrivons demain.,We arrive tomorrow.,A1;core
+regarder,to look at / to watch,verb,none,Je regarde un film.,I am watching a movie.,A1;core
+appeler,to call,verb,none,J'appelle ma mère.,I am calling my mother.,A1;core
+rester,to stay,verb,none,Je reste à la maison.,I am staying at home.,A1;core
+où,where,adverb,none,Où est la gare ?,Where is the train station?,A1;core
+quand,when,adverb,none,Quand arrives-tu ?,When are you arriving?,A1;core
+comment,how,adverb,none,Comment allez-vous ?,How are you?,A1;core
+pourquoi,why,adverb,none,Pourquoi es-tu triste ?,Why are you sad?,A1;core
+tout / toute,all / every / everything,adjective,none,Tout le monde est là.,Everyone is here.,A1;core
+beaucoup,a lot / much,adverb,none,Il mange beaucoup.,He eats a lot.,A1;core
+un peu,a little,adverb,none,Je parle un peu français.,I speak a little French.,A1;core
+plus,more,adverb,none,Je veux plus de pain.,I want more bread.,A1;core
+bien,well / good,adverb,none,Tu parles bien.,You speak well.,A1;core
+encore,again / still / more,adverb,none,Encore un café s'il vous plaît.,Another coffee please.,A1;core
+toujours,always / still,adverb,none,Il est toujours en retard.,He is always late.,A1;core
+jamais,never / ever,adverb,none,Je ne mange jamais de viande.,I never eat meat.,A1;core
+maintenant,now,adverb,none,Je suis libre maintenant.,I am free now.,A1;core
+déjà,already,adverb,none,J'ai déjà mangé.,I have already eaten.,A1;core
+alors,so / then,adverb,none,Il pleut alors je reste ici.,It is raining so I am staying here.,A1;core
+parce que,because,conjunction,none,Je reste parce que je suis fatigué.,I am staying because I am tired.,A1;core
+si,if,conjunction,none,Je viens si tu viens.,I am coming if you come.,A1;core
+mon / ma / mes,my,determiner,none,Mon frère habite à Paris.,My brother lives in Paris.,A1;core
+son / sa / ses,his / her / its,determiner,none,Sa maison est grande.,His or her house is big.,A1;core
+il y a,there is / there are,expression,none,Il y a un chat dans le jardin.,There is a cat in the garden.,A1;core
+le travail,work / job,noun,m,Mon travail est intéressant.,My job is interesting.,A1;core
+l'ami / l'amie,friend,noun,m/f,Mon ami habite à Nice.,My friend lives in Nice.,A1;core
+la chose,thing,noun,f,C'est une bonne chose.,It is a good thing.,A1;core
+la main,hand,noun,f,J'ai mal à la main.,My hand hurts.,A1;core
+le père,father,noun,m,Mon père travaille beaucoup.,My father works a lot.,A1;core
+la mère,mother,noun,f,Ma mère cuisine bien.,My mother cooks well.,A1;core
+la ville,city / town,noun,f,La ville est très belle.,The city is very beautiful.,A1;core
+l'année,year,noun,f,Cette année je vais en France.,This year I am going to France.,A1;core
+le matin,morning,noun,m,Je bois du café le matin.,I drink coffee in the morning.,A1;core
+la nuit,night,noun,f,La nuit est calme.,The night is calm.,A1;core
+le pays,country,noun,m,La France est un beau pays.,France is a beautiful country.,A1;core
+
+manger,to eat,verb,none,Je mange une pomme.,I am eating an apple.,A1;core
+boire,to drink,verb,none,Elle boit de l'eau.,She is drinking water.,A1;core
+habiter,to live (reside),verb,none,J'habite dans une petite ville.,I live in a small town.,A1;core
+travailler,to work,verb,none,Il travaille tous les jours.,He works every day.,A1;core
+acheter,to buy,verb,none,J'achète du pain.,I am buying bread.,A1;core
+commencer,to begin / to start,verb,none,Le cours commence à neuf heures.,The class starts at nine.,A1;core
+finir,to finish,verb,none,Je finis mon travail.,I am finishing my work.,A1;core
+écouter,to listen (to),verb,none,J'écoute de la musique.,I listen to music.,A1;core
+écrire,to write,verb,none,Elle écrit une lettre.,She is writing a letter.,A1;core
+lire,to read,verb,none,Je lis un livre.,I am reading a book.,A1;core
+jouer,to play,verb,none,Les enfants jouent dehors.,The children play outside.,A1;core
+apprendre,to learn,verb,none,J'apprends le français.,I am learning French.,A1;core
+croire,to believe,verb,none,Je te crois.,I believe you.,A1;core
+le café,coffee,noun,m,Le café est chaud.,The coffee is hot.,A1;core
+le pain,bread,noun,m,Le pain est frais.,The bread is fresh.,A1;core
+la famille,family,noun,f,Ma famille est grande.,My family is big.,A1;core
+le frère,brother,noun,m,Mon frère a dix ans.,My brother is ten years old.,A1;core
+la soeur,sister,noun,f,Ma soeur habite à Lyon.,My sister lives in Lyon.,A1;core
+le garçon,boy / waiter,noun,m,Le garçon joue au foot.,The boy plays soccer.,A1;core
+la fille,girl / daughter,noun,f,La fille lit un livre.,The girl is reading a book.,A1;core
+l'école,school,noun,f,L'école commence à huit heures.,School starts at eight.,A1;core
+le livre,book,noun,m,Ce livre est très bon.,This book is very good.,A1;core
+la voiture,car,noun,f,Ma voiture est rouge.,My car is red.,A1;core
+la rue,street,noun,f,La rue est calme.,The street is quiet.,A1;core
+l'argent,money / silver,noun,m,Je n'ai pas d'argent.,I have no money.,A1;core
+le nom,name / noun,noun,m,Quel est ton nom ?,What is your name?,A1;core
+l'heure,hour / time,noun,f,Quelle heure est-il ?,What time is it?,A1;core
+la semaine,week,noun,f,Je travaille toute la semaine.,I work all week.,A1;core
+le soir,evening,noun,m,Le soir nous mangeons ensemble.,In the evening we eat together.,A1;core
+la table,table,noun,f,La table est dans la cuisine.,The table is in the kitchen.,A1;core
+beau / belle,beautiful / handsome,adjective,none,Il fait beau aujourd'hui.,The weather is nice today.,A1;core
+jeune,young,adjective,none,Elle est très jeune.,She is very young.,A1;core
+vieux / vieille,old,adjective,none,C'est un vieux livre.,It is an old book.,A1;core
+content / contente,happy / pleased,adjective,none,Je suis content de te voir.,I am happy to see you.,A1;core
+facile,easy,adjective,none,Ce mot est facile.,This word is easy.,A1;core
+difficile,difficult,adjective,none,L'examen est difficile.,The exam is difficult.,A1;core
+même,same / even,adjective,none,Nous avons le même livre.,We have the same book.,A1;core
+avant,before,preposition,none,Je mange avant midi.,I eat before noon.,A1;core
+après,after,preposition,none,Après le travail je rentre.,After work I go home.,A1;core
+sous,under,preposition,none,Le chat est sous la table.,The cat is under the table.,A1;core
+entre,between,preposition,none,La banque est entre la gare et l'école.,The bank is between the station and the school.,A1;core
+chez,at the home of,preposition,none,Je suis chez moi.,I am at home.,A1;core
+sans,without,preposition,none,Je bois mon café sans sucre.,I drink my coffee without sugar.,A1;core
+pendant,during / for,preposition,none,Je lis pendant une heure.,I read for an hour.,A1;core
+près,near / close,adverb,none,La gare est près d'ici.,The station is near here.,A1;core
+loin,far,adverb,none,Mon travail est loin.,My work is far.,A1;core
+demain,tomorrow,adverb,none,À demain !,See you tomorrow!,A1;core
+hier,yesterday,adverb,none,Hier j'ai mangé au restaurant.,Yesterday I ate at the restaurant.,A1;core
+aujourd'hui,today,adverb,none,Aujourd'hui il pleut.,It is raining today.,A1;core
+merci,thank you,interjection,none,Merci beaucoup.,Thank you very much.,A1;core
+</script>
+
+<!-- Built-in pack: a copy of level2-150.csv, kept inside the page for the same reason. -->
+<script type="text/csv" id="pack-level2">
+front,back,part_of_speech,gender,example_target,example_english,tags
+ouvrir,to open,verb,none,"Ouvre la porte, s'il te plaît.","Open the door, please.",A1;core
+fermer,to close,verb,none,Je ferme la fenêtre.,I am closing the window.,A1;core
+sortir,to go out / to leave,verb,none,Nous sortons ce soir.,We are going out tonight.,A1;core
+entrer,to enter / to come in,verb,none,"Entrez, je vous en prie.","Come in, please.",A1;core
+rentrer,to go home / to return,verb,none,Je rentre à six heures.,I am going home at six.,A1;core
+tomber,to fall,verb,none,Le livre tombe de la table.,The book falls off the table.,A1;core
+vivre,to live,verb,none,Ils vivent en France.,They live in France.,A1;core
+choisir,to choose,verb,none,Je choisis le café.,I choose the coffee.,A2;core
+chercher,to look for,verb,none,Je cherche mes clés.,I am looking for my keys.,A1;core
+porter,to carry / to wear,verb,none,Elle porte un manteau rouge.,She is wearing a red coat.,A2;core
+montrer,to show,verb,none,Il montre la photo à sa mère.,He shows the photo to his mother.,A2;core
+suivre,to follow,verb,none,Suivez-moi.,Follow me.,A2;core
+perdre,to lose,verb,none,J'ai peur de perdre mon téléphone.,I am afraid of losing my phone.,A2;core
+gagner,to win / to earn,verb,none,Notre équipe gagne le match.,Our team wins the match.,A2;core
+rencontrer,to meet,verb,none,Je rencontre mon ami au café.,I am meeting my friend at the café.,A2;core
+répondre,to answer,verb,none,Je réponds à ta question.,I am answering your question.,A1;core
+payer,to pay,verb,none,Je paie avec ma carte.,I pay with my card.,A1;core
+oublier,to forget,verb,none,N'oublie pas ton billet.,Do not forget your ticket.,A2;core
+dormir,to sleep,verb,none,Le bébé dort dans sa chambre.,The baby sleeps in his room.,A1;core
+marcher,to walk / to work (function),verb,none,Nous marchons jusqu'à la gare.,We walk to the station.,A1;core
+laisser,to leave (behind) / to let,verb,none,Je laisse mon sac ici.,I am leaving my bag here.,A2;core
+sentir,to feel / to smell,verb,none,Je sens une odeur de pain.,I smell bread.,A2;core
+recevoir,to receive,verb,none,Je reçois un message de ma soeur.,I receive a message from my sister.,A2;core
+envoyer,to send,verb,none,J'envoie une lettre à mon père.,I am sending a letter to my father.,A2;core
+aider,to help,verb,none,Peux-tu m'aider ?,Can you help me?,A1;core
+la tête,head,noun,f,J'ai mal à la tête.,I have a headache.,A1;core
+le mot,word,noun,m,Je ne connais pas ce mot.,I do not know this word.,A1;core
+la question,question,noun,f,J'ai une question.,I have a question.,A1;core
+la réponse,answer,noun,f,La réponse est facile.,The answer is easy.,A1;core
+le problème,problem,noun,m,Il n'y a pas de problème.,There is no problem.,A1;core
+la fois,time / occasion,noun,f,Une fois par semaine.,Once a week.,A1;core
+la place,seat / square / room,noun,f,Il y a une place ici.,There is a seat here.,A1;core
+la fin,end,noun,f,C'est la fin du film.,It is the end of the movie.,A1;core
+la porte,door,noun,f,La porte est ouverte.,The door is open.,A1;core
+la fenêtre,window,noun,f,La fenêtre est fermée.,The window is closed.,A1;core
+la chambre,bedroom,noun,f,Ma chambre est petite.,My bedroom is small.,A1;core
+la cuisine,kitchen / cooking,noun,f,Elle est dans la cuisine.,She is in the kitchen.,A1;core
+le jardin,garden,noun,m,Les enfants jouent dans le jardin.,The children play in the garden.,A1;core
+le chat,cat,noun,m,Le chat dort.,The cat is sleeping.,A1;core
+le chien,dog,noun,m,Le chien est dans le jardin.,The dog is in the garden.,A1;core
+le repas,meal,noun,m,Le repas est prêt.,The meal is ready.,A1;core
+l'eau,water,noun,f,Je voudrais de l'eau.,I would like some water.,A1;core
+le soleil,sun,noun,m,Le soleil brille.,The sun is shining.,A1;core
+la pluie,rain,noun,f,La pluie tombe depuis ce matin.,The rain has been falling since this morning.,A2;core
+le téléphone,phone,noun,m,Mon téléphone est sur la table.,My phone is on the table.,A1;core
+l'ordinateur,computer,noun,m,J'utilise mon ordinateur tous les jours.,I use my computer every day.,A1;core
+le film,movie,noun,m,Ce film est très bon.,This movie is very good.,A1;core
+la musique,music,noun,f,J'aime la musique française.,I like French music.,A1;core
+le voyage,trip / journey,noun,m,Le voyage est long.,The trip is long.,A1;core
+la gare,train station,noun,f,La gare est près d'ici.,The train station is near here.,A1;core
+le train,train,noun,m,Le train arrive à huit heures.,The train arrives at eight.,A1;core
+le billet,ticket,noun,m,J'ai un billet pour Paris.,I have a ticket for Paris.,A1;core
+le magasin,shop / store,noun,m,Le magasin ferme à sept heures.,The shop closes at seven.,A1;core
+le marché,market,noun,m,Nous allons au marché le samedi.,We go to the market on Saturdays.,A1;core
+le restaurant,restaurant,noun,m,Le restaurant est près de la gare.,The restaurant is near the station.,A1;core
+le prix,price / prize,noun,m,Quel est le prix ?,What is the price?,A1;core
+l'idée,idea,noun,f,C'est une bonne idée.,It is a good idea.,A1;core
+l'histoire,story / history,noun,f,C'est une belle histoire.,It is a lovely story.,A2;core
+la langue,language / tongue,noun,f,Le français est une belle langue.,French is a beautiful language.,A1;core
+le médecin,doctor,noun,m,Je vais chez le médecin.,I am going to the doctor.,A1;core
+le mois,month,noun,m,Je pars le mois prochain.,I am leaving next month.,A2;core
+le bureau,office / desk,noun,m,Je travaille au bureau.,I work at the office.,A1;core
+la photo,photo,noun,f,Je regarde la photo.,I am looking at the photo.,A1;core
+chaud / chaude,hot / warm,adjective,none,Le café est chaud.,The coffee is hot.,A1;core
+froid / froide,cold,adjective,none,L'eau est froide.,The water is cold.,A1;core
+cher / chère,expensive / dear,adjective,none,Ce livre est trop cher.,This book is too expensive.,A1;core
+prêt / prête,ready,adjective,none,Je suis prêt.,I am ready.,A1;core
+seul / seule,alone / only,adjective,none,Elle habite seule.,She lives alone.,A1;core
+heureux / heureuse,happy,adjective,none,Nous sommes très heureux.,We are very happy.,A1;core
+triste,sad,adjective,none,Le film est très triste.,The movie is very sad.,A1;core
+fatigué / fatiguée,tired,adjective,none,Je suis fatigué ce soir.,I am tired this evening.,A1;core
+malade,sick,adjective,none,Mon frère est malade.,My brother is sick.,A1;core
+libre,free,adjective,none,Je suis libre demain.,I am free tomorrow.,A1;core
+occupé / occupée,busy,adjective,none,Elle est très occupée.,She is very busy.,A1;core
+vrai / vraie,true / real,adjective,none,C'est vrai.,It is true.,A1;core
+gentil / gentille,kind / nice,adjective,none,Ma soeur est très gentille.,My sister is very kind.,A1;core
+important / importante,important,adjective,none,C'est très important.,It is very important.,A2;core
+possible,possible,adjective,none,Est-ce possible ?,Is it possible?,A2;core
+autre,other / another,adjective,none,Je veux un autre café.,I want another coffee.,A1;core
+chaque,each / every,determiner,none,Je lis chaque jour.,I read every day.,A1;core
+quel / quelle,which / what,determiner,none,Quel livre veux-tu ?,Which book do you want?,A1;core
+peut-être,maybe / perhaps,adverb,none,Peut-être demain.,Maybe tomorrow.,A1;core
+souvent,often,adverb,none,Je mange souvent ici.,I often eat here.,A1;core
+vite,quickly / fast,adverb,none,Il parle très vite.,He speaks very fast.,A1;core
+longtemps,for a long time,adverb,none,Il dort longtemps le dimanche.,He sleeps for a long time on Sundays.,A2;core
+ensemble,together,adverb,none,Nous voyageons ensemble.,We are traveling together.,A1;core
+presque,almost,adverb,none,Il est presque midi.,It is almost noon.,A1;core
+seulement,only,adverb,none,Je veux seulement un café.,I only want a coffee.,A1;core
+assez,enough / quite,adverb,none,J'ai assez de pain.,I have enough bread.,A1;core
+trop,too much / too many,adverb,none,Il y a trop de monde.,There are too many people.,A1;core
+enfin,finally / at last,adverb,none,"Enfin, le week-end !","Finally, the weekend!",A1;core
+ensuite,then / next,adverb,none,"Ensuite, nous mangeons.",Then we eat.,A1;core
+tard,late,adverb,none,Il est tard.,It is late.,A1;core
+tôt,early,adverb,none,Il arrive tôt le matin.,He arrives early in the morning.,A1;core
+dehors,outside,adverb,none,Il fait froid dehors.,It is cold outside.,A1;core
+donc,so / therefore,conjunction,none,"Il est tard, donc je rentre.","It is late, so I am going home.",A1;core
+rien,nothing,pronoun,none,Je ne fais rien.,I am doing nothing.,A1;core
+quelque chose,something,pronoun,none,Je veux quelque chose à boire.,I want something to drink.,A1;core
+quelqu'un,someone,pronoun,none,Quelqu'un est à la porte.,Someone is at the door.,A1;core
+combien,how much / how many,adverb,none,Combien ça coûte ?,How much does it cost?,A1;core
+deux,two,number,none,J'ai deux chats.,I have two cats.,A1;core
+trois,three,number,none,Il y a trois livres.,There are three books.,A1;core
+quatre,four,number,none,Nous sommes quatre.,There are four of us.,A1;core
+cinq,five,number,none,Il est cinq heures.,It is five o'clock.,A1;core
+six,six,number,none,Il y a six personnes ici.,There are six people here.,A1;core
+sept,seven,number,none,La semaine a sept jours.,The week has seven days.,A1;core
+huit,eight,number,none,Il est huit heures.,It is eight o'clock.,A1;core
+neuf,nine,number,none,Elle a neuf ans.,She is nine years old.,A1;core
+dix,ten,number,none,J'ai dix euros.,I have ten euros.,A1;core
+entendre,to hear,verb,none,J'entends un bruit dans la cuisine.,I hear a noise in the kitchen.,A1;core
+tenir,to hold / to keep,verb,none,Je tiens ton sac.,I am holding your bag.,A2;core
+devenir,to become,verb,none,Il veut devenir médecin.,He wants to become a doctor.,A2;core
+revenir,to come back,verb,none,Je reviens demain.,I am coming back tomorrow.,A1;core
+utiliser,to use,verb,none,Tu peux utiliser mon sac.,You can use my bag.,A1;core
+essayer,to try,verb,none,J'essaie de parler français.,I am trying to speak French.,A1;core
+continuer,to continue,verb,none,Nous continuons demain.,We are continuing tomorrow.,A1;core
+arrêter,to stop,verb,none,Il arrête la musique.,He stops the music.,A2;core
+expliquer,to explain,verb,none,Il explique la question.,He explains the question.,A2;core
+préparer,to prepare,verb,none,Je prépare le repas.,I am preparing the meal.,A1;core
+décider,to decide,verb,none,Nous décidons ensemble.,We decide together.,A2;core
+raconter,to tell (a story),verb,none,Elle raconte une belle histoire.,She tells a lovely story.,A2;core
+s'appeler,to be called (my name is...),verb,none,Je m'appelle Marie.,My name is Marie.,A1;core
+se lever,to get up,verb,none,Je me lève à sept heures.,I get up at seven.,A1;core
+le fromage,cheese,noun,m,J'aime le fromage français.,I like French cheese.,A1;core
+la pomme,apple,noun,f,La pomme est rouge.,The apple is red.,A1;core
+la viande,meat,noun,f,Je ne mange pas de viande.,I do not eat meat.,A1;core
+le poisson,fish,noun,m,Le poisson est frais.,The fish is fresh.,A1;core
+le lait,milk,noun,m,Je bois du lait le matin.,I drink milk in the morning.,A1;core
+le sac,bag,noun,m,Où est mon sac ?,Where is my bag?,A1;core
+la clé,key,noun,f,Je cherche ma clé.,I am looking for my key.,A1;core
+la carte,card / map / menu,noun,f,Voici la carte du restaurant.,Here is the restaurant menu.,A1;core
+la lettre,letter,noun,f,J'écris une lettre à ma soeur.,I am writing a letter to my sister.,A1;core
+la mer,sea,noun,f,La mer est très belle.,The sea is very beautiful.,A1;core
+la montagne,mountain,noun,f,Nous marchons dans la montagne.,We are walking in the mountains.,A1;core
+la couleur,color,noun,f,Quelle est ta couleur préférée ?,What is your favorite color?,A2;core
+le rendez-vous,appointment / meeting,noun,m,J'ai un rendez-vous demain.,I have an appointment tomorrow.,A1;core
+le bruit,noise,noun,m,Il y a trop de bruit ici.,There is too much noise here.,A1;core
+les vacances,vacation / holidays,noun,f,Nous sommes en vacances.,We are on vacation.,A1;core
+rouge,red,adjective,none,La voiture est rouge.,The car is red.,A1;core
+bleu / bleue,blue,adjective,none,Le ciel est bleu.,The sky is blue.,A1;core
+blanc / blanche,white,adjective,none,Le chat est blanc.,The cat is white.,A1;core
+noir / noire,black,adjective,none,Mon sac est noir.,My bag is black.,A1;core
+vert / verte,green,adjective,none,La pomme est verte.,The apple is green.,A1;core
+dernier / dernière,last,adjective,none,C'est le dernier train.,It is the last train.,A1;core
+prochain / prochaine,next,adjective,none,À la prochaine !,See you next time!,A1;core
+premier / première,first,adjective,none,C'est la première fois.,It is the first time.,A1;core
+long / longue,long,adjective,none,La rue est longue.,The street is long.,A1;core
+depuis,since / for,preposition,none,J'habite ici depuis un an.,I have lived here for a year.,A2;core
+vers,toward / around,preposition,none,Je rentre vers six heures.,I go home around six o'clock.,A2;core
+contre,against,preposition,none,Je suis contre cette idée.,I am against this idea.,A2;core
+</script>
 
 <script>
 // ================= error catcher: any problem shows up on the page itself =================
@@ -280,7 +1084,7 @@ window.addEventListener("error", e => showError((e.message || "unknown error") +
 window.addEventListener("unhandledrejection", e => showError(String((e.reason && e.reason.message) || e.reason)));
 
 // ================= basics =================
-const BUILD = "Qarbon build 9";
+const BUILD = "Qarbon build 20";
 const KEY = "flashcards-v1";   // same key as before, so existing progress carries over
 const $ = id => document.getElementById(id);
 const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -289,19 +1093,122 @@ function addDays(n) { const d = new Date(); d.setDate(d.getDate() + n); return i
 
 const VOICES = { female: "Amélie", male: "Thomas" };
 const PER_DAY_CHOICES = [10, 20, 30];
+// card directions, chosen per stack in ⚙ settings
+const DIRECTIONS = { fr: "French → English", en: "English → French", both: "Both directions" };
 // minutes for each timer style. Pomodoro: 25 focus, 5 break, a longer 15 break after every 4th focus.
+// "every" = how many focus sessions before a long break (1 = no long breaks). "Custom" uses state.customTimer.
 const TIMER_MODES = {
-  pomodoro: { focus: 25, short: 5, long: 15, every: 4 },
-  m15:      { focus: 15, short: 3, long: 3, every: 1 },
-  m30:      { focus: 30, short: 5, long: 5, every: 1 },
-  hour:    { focus: 60, short: 10, long: 10, every: 1 }
+  pomodoro: { label: "Pomodoro 25/5",       focus: 25, short: 5,  long: 15, every: 4 },
+  p50:      { label: "Long Pomodoro 50/10", focus: 50, short: 10, long: 30, every: 3 },
+  p52:      { label: "52/17",               focus: 52, short: 17, long: 17, every: 1 },
+  p90:      { label: "Deep work 90/20",     focus: 90, short: 20, long: 20, every: 1 },
+  m15:      { label: "15 min",              focus: 15, short: 3,  long: 3,  every: 1 },
+  m30:      { label: "30 min",              focus: 30, short: 5,  long: 5,  every: 1 },
+  hour:     { label: "1 hour",              focus: 60, short: 10, long: 10, every: 1 }
 };
+const CUSTOM_LIMITS = { focus: [1, 180], short: [1, 60], long: [1, 90], every: [1, 12] };   // [smallest, largest]
+
+// ================= space background: stars, the Milky Way and faint nebulae, drawn on a canvas =================
+const sky = $("sky"), twinkle = $("twinkle");
+let skyW = 0, skyH = 0, skyDpr = 1, brightStars = [];
+
+// real star colors ("r,g,b"): hot stars are blue-white, cool ones orange, most look white
+const STAR_COLORS  = ["155,176,255", "170,191,255", "202,215,255", "248,247,255", "255,244,234", "255,210,161", "255,204,111"];
+const STAR_WEIGHTS = [1, 2, 4, 10, 6, 3, 2];   // how common each color is
+
+// a "seeded" random number generator: the same sky every time, so it doesn't reshuffle when the screen resizes
+function seeded(seed) { return () => (seed = seed * 16807 % 2147483647) / 2147483647; }
+
+function glow(g, x, y, r, rgb, alpha) {
+  const grd = g.createRadialGradient(x, y, 0, x, y, r);
+  grd.addColorStop(0, "rgba(" + rgb + "," + alpha + ")");
+  grd.addColorStop(1, "rgba(" + rgb + ",0)");
+  g.fillStyle = grd; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+}
+function dot(g, x, y, r, rgb, alpha) {
+  g.fillStyle = "rgba(" + rgb + "," + Math.min(1, alpha) + ")"; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+}
+
+function drawSky() {
+  // cover the whole screen, even the part under Safari's toolbar, and only redraw if the screen got bigger
+  const w = Math.max(innerWidth, screen.width), h = Math.max(innerHeight, screen.height);
+  if (w <= skyW && h <= skyH) return;
+  skyW = w; skyH = h;
+  skyDpr = Math.min(devicePixelRatio || 1, 2, Math.sqrt(4e6 / (w * h)));   // sharp on phones, but not too much memory on big screens
+  [sky, twinkle].forEach(c => {
+    c.width = w * skyDpr; c.height = h * skyDpr; c.style.width = w + "px"; c.style.height = h + "px";
+    c.getContext("2d").setTransform(skyDpr, 0, 0, skyDpr, 0, 0);
+  });
+  const g = sky.getContext("2d"), rnd = seeded(20261020);
+  const bell = () => (rnd() + rnd() + rnd() - 1.5) / 1.5;   // random number between -1 and 1, mostly near 0
+  const color = () => { let t = rnd() * 28; return STAR_COLORS.find((c, i) => (t -= STAR_WEIGHTS[i]) < 0) || STAR_COLORS[3]; };
+
+  g.fillStyle = "#03040a"; g.fillRect(0, 0, w, h);
+
+  // faint colored nebulae in Qarbon's purple, blue and pink
+  const big = Math.max(w, h);
+  glow(g, .15 * w, .1 * h, .6 * big, "123,108,255", .12);
+  glow(g, .85 * w, .35 * h, .5 * big, "60,140,255", .08);
+  glow(g, .5 * w, 1.05 * h, .6 * big, "255,90,180", .07);
+
+  // the Milky Way: a band from bottom-left to top-right. t = how far along it, s = how far across it (-1..1)
+  const x0 = -.1 * w, y0 = .9 * h, x1 = 1.1 * w, y1 = .1 * h;
+  const len = Math.hypot(x1 - x0, y1 - y0), nx = (y0 - y1) / len, ny = (x1 - x0) / len;
+  const bandW = Math.min(w, h) * .22;
+  const onBand = (t, s) => [x0 + (x1 - x0) * t + nx * s * bandW, y0 + (y1 - y0) * t + ny * s * bandW];
+  for (let i = 0; i < 160; i++) {   // soft glowing haze
+    const [x, y] = onBand(rnd(), bell() * .8);
+    glow(g, x, y, bandW * (.2 + rnd() * .5), rnd() < .5 ? "255,225,200" : "190,200,255", .035);
+  }
+  for (let i = 0; i < 70; i++) {    // dark dust lanes down the middle
+    const [x, y] = onBand(rnd(), bell() * .25);
+    glow(g, x, y, bandW * (.08 + rnd() * .2), "3,4,10", .35);
+  }
+  for (let i = 0; i < w * h / 250; i++) {   // thousands of tiny stars packed into the band
+    const [x, y] = onBand(rnd(), bell());
+    dot(g, x, y, .3 + rnd() * .5, color(), .15 + rnd() * .45);
+  }
+
+  // stars everywhere: lots of dim ones, very few bright ones (like a real sky)
+  brightStars = [];
+  for (let i = 0; i < w * h / 1100; i++) {
+    const x = rnd() * w, y = rnd() * h, m = Math.pow(rnd(), 6), c = color();   // m: 0 = dim ... 1 = bright
+    if (m > .35) brightStars.push({ x, y, r: .7 + m * 1.3, c, spikes: m > .92, phase: rnd() * 7, speed: .4 + rnd() * 1.2 });
+    else dot(g, x, y, .35 + m * 1.5, c, .3 + m * 1.6);
+  }
+  drawTwinkle(0);
+}
+
+// the bright stars live on their own layer, so they can twinkle without redrawing the whole sky
+function drawTwinkle(time) {
+  const g = twinkle.getContext("2d");
+  g.clearRect(0, 0, skyW, skyH);
+  brightStars.forEach(s => {
+    const a = .75 + .25 * Math.sin(time / 1000 * s.speed + s.phase);
+    glow(g, s.x, s.y, s.r * 5, s.c, .3 * a);
+    dot(g, s.x, s.y, s.r, s.c, a);
+    if (s.spikes) {   // the little cross of light you see on bright stars in telescope photos
+      g.strokeStyle = "rgba(" + s.c + "," + .35 * a + ")"; g.lineWidth = .6; g.beginPath();
+      g.moveTo(s.x - s.r * 7, s.y); g.lineTo(s.x + s.r * 7, s.y);
+      g.moveTo(s.x, s.y - s.r * 7); g.lineTo(s.x, s.y + s.r * 7); g.stroke();
+    }
+  });
+}
+
+drawSky();
+window.addEventListener("resize", drawSky);
+// twinkle about 12 times a second (smooth enough, easy on the battery); skipped if the phone asks for less motion
+if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  let last = 0;
+  const loop = t => { if (t - last > 80) { drawTwinkle(t); last = t; } requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+}
 
 // ================= saving and loading =================
 let storageOK = true;
 try { localStorage.setItem("_qtest", "1"); localStorage.removeItem("_qtest"); } catch (e) { storageOK = false; }
 
-const FRESH = { cards: [], newPerDay: 10, newDate: "", newDone: 0, voice: "female", sessions: 0, timerMode: "pomodoro" };
+const FRESH = { cards: [], decks: [], music: "", directions: {}, newPerDay: 10, newDate: "", newDone: 0, voice: "female", sessions: 0, timerMode: "pomodoro" };
 
 // make sure whatever we loaded (or restored) has the right shape
 function clean(data) {
@@ -314,13 +1221,34 @@ function clean(data) {
       c.reviews = Number(c.reviews) || 0;
       c.correct = Number(c.correct) || 0;
       c.due = typeof c.due === "string" && c.due ? c.due : today();
+      // the English → French schedule (only exists once you've studied that direction)
+      if (c.rev && typeof c.rev === "object") {
+        c.rev = { interval: Number(c.rev.interval) > 0 ? Number(c.rev.interval) : 1,
+                  ease: Number(c.rev.ease) >= 1.3 ? Number(c.rev.ease) : 2.5,
+                  reviews: Number(c.rev.reviews) || 0, correct: Number(c.rev.correct) || 0,
+                  due: typeof c.rev.due === "string" && c.rev.due ? c.rev.due : today() };
+      } else delete c.rev;
+      if (c.suspended !== true) delete c.suspended;
+      if (typeof c.key !== "string" || !c.key) delete c.key;
       return c;
     });
+  // card direction per stack id, e.g. { beginner150: "both" }
+  const dirs = s.directions && typeof s.directions === "object" ? s.directions : {};
+  s.directions = Object.fromEntries(Object.entries(dirs).filter(([, v]) => DIRECTIONS[v]));
+  // your own decks: a name plus the list of words (French fronts) in it
+  s.decks = (Array.isArray(s.decks) ? s.decks : [])
+    .filter(d => d && typeof d.name === "string" && Array.isArray(d.words))
+    .map(d => ({ id: String(d.id || "deck-" + Math.random()), name: d.name, words: d.words.map(String), added: d.added || "" }));
+  s.music = typeof s.music === "string" ? s.music : "";   // the YouTube/SoundCloud link you pasted
   s.newPerDay = PER_DAY_CHOICES.includes(Number(s.newPerDay)) ? Number(s.newPerDay) : 10;
   s.newDone = Number(s.newDone) || 0;
   s.sessions = Number(s.sessions) || 0;
   if (!VOICES[s.voice]) s.voice = "female";
-  if (!TIMER_MODES[s.timerMode]) s.timerMode = "pomodoro";
+  if (!TIMER_MODES[s.timerMode] && s.timerMode !== "custom") s.timerMode = "pomodoro";
+  // your Custom timer: each length is kept between its smallest and largest allowed value
+  const ct = s.customTimer && typeof s.customTimer === "object" ? s.customTimer : {};
+  s.customTimer = Object.fromEntries(Object.entries(CUSTOM_LIMITS).map(([k, [lo, hi]]) =>
+    [k, Math.min(hi, Math.max(lo, Math.round(Number(ct[k])) || TIMER_MODES.pomodoro[k]))]));
   return s;
 }
 
@@ -360,8 +1288,25 @@ function parseCSV(text) {
 
 // ================= modes: "daily" (spaced repetition), "deck" (browse), "practice" (free review) =================
 let mode = "daily";
-let queue = [], current = null, revealed = false;
+// the queue holds { c: card, dir: "fr" or "en" }: the same word can come up French-first or English-first
+let queue = [], current = null, currentDir = "fr", revealed = false;
 let practice = { total: 0, right: 0, missed: new Set() };
+// is a flashcard on screen? (Review and Practice show one; Deck, Burn and Focus don't)
+function cardShowing() { return mode === "daily" || mode === "practice"; }
+
+// ================= card directions =================
+// "fr" = French on the front (the usual way), "en" = English on the front and you answer in French.
+// Each direction keeps its own schedule: French → English lives on the card itself (like before),
+// English → French lives in card.rev, so turning on reverse cards never touches your existing progress.
+const dirsOf = s => ({ fr: ["fr"], en: ["en"], both: ["fr", "en"] })[state.directions[s ? s.id : "all"] || "fr"];
+const newSide = () => ({ interval: 1, ease: 2.5, reviews: 0, correct: 0, due: today() });
+const sideOf = (c, dir) => dir === "en" ? (c.rev || newSide()) : c;   // for reading
+function sideToSave(c, dir) {                                           // for saving an answer
+  if (dir !== "en") return c;
+  if (!c.rev) c.rev = newSide();
+  return c.rev;
+}
+const active = c => !c.suspended;   // suspended cards are skipped everywhere you study
 
 function shuffle(a) {
   a = a.slice();
@@ -372,20 +1317,31 @@ function shuffle(a) {
 function dailyList() {
   const t = today();
   if (state.newDate !== t) { state.newDate = t; state.newDone = 0; }
-  const reviews = shuffle(state.cards.filter(c => c.reviews > 0 && c.due <= t));
+  const dirs = dirsOf(stack);
+  const items = stackCards().filter(active).flatMap(c => dirs.map(dir => ({ c, dir })));
+  // words you missed in Burn After Reading go first, even if they aren't due yet
+  const burnDir = dirs[0], isBurned = it => it.c.burnMissed && it.dir === burnDir;
+  const burned = items.filter(isBurned);
+  const reviews = shuffle(items.filter(it => {
+    const s = sideOf(it.c, it.dir);
+    return !isBurned(it) && s.reviews > 0 && s.due <= t;
+  }));
   const newLeft = Math.max(0, state.newPerDay - state.newDone);
-  const fresh = state.cards.filter(c => c.reviews === 0).slice(0, newLeft);
+  // new cards. With "both", a word's English → French side only unlocks once you've seen it French-first,
+  // so you never get both sides of a brand-new word back to back.
+  const fresh = items.filter(it => sideOf(it.c, it.dir).reviews === 0 && !isBurned(it) &&
+    (it.dir === "fr" || !dirs.includes("fr") || it.c.reviews > 0)).slice(0, newLeft);
   save();
-  return [...reviews, ...fresh];
+  return [...burned, ...reviews, ...fresh];
 }
 
 function setMode(m, list) {
   mode = m;
-  if (m === "deck") { render(); return; }
+  if (m === "deck" || m === "focus") { render(); return; }
   if (m === "daily") queue = dailyList();
   if (m === "practice") {
-    queue = shuffle(list);
-    practice = { total: list.length, right: 0, missed: new Set() };
+    queue = shuffle(list.flatMap(c => dirsOf(stack).map(dir => ({ c, dir }))));
+    practice = { total: queue.length, right: 0, missed: new Set() };
   }
   next();
 }
@@ -400,7 +1356,9 @@ function startPractice(list) {
 function refresh() { if (mode === "daily") setMode("daily"); else render(); }
 
 function next() {
-  current = queue.shift() || null;
+  const it = queue.shift();
+  current = it ? it.c : null;
+  currentDir = it ? it.dir : "fr";
   revealed = false;
   const c = $("card");
   c.classList.add("noanim");       // un-flip instantly so the next answer never peeks through
@@ -418,24 +1376,34 @@ function updateDiag() {
 }
 
 function render() {
-  $("cardview").hidden = mode === "deck";
+  $("cardview").hidden = !cardShowing();
   $("deckview").hidden = mode !== "deck";
-  ["daily", "deck", "practice"].forEach(m => $("tab-" + m).classList.toggle("on", m === mode));
+  // the ⏱ Focus tab: the Focus page moves inside this page, under the tabs, and the small timer dropdown
+  // steps aside (the big clock replaces it). The music player follows on its own (see placePlayer).
+  if (mode === "focus") {
+    $("study").insertBefore($("focus"), $("cardview"));
+    $("focus").classList.add("embedded");
+    $("focus").hidden = false;
+  } else if ($("focus").parentNode === $("study")) $("focus").hidden = true;
+  $("timer").hidden = mode === "focus";
+  $("burnview").hidden = mode !== "burn";
+  ["daily", "deck", "practice", "burn", "focus"].forEach(m => $("tab-" + m).classList.toggle("on", m === mode));
   updateDiag();
   if (mode === "deck") { renderDeck(); return; }
+  if (mode === "burn" || mode === "focus") return;   // these draw their own screens
 
   const left = queue.length + (current ? 1 : 0);
   const practicing = mode === "practice";
   $("status").textContent = practicing
     ? "Practice · " + left + " left · nothing here affects your schedule"
-    : left + " card(s) left today · " + state.cards.length + " in deck";
+    : (stack ? stack.name : "All cards") + " · " + left + " left today · " + stackCards().length + " cards";
   // practice only has two answers; daily review has Anki's four, each showing when you'd see the card next
   const names = practicing ? ["Missed", "", "Got it", ""] : ["Again", "Hard", "Good", "Easy"];
   GRADES.forEach((g, i) => {
     const b = $(g);
     b.hidden = !current || !revealed || !names[i];
     b.firstChild.textContent = names[i];
-    b.lastChild.textContent = current && revealed && !practicing ? preview(current, i + 1) : "";
+    b.lastChild.textContent = current && revealed && !practicing ? preview(sideOf(current, currentDir), i + 1) : "";
   });
   $("show").hidden = !current || revealed;
   $("buttons").hidden = !current;
@@ -446,21 +1414,25 @@ function render() {
     $("card").dataset.type = "";
     $("front").textContent = practicing
       ? "Practice complete! " + practice.right + " of " + practice.total + " right on the first try"
-      : state.cards.length ? "Done for today! Try “Practice all” to keep going." : "Tap “Add Beginner 150” below to begin";
+      : stackCards().length ? "Done for today! Try “Practice” to keep going." : "No cards here yet. Tap ‹ to pick a stack.";
     $("answer").textContent = $("example").textContent = "";
     $("type1").textContent = $("type2").textContent = "";
-    $("newbadge").hidden = $("gender").hidden = true;
+    $("newbadge").hidden = $("gender").hidden = $("dirbadge").hidden = true;
     return;
   }
 
-  const isNew = current.reviews === 0;
+  const reverse = currentDir === "en";   // English on the front, French is the answer
+  const isNew = sideOf(current, currentDir).reviews === 0;
   const genders = { m: "masculine", f: "feminine", "m/f": "either" };
 
   $("card").dataset.type = current.part_of_speech || "";
   $("type1").textContent = $("type2").textContent = current.part_of_speech || "word";
   $("newbadge").hidden = practicing || !isNew;
-  $("front").textContent = current.front;
-  $("answer").textContent = current.back || "";
+  $("dirbadge").hidden = !reverse;
+  $("front").textContent = reverse ? current.back || "" : current.front;
+  $("answer").textContent = reverse ? current.front : current.back || "";
+  $("speakfront").hidden = reverse;     // don't say the French before you've answered
+  $("speakanswer").hidden = !reverse;
   $("gender").textContent = genders[current.gender] || "";
   $("gender").hidden = !genders[current.gender];
   $("example").textContent = current.example_target
@@ -473,7 +1445,7 @@ function fitCard() {
   r.setProperty("--above", Math.round($("scene").getBoundingClientRect().top + scrollY + 8) + "px");
   r.setProperty("--below", ($("buttons").offsetHeight + 8) + "px");
 }
-window.addEventListener("resize", () => { if (mode !== "deck") fitCard(); });
+window.addEventListener("resize", () => { if (cardShowing()) fitCard(); });
 
 // ================= the deck screen =================
 function setOptions(sel, items, prev) {
@@ -485,10 +1457,10 @@ function setOptions(sel, items, prev) {
 }
 
 function fillFilters() {
-  const levels = [...new Set(state.cards.map(c => levelOf(c) || "none"))].sort();
+  const levels = [...new Set(stackCards().map(c => levelOf(c) || "none"))].sort();
   setOptions($("level"),
     [["all", "All levels"], ...levels.map(l => [l, LEVELS[l] || "Unrated"])], $("level").value);
-  const types = [...new Set(state.cards.map(c => c.part_of_speech || "other"))].sort();
+  const types = [...new Set(stackCards().map(c => c.part_of_speech || "other"))].sort();
   setOptions($("type"),
     [["all", "All word types"], ...types.map(t => [t, t])], $("type").value);
 }
@@ -496,24 +1468,27 @@ function fillFilters() {
 function filtered() {
   const q = $("search").value.trim().toLowerCase();
   const lv = $("level").value || "all", ty = $("type").value || "all";
-  return state.cards.filter(c =>
+  return stackCards().filter(c =>
     (lv === "all" || (levelOf(c) || "none") === lv) &&
     (ty === "all" || (c.part_of_speech || "other") === ty) &&
     (!q || c.front.toLowerCase().includes(q) || (c.back || "").toLowerCase().includes(q)));
 }
 
 function statusOf(c) {
-  if (c.reviews === 0) return ["new", "n"];
-  if (c.due <= today()) return ["due today", "due"];
-  return ["next " + c.due, ""];
+  if (c.suspended) return ["suspended", "sus"];
+  const s = sideOf(c, dirsOf(stack)[0]);   // the schedule for this stack's main direction
+  if (s.reviews === 0) return ["new", "n"];
+  if (s.due <= today()) return ["due today", "due"];
+  return ["next " + s.due, ""];
 }
 
 function renderList() {
   const list = filtered();
   const counts = {};
-  state.cards.forEach(c => { const l = LEVELS[levelOf(c)] || "Unrated"; counts[l] = (counts[l] || 0) + 1; });
-  const started = state.cards.filter(c => c.reviews > 0).length;
-  $("decksummary").textContent = state.cards.length + " cards · " +
+  const all = stackCards();
+  all.forEach(c => { const l = LEVELS[levelOf(c)] || "Unrated"; counts[l] = (counts[l] || 0) + 1; });
+  const started = all.filter(c => c.reviews > 0).length;
+  $("decksummary").textContent = all.length + " cards · " +
     Object.entries(counts).map(([l, n]) => l + ": " + n).join(" · ") +
     " · " + started + " started · showing " + list.length;
   $("practicefiltered").textContent = "Practice these (" + list.length + ")";
@@ -533,9 +1508,11 @@ function renderList() {
     const [label, cls] = statusOf(c);
     const s = document.createElement("div"); s.className = "s " + cls; s.textContent = label;
     row.append(left, s);
+    row.title = "Tap to edit";
+    row.onclick = () => openEditor(c);
     box.appendChild(row);
   });
-  if (!list.length) box.textContent = state.cards.length ? "No matching cards." : "No cards yet. Import a CSV pack below.";
+  if (!list.length) box.textContent = all.length ? "No matching cards." : "No cards here yet. Tap ‹ to pick a stack.";
 }
 
 function renderDeck() { fillFilters(); renderList(); }
@@ -543,11 +1520,97 @@ function renderDeck() { fillFilters(); renderList(); }
 $("search").oninput = renderList;
 $("level").onchange = renderList;
 $("type").onchange = renderList;
-$("practicefiltered").onclick = () => startPractice(filtered());
+$("practicefiltered").onclick = () => startPractice(filtered().filter(active));
 
 $("tab-daily").onclick = () => setMode("daily");
-$("tab-deck").onclick = () => setMode("deck");
-$("tab-practice").onclick = () => startPractice(state.cards);
+$("tab-deck").onclick = () => { closeEditor(false); setMode("deck"); };
+$("tab-practice").onclick = () => startPractice(stackCards().filter(active));
+
+// ================= editing cards (Deck tab) =================
+// Tap a card in the list to edit, suspend or delete it. "+ Add card" makes a new one.
+let editing = null;   // the card being edited, or null when adding a new card
+
+// words from the built-in packs: these can be suspended but not deleted
+// (opening Beginner 150 or Level 2 would just add them back)
+const builtInWords = () => new Set(allStacks().filter(s => s.text).flatMap(s => [...s.words]));
+
+function openEditor(c) {
+  editing = c;
+  $("decklistview").hidden = true;
+  $("editor").hidden = false;
+  $("edtitle").textContent = c ? "Edit card" : "Add a card";
+  $("ed-front").value = c ? c.front : "";
+  $("ed-back").value = c ? c.back || "" : "";
+  $("ed-pos").value = c ? c.part_of_speech || "" : "";
+  $("ed-gender").value = c && ["m", "f", "m/f"].includes(c.gender) ? c.gender : "";
+  $("ed-exfr").value = c ? c.example_target || "" : "";
+  $("ed-exen").value = c ? c.example_english || "" : "";
+  $("ed-tags").value = c ? c.tags || "" : "";
+  $("ed-suspend").hidden = $("ed-delete").hidden = !c;
+  const builtIn = c && builtInWords().has(wordKey(c));
+  if (c) {
+    $("ed-suspend").textContent = c.suspended ? "Unsuspend" : "Suspend";
+    $("ed-delete").disabled = builtIn;
+  }
+  $("ed-msg").textContent = builtIn ? "This word is part of a built-in stack, so it can be suspended but not deleted."
+    : c ? "" : "It will go into " + (stack && stack.custom ? "“" + stack.name + "”" : "All my cards") + ".";
+  scrollTo(0, 0);
+}
+
+// back to the list (refresh = redraw it, to show what changed)
+function closeEditor(refresh = true) {
+  editing = null;
+  $("editor").hidden = true;
+  $("decklistview").hidden = false;
+  if (refresh && mode === "deck") renderDeck();
+}
+
+$("addcard").onclick = () => openEditor(null);
+$("ed-cancel").onclick = () => closeEditor();
+
+$("ed-save").onclick = () => {
+  const front = $("ed-front").value.trim(), back = $("ed-back").value.trim();
+  if (!front || !back) { $("ed-msg").textContent = "Both the French and the English are needed."; return; }
+  const key = front.toLowerCase();
+  const clash = state.cards.find(c => c !== editing && (wordKey(c) === key || c.front.trim().toLowerCase() === key));
+  if (clash) { $("ed-msg").textContent = "“" + clash.front + "” is already one of your cards."; return; }
+  const fields = { front, back, part_of_speech: $("ed-pos").value.trim(), gender: $("ed-gender").value,
+                   example_target: $("ed-exfr").value.trim(), example_english: $("ed-exen").value.trim(),
+                   tags: $("ed-tags").value.trim() };
+  if (editing) {
+    // remember the card's original word, so it stays in its decks (and keeps its progress) even if you respell it
+    editing.key = wordKey(editing);
+    Object.assign(editing, fields);
+    $("msg").textContent = "Saved “" + front + "”.";
+  } else {
+    state.cards.push({ ...fields, interval: 1, ease: 2.5, due: today(), reviews: 0, correct: 0 });
+    const deck = stack && stack.custom && state.decks.find(d => d.id === stack.id);
+    if (deck) { deck.words.push(key); stack.words.add(key); }   // goes into the custom deck you're in
+    $("msg").textContent = "Added “" + front + "” to " + (deck ? "“" + deck.name + "”" : "All my cards") + ".";
+  }
+  save();
+  closeEditor();
+};
+
+// suspended cards stay in your deck but never come up in Review, Practice or Burn
+$("ed-suspend").onclick = () => {
+  editing.suspended = !editing.suspended;
+  if (!editing.suspended) delete editing.suspended;
+  $("msg").textContent = (editing.suspended ? "Suspended “" : "Unsuspended “") + editing.front + "”.";
+  save();
+  closeEditor();
+};
+
+$("ed-delete").onclick = () => {
+  const c = editing;
+  if (!confirm("Delete “" + c.front + "” and its progress? This can't be undone.")) return;
+  state.cards = state.cards.filter(x => x !== c);
+  state.decks.forEach(d => { d.words = d.words.filter(w => w !== wordKey(c)); });   // and from your decks
+  if (stack && stack.words && stack.custom) stack.words.delete(wordKey(c));
+  $("msg").textContent = "Deleted “" + c.front + "”.";
+  save();
+  closeEditor();
+};
 
 // ================= scheduling, the Anki way (SM-2) =================
 // grade: 1 = Again, 2 = Hard, 3 = Good, 4 = Easy.
@@ -570,38 +1633,48 @@ const relearning = c => c.reviews > 0 && c.due > today();
 // the little label under each button, like "3d" or "2mo"
 function preview(c, grade) {
   if (grade === 1) return "soon";
-  if (relearning(c)) return "1d";
+  if (relearning(c) && !c.burnMissed) return "1d";
   const d = schedule(c, grade).interval;
   return d < 30 ? d + "d" : d < 365 ? Math.round(d / 30) + "mo" : (d / 365).toFixed(1) + "y";
 }
 
-// put a missed card back a few cards later, so you see it again today
-const againSoon = c => queue.splice(Math.min(3, queue.length), 0, c);
+// put the card you just missed back a few cards later (same direction), so you see it again today
+const againSoon = () => queue.splice(Math.min(3, queue.length), 0, { c: current, dir: currentDir });
+
+// save an answer into a card's schedule (used by normal review and by Burn After Reading)
+function applyGrade(c, grade) {
+  const s = schedule(c, grade);
+  c.interval = s.interval;
+  c.ease = s.ease;
+  c.reviews++;
+  if (grade > 1) c.correct = (c.correct || 0) + 1;
+  c.due = addDays(s.interval);
+}
 
 // ================= answering =================
 function rate(grade) {
   if (!current) return;
   if (mode === "practice") {
     // free review: nothing is saved, missed cards come back at the end
-    if (grade > 1) { if (!practice.missed.has(current.front)) practice.right++; }
-    else { practice.missed.add(current.front); queue.push(current); }
+    const key = current.front + "|" + currentDir;
+    if (grade > 1) { if (!practice.missed.has(key)) practice.right++; }
+    else { practice.missed.add(key); queue.push({ c: current, dir: currentDir }); }
     next();
     return;
   }
-  if (relearning(current)) {   // second look at a missed card: its schedule is already set
-    if (grade === 1) againSoon(current);
+  const side = sideToSave(current, currentDir);   // the schedule for the direction you were just tested on
+  // a word missed in Burn After Reading gets a normal review now, then it's back to regular
+  const burned = current.burnMissed;
+  delete current.burnMissed;
+  if (!burned && relearning(side)) {   // second look at a missed card: its schedule is already set
+    if (grade === 1) againSoon();
     next();
     return;
   }
-  const wasNew = current.reviews === 0;
-  const s = schedule(current, grade);
-  current.interval = s.interval;
-  current.ease = s.ease;
-  current.reviews++;
-  if (grade > 1) current.correct = (current.correct || 0) + 1;
-  current.due = addDays(s.interval);
+  const wasNew = side.reviews === 0;
+  applyGrade(side, grade);
   if (wasNew) state.newDone++;
-  if (grade === 1) againSoon(current);
+  if (grade === 1) againSoon();
   save(); next();
 }
 
@@ -662,23 +1735,38 @@ scene.addEventListener("pointerup", e => {
 
 scene.addEventListener("pointercancel", () => { drag = null; if (!flying) slide(0, true); });
 
-// ================= study timer:Pomodoro (default), 15 min, 30 min or 1 hour =================
+// ================= study timer =================
+// One timer, shown in two places: the dropdown on the flashcards page and the big clock on the Focus page.
 let phase = "focus";       // "focus" or "break"
 let cycle = 0;             // focus sessions finished in the current round
 let remaining = 0, endAt = 0, ticking = null, actx = null;
 const fmt = s => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
-const tm = () => TIMER_MODES[state.timerMode];
+const tm = () => state.timerMode === "custom" ? state.customTimer : TIMER_MODES[state.timerMode];
 const isLongBreak = () => phase === "break" && tm().every > 1 && cycle > 0 && cycle % tm().every === 0;
 const phaseSeconds = () => 60 * (phase === "focus" ? tm().focus : isLongBreak() ? tm().long : tm().short);
 const phaseName = () => phase === "focus" ? "Focus" : isLongBreak() ? "Long break" : "Break";
+const RING = 2 * Math.PI * 54;   // the length of the Focus page ring's outline (its radius is 54)
 
 function showTime() {
-  $("time").textContent = fmt(remaining);
-  $("phase").textContent = phaseName() + (state.timerMode === "pomodoro" && phase === "focus" ? " " + (cycle % tm().every + 1) + "/" + tm().every : "");
+  // "Focus 2/4" when the style has long breaks, so you know how far into the round you are
+  const name = phaseName() + (tm().every > 1 && phase === "focus" ? " " + (cycle % tm().every + 1) + "/" + tm().every : "");
+  $("time").textContent = $("ftime").textContent = fmt(remaining);
+  $("phase").textContent = $("fphase").textContent = name;
   $("timer").classList.toggle("onbreak", phase === "break");
+  $("focus").classList.toggle("onbreak", phase === "break");
   $("sessions").textContent = state.sessions ? "· " + state.sessions + " done" : "";
+  $("fsessions").textContent = state.sessions ? state.sessions + " focus session" + (state.sessions === 1 ? "" : "s") + " done" : "";
+  // the ring empties as time passes: dashoffset 0 = full ring, RING = empty
+  const done = 1 - remaining / Math.max(1, phaseSeconds());
+  $("fring").style.strokeDasharray = RING;
+  $("fring").style.strokeDashoffset = RING * done;
   document.title = ticking ? fmt(remaining) + " · " + phaseName() + " · Qarbon" : "Qarbon";
 }
+
+// the Start/Pause/Resume label, on both pages
+const setStartLabel = text => { $("tstart").textContent = $("fstart").textContent = text; };
+// timer messages, on both pages
+const timerNote = text => { $("msg").textContent = $("fmsg").textContent = text; };
 
 function chime() {
   if (!actx) return;
@@ -705,14 +1793,14 @@ function startTimer() {
   endAt = Date.now() + remaining * 1000;
   ticking = setInterval(tick, 500);
   $("timer").classList.remove("done");
-  $("tstart").textContent = "Pause";
+  setStartLabel("Pause");
   showTime();
 }
 
 function pauseTimer() {
   remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
   clearInterval(ticking); ticking = null;
-  $("tstart").textContent = "Resume";
+  setStartLabel("Resume");
   showTime();
 }
 
@@ -722,11 +1810,34 @@ function resetTimer() {
   phase = "focus"; cycle = 0;
   remaining = phaseSeconds();
   $("timer").classList.remove("done");
-  $("tstart").textContent = "Start";
+  setStartLabel("Start");
   showTime();
 }
 
-function syncTimerUI() { $("tmode").value = state.timerMode; resetTimer(); }
+// Skip: jump straight to the next part. A skipped focus session isn't counted as done.
+function skipPhase() {
+  clearInterval(ticking); ticking = null;
+  phase = phase === "focus" ? "break" : "focus";
+  remaining = phaseSeconds();
+  setStartLabel("Start");
+  showTime();
+  timerNote(phaseName() + " is ready: " + Math.round(remaining / 60) + " min. Press Start.");
+}
+
+// the timer style lists (dropdown and Focus page) and the Custom boxes, matching what's saved
+function syncTimerUI() {
+  const styles = [...Object.entries(TIMER_MODES).map(([k, m]) => [k, m.label]), ["custom", "Custom…"]];
+  ["tmode", "ftmode"].forEach(id => setOptions($(id), styles, state.timerMode));
+  Object.keys(CUSTOM_LIMITS).forEach(k => { $("c-" + k).value = state.customTimer[k]; });
+  $("fcustom").hidden = state.timerMode !== "custom";
+  resetTimer();
+}
+
+function chooseTimerMode(value) {
+  state.timerMode = value;
+  save();
+  syncTimerUI();
+}
 
 // a focus or break ran out: chime, then line up the next phase (press Start when you're ready)
 function finishPhase() {
@@ -737,16 +1848,324 @@ function finishPhase() {
   phase = wasFocus ? "break" : "focus";
   remaining = phaseSeconds();
   showTime();
-  $("tstart").textContent = "Start";
-  $("msg").textContent = wasFocus
+  setStartLabel("Start");
+  timerNote(wasFocus
     ? "Focus session complete (" + state.sessions + " so far). " + phaseName() + " is ready: " + Math.round(remaining / 60) + " min. Press Start."
-    : "Break over. Next focus session is ready. Press Start.";
+    : "Break over. Next focus session is ready. Press Start.");
 }
 
-$("timer").addEventListener("toggle", () => { if (mode !== "deck") fitCard(); });   // opening it pushes the card down, so re-fit
-$("tstart").onclick = () => ticking ? pauseTimer() : startTimer();
-$("treset").onclick = resetTimer;
-$("tmode").onchange = e => { state.timerMode = e.target.value; save(); resetTimer(); };
+$("timer").addEventListener("toggle", () => { if (cardShowing()) fitCard(); });   // opening it pushes the card down, so re-fit
+$("tstart").onclick = $("fstart").onclick = () => ticking ? pauseTimer() : startTimer();
+$("treset").onclick = $("freset").onclick = resetTimer;
+$("fskip").onclick = skipPhase;
+$("tmode").onchange = $("ftmode").onchange = e => chooseTimerMode(e.target.value);
+// Custom lengths: kept within their limits, and used right away if the timer isn't running
+Object.keys(CUSTOM_LIMITS).forEach(k => {
+  $("c-" + k).onchange = e => {
+    const [lo, hi] = CUSTOM_LIMITS[k];
+    state.customTimer[k] = Math.min(hi, Math.max(lo, Math.round(Number(e.target.value)) || lo));
+    e.target.value = state.customTimer[k];
+    save();
+    if (!ticking) resetTimer(); else timerNote("New lengths start with the next part.");
+  };
+});
+
+// ================= Burn After Reading =================
+// 1. read up to 10 new cards once (no going back)  2. watch them burn up as a meteor
+// 3. for each English word, pick the exact French spelling out of 4  4. see how many "survived"
+// Right answers count like Good, wrong ones like Hard, and missed words go first in your next Review.
+const BURN_SIZE = 10;
+let burn = null;   // the current round: { cards, order, i, right, missed }
+
+const pick = list => list[Math.floor(Math.random() * list.length)];
+const stripAccents = w => w.normalize("NFD").replace(/[̀-ͯ]/g, "").normalize("NFC");
+const isLetter = ch => /\p{L}/u.test(ch || "");
+
+// accent traps: a wrong accent for each accented letter, or an accent to add where none belongs
+const WRONG_ACCENT = { "é": ["è", "ê", "e"], "è": ["é", "ê", "e"], "ê": ["é", "è", "e"], "ë": ["é", "e"],
+                       "à": ["a", "â"], "â": ["à", "a"], "î": ["i", "ï"], "ï": ["i", "î"], "ô": ["o", "ö"],
+                       "ù": ["u", "û"], "û": ["u", "ù"], "ç": ["c"] };
+const ADD_ACCENT = { e: ["é", "è", "ê"], a: ["à", "â"], i: ["î"], o: ["ô"], u: ["ù", "û"], c: ["ç"] };
+
+// "être" → "etre" (all accents dropped) or "ètre" (one accent wrong); "porte" → "pôrte" (accent added)
+function accentTrap(word) {
+  const chars = [...word];
+  const accented = chars.map((ch, i) => WRONG_ACCENT[ch] ? i : -1).filter(i => i >= 0);
+  if (accented.length) {
+    if (Math.random() < .5) return stripAccents(word);
+    const i = pick(accented);
+    chars[i] = pick(WRONG_ACCENT[chars[i]]);
+    return chars.join("");
+  }
+  const plain = chars.map((ch, i) => ADD_ACCENT[ch] ? i : -1).filter(i => i >= 0);
+  if (!plain.length) return null;   // nothing to put an accent on
+  const i = pick(plain);
+  chars[i] = pick(ADD_ACCENT[chars[i]]);
+  return chars.join("");
+}
+
+// "être" → "têre" (two letters swapped), "êttre" (a letter doubled) or "êre" (a letter dropped)
+function spellingTrap(word) {
+  const chars = [...word];
+  const letters = chars.map((ch, i) => isLetter(ch) ? i : -1).filter(i => i >= 0);
+  if (!letters.length) return null;
+  const i = pick(letters), how = pick(["swap", "double", "drop"]);
+  if (how === "swap" && isLetter(chars[i + 1])) [chars[i], chars[i + 1]] = [chars[i + 1], chars[i]];
+  else if (how === "drop" && letters.length > 2) chars.splice(i, 1);
+  else chars.splice(i, 0, chars[i]);   // double it
+  return chars.join("");
+}
+
+// the 4 answers for one card: correct, accent trap, spelling trap, another real word. All different.
+function burnOptions(card) {
+  const right = card.front, options = [right];
+  const realWords = new Set(state.cards.map(c => c.front));
+  // try a maker a few times until it gives something new (traps can come out the same as the answer).
+  // Traps must not be real words either: dropping a letter from "avoir" gives "voir", which isn't a mistake.
+  const add = (make, real) => {
+    for (let t = 0; t < 30; t++) {
+      const o = make();
+      if (o && !options.includes(o) && (real || !realWords.has(o))) { options.push(o); return true; }
+    }
+    return false;
+  };
+  // a spelling trap must change the letters themselves ("l'ideé" only moves the accent, so it doesn't count)
+  const letterTrap = () => { const o = spellingTrap(right); return o && stripAccents(o) !== stripAccents(right) ? o : null; };
+  if (!add(() => accentTrap(right))) add(letterTrap);   // no accent possible? another spelling trap
+  add(letterTrap);
+  // a real word from your deck, of the same type (noun, verb...) if there is one
+  const sameType = state.cards.filter(c => c.part_of_speech === card.part_of_speech && c.front !== right).map(c => c.front);
+  const anyWord = state.cards.filter(c => c.front !== right).map(c => c.front);
+  if (!add(() => pick(sameType.length ? sameType : anyWord), true)) add(() => pick(anyWord), true);
+  while (options.length < 4 && add(() => spellingTrap(right))) {}   // safety net: always 4 options
+  return shuffle(options);
+}
+
+// show one of the four Burn panels and hide the rest
+function burnShow(panel) {
+  ["burn-read", "burn-fire", "burn-test", "burn-end"].forEach(p => { $(p).hidden = p !== panel; });
+  scrollTo(0, 0);
+}
+
+// the 🔥 Burn tab: pick up to 10 cards you've never studied from this stack and start reading
+function startBurn() {
+  mode = "burn";
+  $("msg").textContent = "";
+  const fresh = stackCards().filter(c => active(c) && c.reviews === 0).slice(0, BURN_SIZE);
+  burn = { cards: fresh, order: [], i: 0, right: 0, missed: [] };
+  render();
+  if (!fresh.length) {   // nothing new left: say so and offer the way back
+    burnShow("burn-end");
+    $("burn-score").textContent = "No new cards left in this stack.";
+    $("burn-missed").textContent = "Pick another stack, or keep going with Review.";
+    return;
+  }
+  $("burn-note").textContent = fresh.length < BURN_SIZE
+    ? "Only " + fresh.length + " new card" + (fresh.length === 1 ? "" : "s") + " left in this stack, so this round has " + fresh.length + "."
+    : "Read each card carefully. Once they burn, they're gone.";
+  burnRead();
+}
+
+// read phase: French word, English meaning, and the word read aloud in your chosen voice
+function burnRead() {
+  const c = burn.cards[burn.i];
+  burnShow("burn-read");
+  $("burn-count").textContent = "Card " + (burn.i + 1) + " of " + burn.cards.length;
+  $("burn-fr").textContent = c.front;
+  $("burn-en").textContent = c.back || "";
+  $("burn-next").textContent = burn.i + 1 < burn.cards.length ? "Next" : "Burn them";
+  speak(c.front);
+}
+
+// burn phase: play the meteor animation, then shuffle the cards and start the test
+function burnFire() {
+  const round = burn, meteor = $("meteor");
+  burnShow("burn-fire");
+  meteor.classList.remove("go"); void meteor.offsetWidth; meteor.classList.add("go");   // restart the animation
+  document.documentElement.classList.add("zooming");   // no scrollbars while the meteor flies off-screen
+  const wait = matchMedia("(prefers-reduced-motion: reduce)").matches ? 400 : 2200;
+  setTimeout(() => {
+    document.documentElement.classList.remove("zooming");
+    if (burn !== round || mode !== "burn") return;   // you left the round while it was burning
+    burn.order = shuffle(burn.cards);
+    burn.i = 0;
+    burnQuestion();
+  }, wait);
+}
+
+// test phase: the English word and 4 French spellings to choose from
+function burnQuestion() {
+  const c = burn.order[burn.i], box = $("burn-options");
+  burnShow("burn-test");
+  $("burn-qcount").textContent = "Question " + (burn.i + 1) + " of " + burn.order.length;
+  $("burn-prompt").textContent = c.back || "";
+  $("burn-feedback").textContent = "";
+  box.innerHTML = "";
+  burnOptions(c).forEach(o => {
+    const b = document.createElement("button");
+    b.textContent = o;
+    b.onclick = () => burnAnswer(c, o, b);
+    box.appendChild(b);
+  });
+}
+
+// check the answer, color the buttons, save the result, then move on after a moment
+function burnAnswer(c, chosen, button) {
+  const round = burn, ok = chosen === c.front;   // only the exact spelling, accents included, counts
+  [...$("burn-options").children].forEach(b => {
+    b.disabled = true;
+    if (b.textContent === c.front) b.classList.add("right");
+  });
+  if (!ok) button.classList.add("wrong");
+  $("burn-feedback").textContent = ok ? "Correct! " + c.front : "Not quite. It's spelled: " + c.front;
+  applyGrade(c, ok ? 3 : 2);   // right = Good, wrong = Hard
+  if (ok) burn.right++;
+  else { c.burnMissed = true; burn.missed.push(c); }   // first in line next Review
+  save();   // saved after every answer, so a refresh doesn't lose anything
+  setTimeout(() => {
+    if (burn !== round || mode !== "burn") return;
+    burn.i++;
+    if (burn.i < burn.order.length) burnQuestion(); else burnEnd();
+  }, ok ? 1400 : 2600);   // a little longer when wrong, so you can read the right spelling
+}
+
+// results: score, plus every missed word with its correct spelling
+function burnEnd() {
+  burnShow("burn-end");
+  $("burn-score").textContent = burn.right + "/" + burn.order.length + " survived the burn";
+  const box = $("burn-missed");
+  box.innerHTML = "";
+  if (!burn.missed.length) { box.textContent = "Nothing lost to the flames!"; return; }
+  box.append("Missed (they'll be first in your next Review):");
+  burn.missed.forEach(c => {
+    const row = document.createElement("div"); row.className = "row";
+    const fr = document.createElement("span"); fr.className = "w"; fr.textContent = c.front;
+    const en = document.createElement("span"); en.className = "m"; en.textContent = c.back || "";
+    row.append(fr, en);
+    box.appendChild(row);
+  });
+}
+
+$("tab-burn").onclick = startBurn;
+$("burn-next").onclick = () => {   // forward only: there's no Back button on purpose
+  burn.i++;
+  if (burn.i < burn.cards.length) burnRead(); else burnFire();
+};
+$("burn-hear").onclick = () => speak(burn.cards[burn.i].front);
+$("burn-back").onclick = () => setMode("daily");
+
+// ================= music: a YouTube or SoundCloud player inside the timer panel =================
+// You paste a normal link (like youtube.com/watch?v=... or soundcloud.com/artist/track).
+// musicEmbed turns it into that site's official "embed" player address, and only accepts
+// YouTube and SoundCloud, so nothing else can be loaded into the page.
+function musicEmbed(link) {
+  let u;
+  try { u = new URL(String(link).trim()); } catch (e) { return null; }
+  if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+  const host = u.hostname.replace(/^(www|m|music)\./, "");
+  const safe = s => /^[\w-]{6,64}$/.test(s || "");   // IDs are letters, numbers, - and _ only
+
+  if (host === "youtube.com" || host === "youtu.be") {
+    const list = u.searchParams.get("list");   // a playlist
+    const id = host === "youtu.be" ? u.pathname.slice(1)
+      : u.searchParams.get("v") || (u.pathname.match(/^\/(shorts|live|embed)\/([^/]+)/) || [])[2];   // a single video
+    // enablejsapi=1 lets the ⏮ ⏭ buttons send "previous" / "next" to the player
+    const extras = "?playsinline=1&rel=0&enablejsapi=1" + (safe(list) ? "&list=" + list : "");
+    if (safe(id)) return { kind: "YouTube", playlist: safe(list), src: "https://www.youtube-nocookie.com/embed/" + id + extras };
+    if (safe(list)) return { kind: "YouTube", playlist: true, src: "https://www.youtube-nocookie.com/embed/videoseries" + extras };
+    return null;
+  }
+  if ((host === "soundcloud.com" || host === "on.soundcloud.com") && u.pathname.length > 1) {
+    const page = "https://" + host + u.pathname;   // a track, playlist or artist page
+    return { kind: "SoundCloud", playlist: /\/sets\//.test(u.pathname),   // SoundCloud playlists live under /sets/
+             src: "https://w.soundcloud.com/player/?url=" + encodeURIComponent(page) +
+                  "&color=%237b6cff&visual=false&show_comments=false" };
+  }
+  return null;
+}
+
+const musicPanels = () => [...document.querySelectorAll(".musicpanel")];
+const fitIfStudying = () => { if (!$("study").hidden && cardShowing()) fitCard(); };
+
+// (re)build the one player from the saved link. autoplay is only used right after you press Play,
+// because browsers block sound that starts without a tap.
+function showMusic(autoplay) {
+  const host = $("playerhost"), m = state.music ? musicEmbed(state.music) : null;
+  host.innerHTML = "";
+  host.dataset.pos = "";
+  $("timer").classList.toggle("hasmusic", !!m);
+  musicPanels().forEach(p => {
+    // each panel reserves a space shaped like the player; ⏮ ⏭ only for playlists
+    p.querySelector(".playerslot").className = "playerslot" + (m ? (m.kind === "YouTube" ? " yt" : " sc") : "");
+    p.querySelector(".musicnav").hidden = !(m && m.playlist);
+    p.querySelector(".musicclear").hidden = !m;
+  });
+  if (!m) return;
+  const f = document.createElement("iframe");
+  f.src = m.src + (autoplay ? (m.kind === "YouTube" ? "&autoplay=1" : "&auto_play=true") : "");
+  f.title = m.kind + " player";
+  f.allow = "autoplay; encrypted-media; picture-in-picture";
+  f.referrerPolicy = "strict-origin-when-cross-origin";   // YouTube needs to know which website the player is on
+  host.appendChild(f);
+}
+
+// Keep the player sitting exactly on top of the music panel you can see. When neither panel is
+// showing (timer dropdown closed, or another page), it's parked off-screen, still playing.
+// Moving it this way, instead of moving it into the other panel, is what stops the music restarting.
+function placePlayer() {
+  const host = $("playerhost");
+  if (host.firstChild) {
+    // a slot counts as visible if it takes up space and isn't inside a closed dropdown
+    // (Safari still reports a size for things inside a closed dropdown, so that's checked separately)
+    const slot = [...document.querySelectorAll(".playerslot")]
+      .find(s => s.getClientRects().length && s.offsetWidth && !s.closest("details:not([open])"));
+    const r = slot && slot.getBoundingClientRect();
+    const pos = r ? [r.left + scrollX, r.top + scrollY, r.width, r.height] : [-10000, 0, 320, 180];
+    const key = pos.map(Math.round).join();
+    if (key !== host.dataset.pos) {   // only touch the page when something actually moved
+      host.dataset.pos = key;
+      [host.style.left, host.style.top, host.style.width, host.style.height] = pos.map(n => Math.round(n) + "px");
+    }
+  }
+  requestAnimationFrame(placePlayer);   // check again on the next screen refresh
+}
+requestAnimationFrame(placePlayer);
+
+// ⏮ ⏭: ask the player to change track, using each site's official message format
+function musicCommand(which) {
+  const f = $("playerhost").querySelector("iframe"), m = state.music && musicEmbed(state.music);
+  if (!f || !m) return;
+  if (m.kind === "YouTube")
+    f.contentWindow.postMessage(JSON.stringify({ event: "command", func: which === "next" ? "nextVideo" : "previousVideo", args: [] }),
+                                "https://www.youtube-nocookie.com");
+  else f.contentWindow.postMessage(JSON.stringify({ method: which }), "https://w.soundcloud.com");
+}
+
+function setMusic(panel) {
+  const input = panel.querySelector(".musicurl"), note = panel.querySelector(".musicmsg");
+  const link = input.value.trim();
+  if (!musicEmbed(link)) { note.textContent = "That doesn't look like a YouTube or SoundCloud link."; return; }
+  state.music = link;
+  save();
+  input.value = "";
+  musicPanels().forEach(p => { p.querySelector(".musicmsg").textContent = ""; });
+  showMusic(true);
+  fitIfStudying();   // the player makes the timer panel taller
+}
+
+musicPanels().forEach(p => {
+  p.querySelector(".musicset").onclick = () => setMusic(p);
+  p.querySelector(".musicurl").addEventListener("keydown", e => { if (e.key === "Enter") setMusic(p); });
+  p.querySelector(".musicprev").onclick = () => musicCommand("prev");
+  p.querySelector(".musicnext").onclick = () => musicCommand("next");
+  p.querySelector(".musicclear").onclick = () => {
+    state.music = "";
+    save();
+    showMusic(false);
+    fitIfStudying();
+  };
+});
+showMusic(false);
 
 // ================= audio: two voices, female (Amélie) and male (Thomas) =================
 const plain = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -797,7 +2216,7 @@ $("voice").onchange = e => {
 document.addEventListener("click", e => {
   const b = e.target.closest(".speak");
   if (!b || !current) return;
-  speak(b.dataset.speak === "front" ? current.front : current.example_target);
+  speak(b.dataset.speak === "example" ? current.example_target : current.front);   // the French word, either side
 });
 
 // ================= buttons and keyboard =================
@@ -805,7 +2224,9 @@ $("show").onclick = () => { revealed = true; render(); };
 GRADES.forEach((g, i) => { $(g).onclick = () => rate(i + 1); });
 document.addEventListener("keydown", e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
-  if (mode === "deck" || !current || ["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)) return;
+  // on the Focus page, Space starts and pauses the timer (unless you're typing in a box)
+  if (!$("focus").hidden && e.key === " " && e.target === document.body) { e.preventDefault(); $("fstart").click(); return; }
+  if ($("study").hidden || !cardShowing() || !current || ["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)) return;
   if (!revealed && (e.key === " " || e.key === "Enter")) { e.preventDefault(); $("show").click(); }
   else if (revealed && /^[1-4]$/.test(e.key)) {
     const grade = Number(e.key);
@@ -817,18 +2238,18 @@ $("perday").value = String(state.newPerDay);
 $("perday").onchange = e => { state.newPerDay = Number(e.target.value); save(); refresh(); };
 
 // ================= import a CSV pack =================
-// turns CSV text into cards and adds the ones you don't already have
+// turns CSV text into cards and adds the ones you don't already have.
+// Returns how it went: { added, dupes, bad }, or { error } if the file can't be used.
 function importCSV(text) {
   const rows = parseCSV(text);
-  if (rows.length < 2) { $("msg").textContent = "That file is empty or has no card rows."; return; }
+  if (rows.length < 2) return { error: "That file is empty or has no card rows." };
 
   const head = rows[0].map(h => h.trim().toLowerCase());
-  if (!head.includes("front") || !head.includes("back")) {
-    $("msg").textContent = "The first row must include 'front' and 'back' columns. Found: " + head.join(", ");
-    return;
-  }
+  if (!head.includes("front") || !head.includes("back"))
+    return { error: "The first row must include 'front' and 'back' columns. Found: " + head.join(", ") };
 
-  const have = new Set(state.cards.map(c => c.front.trim().toLowerCase()));
+  // words you already have: by their original word and their current spelling, so edited cards aren't added twice
+  const have = new Set(state.cards.flatMap(c => [wordKey(c), c.front.trim().toLowerCase()]));
   let added = 0, dupes = 0, bad = 0;
   for (const r of rows.slice(1)) {
     const o = {}; head.forEach((h, i) => { if (h) o[h] = (r[i] || "").trim(); });
@@ -839,31 +2260,213 @@ function importCSV(text) {
     state.cards.push(o); have.add(key); added++;
   }
   save();
-  $("msg").textContent = "Added " + added + " new card(s)" +
-    (dupes ? ", skipped " + dupes + " already in your deck" : "") +
-    (bad ? ", ignored " + bad + " row(s) missing a front or back" : "");
-  refresh();
+  return { added, dupes, bad };
 }
 
+// the French words (fronts) in a CSV, lowercased: this is how a deck knows which cards are its own
+function frontsOf(text) {
+  const rows = parseCSV(text);
+  const col = rows.length ? rows[0].map(h => h.trim().toLowerCase()).indexOf("front") : -1;
+  if (col < 0) return [];
+  return [...new Set(rows.slice(1).map(r => (r[col] || "").trim().toLowerCase()).filter(Boolean))];
+}
+
+// + New deck: read the file, ask for a name, add its cards, and save it as a stack you can pick any day
 $("file").addEventListener("change", async e => {
   const f = e.target.files && e.target.files[0]; if (!f) return;
+  const say = t => { $("stackmsg").textContent = t; };
   let text;
-  try { text = await f.text(); } catch (err) { $("msg").textContent = "Couldn't read that file."; return; }
+  try { text = await f.text(); } catch (err) { say("Couldn't read that file."); return; }
   e.target.value = "";
-  importCSV(text);
+  const words = frontsOf(text);
+  if (!words.length) { say("That file has no cards. The first row needs 'front' and 'back' columns."); return; }
+  const name = (prompt("Name your new deck:", f.name.replace(/\.csv$/i, "")) || "").trim();
+  if (!name) { say("No deck made (it needs a name)."); return; }
+  const r = importCSV(text);
+  if (r.error) { say(r.error); return; }
+  state.decks.push({ id: "deck-" + Date.now(), name, words, added: today() });
+  save();
+  renderStacks();
+  say("Saved “" + name + "” with " + words.length + " cards" +
+      (r.dupes ? " (" + r.dupes + (r.dupes === 1 ? " word was" : " words were") + " already in another deck and will share progress)" : "") +
+      ". It'll be here whenever you come back.");
 });
 
-// the Beginner 150 pack sits next to index.html on the site, so the app can fetch it directly
-$("starter").onclick = async () => {
-  $("msg").textContent = "Loading Beginner 150...";
-  try {
-    const res = await fetch("beginner150.csv");
-    if (!res.ok) throw new Error(res.status);
-    importCSV(await res.text());
-  } catch (err) {
-    $("msg").textContent = "Couldn't load the Beginner 150 pack. This button works on the website, not when the file is opened straight from your Mac.";
+// ================= screens: home → choose a stack → study =================
+// A stack is a list of French words. A card belongs to a stack if its word is on the list,
+// so a word in two stacks shares one set of progress.
+// Built-in packs are stored inside this page (the <script type="text/csv"> tags near the bottom),
+// so they work offline and when index.html is opened straight from the Mac.
+const BUILT_IN = [
+  { id: "beginner150", name: "Beginner 150", blurb: "The 150 most useful words to start with" },
+  { id: "level2",      name: "Level 2",      blurb: "The next 150 useful words" }
+];
+let stack = null;   // the stack you're studying (null = all cards)
+
+// the word a card is known by in decks: its original French word (kept in c.key if you respell it)
+const wordKey = c => c.key || c.front.trim().toLowerCase();
+function stackCards() {
+  return stack && stack.words ? state.cards.filter(c => stack.words.has(wordKey(c))) : state.cards;
+}
+
+// every stack you can pick: built-in packs, then your own decks, then everything
+function allStacks() {
+  const built = BUILT_IN.map(s => {
+    const text = $("pack-" + s.id).textContent.trim();
+    return { ...s, text, words: new Set(frontsOf(text)) };
+  });
+  const mine = state.decks.map(d => ({ id: d.id, name: d.name, custom: true, words: new Set(d.words),
+                                        blurb: "Your deck" + (d.added ? " · added " + d.added : "") }));
+  return [...built, ...mine, { id: "all", name: "All my cards", blurb: "Everything, from every deck" }];
+}
+
+// show one screen and hide the others, with a soft fade in
+function show(screen) {
+  ["home", "stacks", "study", "howto", "focus"].forEach(s => { $(s).hidden = s !== screen; });
+  const el = $(screen);
+  el.classList.remove("fadein"); void el.offsetWidth; el.classList.add("fadein");
+  scrollTo(0, 0);
+}
+
+function openStacks() {
+  $("stackmsg").textContent = "";
+  show("stacks");
+  renderStacks();
+}
+
+function renderStacks() {
+  const box = $("stacklist"), t = today();
+  box.innerHTML = "";
+  allStacks().forEach(s => {
+    const mine = s.words ? state.cards.filter(c => s.words.has(wordKey(c))) : state.cards;
+    const total = s.words ? s.words.size : state.cards.length;
+    const sides = c => dirsOf(s).map(d => sideOf(c, d));   // one schedule per direction this stack uses
+    const started = mine.filter(c => sides(c).some(x => x.reviews > 0)).length;
+    const due = mine.filter(c => active(c) && sides(c).some(x => x.reviews > 0 && x.due <= t)).length;
+    const row = document.createElement("div"); row.className = "stackrow" + (s.custom ? " custom" : "");
+    const b = document.createElement("button"); b.className = "stack";
+    const name = document.createElement("b"); name.textContent = s.name;
+    const blurb = document.createElement("span"); blurb.textContent = s.blurb;
+    const info = document.createElement("small");
+    info.textContent = total + " cards · " + started + " started" + (due ? " · " + due + " due today" : "");
+    b.append(name, blurb, info);
+    b.onclick = () => chooseStack(s);
+    row.appendChild(b);
+    if (s.custom) {   // your own decks: rename ✎ and delete 🗑
+      const tools = document.createElement("div"); tools.className = "stacktools";
+      const ren = document.createElement("button"); ren.textContent = "✎"; ren.title = "Rename"; ren.setAttribute("aria-label", "Rename " + s.name);
+      const del = document.createElement("button"); del.textContent = "🗑"; del.title = "Delete deck"; del.setAttribute("aria-label", "Delete " + s.name);
+      ren.onclick = () => renameDeck(s.id);
+      del.onclick = () => deleteDeck(s.id);
+      tools.append(ren, del);
+      row.appendChild(tools);
+    }
+    box.appendChild(row);
+  });
+}
+
+function renameDeck(id) {
+  const d = state.decks.find(x => x.id === id);
+  const name = (prompt("Rename the deck:", d.name) || "").trim();
+  if (!name || name === d.name) return;
+  d.name = name;
+  save();
+  renderStacks();
+  $("stackmsg").textContent = "Renamed to “" + name + "”.";
+}
+
+// deleting a deck keeps its cards (they stay in All my cards), it only removes the deck
+function deleteDeck(id) {
+  const d = state.decks.find(x => x.id === id);
+  if (!confirm("Delete the deck “" + d.name + "”? Its cards and progress stay in All my cards.")) return;
+  state.decks = state.decks.filter(x => x !== d);
+  delete state.directions[id];
+  if (stack && stack.id === id) stack = null;
+  save();
+  renderStacks();
+  $("stackmsg").textContent = "Deleted the deck “" + d.name + "”. Its cards are still in All my cards.";
+}
+
+function chooseStack(s) {
+  stack = s.words ? s : null;
+  $("msg").textContent = "";
+  if (s.text) {   // built-in pack: add any of its words you don't have yet
+    const r = importCSV(s.text);
+    if (r.added) $("msg").textContent = "Added " + r.added + " new card(s) from " + s.name;
   }
+  closeEditor(false);
+  $("settings").hidden = true;
+  $("search").value = "";                        // a new stack starts with a clear search
+  $("level").value = $("type").value = "all";
+  show("study");
+  setMode("daily");
+}
+
+// ================= ⚙ settings panel =================
+function toggleSettings(open) {
+  $("settings").hidden = !open;
+  if (open) {   // the direction list belongs to the stack you're in
+    setOptions($("direction"), Object.entries(DIRECTIONS), state.directions[stack ? stack.id : "all"] || "fr");
+  }
+  if (cardShowing()) fitCard();   // the panel pushes the card down
+}
+$("gosettings").onclick = () => toggleSettings($("settings").hidden);
+$("setdone").onclick = () => toggleSettings(false);
+$("direction").onchange = e => {
+  state.directions[stack ? stack.id : "all"] = e.target.value;
+  save();
+  $("msg").textContent = "Cards in " + (stack ? stack.name : "All my cards") + ": " + DIRECTIONS[e.target.value] + ".";
+  refresh();   // rebuild today's review with the new direction
 };
+
+// tap the nebula: it zooms toward you, then the stacks appear
+$("nebula").onclick = () => {
+  const home = $("home");
+  if (home.classList.contains("entering")) return;
+  home.classList.add("entering");
+  document.documentElement.classList.add("zooming");
+  const wait = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 900;
+  setTimeout(() => {
+    home.classList.remove("entering");
+    document.documentElement.classList.remove("zooming");
+    openStacks();
+  }, wait);
+};
+$("backhome").onclick = () => show("home");
+
+// the how-to page remembers which screen opened it, so Back returns there
+let howFrom = "home";
+function openHowto() {
+  howFrom = ["home", "stacks", "study"].find(s => !$(s).hidden) || "home";
+  show("howto");
+}
+function closeHowto() {
+  show(howFrom);
+  if (howFrom === "study") render();   // re-measure the card now that the page is visible again
+}
+$("howtolink").onclick = openHowto;
+$("gohelp").onclick = openHowto;
+$("howback").onclick = closeHowto;
+$("howback2").onclick = closeHowto;
+
+// the Focus page also remembers where you came from
+let focusFrom = "home";
+function openFocus() {
+  focusFrom = ["home", "stacks", "study", "howto"].find(s => !$(s).hidden) || "home";
+  // if it was showing as a tab inside the flashcards page, move it back out to stand on its own
+  document.body.insertBefore($("focus"), $("study"));
+  $("focus").classList.remove("embedded");
+  show("focus");
+}
+function closeFocus() {
+  show(focusFrom);
+  if (focusFrom === "study") render();
+}
+$("homefocus").onclick = openFocus;
+$("openfocus").onclick = () => setMode("focus");   // from the dropdown: switch to the ⏱ Focus tab
+$("tab-focus").onclick = () => setMode("focus");
+$("focusback").onclick = closeFocus;
+$("gohome").onclick = openStacks;
 
 // ================= export and restore a backup =================
 $("export").onclick = () => {
@@ -892,6 +2495,7 @@ $("restore").addEventListener("change", async e => {
   save();
   fillVoices();
   syncTimerUI();
+  showMusic(false);
   $("perday").value = String(state.newPerDay);
   setMode("daily");
   $("msg").textContent = "Restored " + state.cards.length + " card(s) from backup";
@@ -899,7 +2503,7 @@ $("restore").addEventListener("change", async e => {
 
 // ================= start =================
 syncTimerUI();
-setMode("daily");
+show("home");
 if (!storageOK) $("msg").textContent = "Heads up: this browser is blocking saving (private window?). Progress won't be kept.";
 $("boot").hidden = true;   // only reached if everything above ran without a crash
 </script>
