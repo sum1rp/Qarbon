@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qarbon</title>
 <style>
   :root { color-scheme: dark; --bg:#080818; --card:#14142b; --text:#ecebff; --muted:#9d9bc7;
@@ -126,7 +126,46 @@
   #settings select { padding:6px 10px; font-size:.9rem; max-width:200px; }
   #voiceinfo { font-size:.8rem; }
 
-  @media (prefers-reduced-motion: reduce) { * { animation:none !important; } }
+  /* ---------- swiping the card ---------- */
+  /* pan-y: up/down drags still scroll the page, sideways drags are ours */
+  #scene { touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:pointer; }
+  #scene[data-swipe="good"] .face  { box-shadow:0 0 0 3px #2fbf9b, 0 6px 24px rgba(0,0,0,.5); }
+  #scene[data-swipe="again"] .face { box-shadow:0 0 0 3px #ff6b6b, 0 6px 24px rgba(0,0,0,.5); }
+
+  /* ---------- phones (like the iPhone 16, 393px wide): one-handed layout ---------- */
+  @media (max-width: 480px) {
+    /* the extra bottom padding keeps the fixed buttons from covering the settings */
+    body { padding:calc(10px + env(safe-area-inset-top)) 16px 110px; }
+    h1 { font-size:1.3rem; margin-bottom:6px; }
+    #timer { flex-wrap:wrap; justify-content:center; gap:6px; padding:6px 10px; margin-bottom:8px;
+             border-radius:18px; max-width:100%; box-sizing:border-box; }
+    #tabs { gap:6px; margin-bottom:6px; }
+    #status { margin:0; }
+    /* the card takes the height left between the top bars and the bottom buttons (measured in fitCard) */
+    #scene { height:clamp(180px, calc(100svh - var(--above, 230px) - var(--below, 96px)), 440px); margin:8px 0; }
+    /* Show answer / Again / Good sit at the bottom, where your thumb is */
+    #buttons { position:fixed; left:0; right:0; bottom:0; z-index:5; gap:10px;
+               padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+               background:var(--bg); border-top:1px solid var(--line); }
+    #buttons button { flex:1; min-height:56px; font-size:1.15rem; font-weight:600; }
+    /* every tap target at least 44px tall (Apple's guideline) */
+    #timer button, #timer select, #tabs button, #settings button, #settings select,
+    #filters select, #filters input, #practicefiltered { min-height:44px; }
+    select { height:44px; }   /* iPhone ignores min-height on dropdowns */
+    .speak, .textbox .speak { min-width:44px; min-height:44px; }
+    /* iPhone zooms in on any text box smaller than 16px when you tap it */
+    #filters select, #filters input, #settings select { font-size:16px; }
+    /* tighter spacing so everything stays inside the card when it's short */
+    .face { padding:8px; }
+    .inner { padding:10px; overflow:hidden; }
+    .top { margin-bottom:6px; }
+    .art { min-height:0; padding:6px; }
+    .textbox { min-height:0; padding:8px; }
+  }
+  /* very short screens (like the iPhone SE): drop the "tap to flip" hint to make room */
+  @media (max-width: 480px) and (max-height: 600px) { .front-face .textbox { display:none; } }
+
+  @media (prefers-reduced-motion: reduce) { * { animation:none !important; } #scene { transition:none !important; } }
 </style>
 </head>
 <body>
@@ -167,7 +206,7 @@
             <div id="front"></div>
             <button class="speak" data-speak="front" title="Hear it">🔊</button>
           </div></div>
-          <div class="textbox">Think it through, then show the answer.</div>
+          <div class="textbox">Think it through, then tap the card to flip it.</div>
         </div></div>
         <div class="face back-face"><div class="inner">
           <div class="top">
@@ -225,7 +264,7 @@ window.addEventListener("error", e => showError((e.message || "unknown error") +
 window.addEventListener("unhandledrejection", e => showError(String((e.reason && e.reason.message) || e.reason)));
 
 // ================= basics =================
-const BUILD = "Qarbon build 6";
+const BUILD = "Qarbon build 8";
 const KEY = "flashcards-v1";   // same key as before, so existing progress carries over
 const $ = id => document.getElementById(id);
 const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -377,7 +416,9 @@ function render() {
   $("good").textContent = practicing ? "Got it (2)" : "Good (2)";
   $("show").hidden = !current || revealed;
   $("again").hidden = $("good").hidden = !current || !revealed;
+  $("buttons").hidden = !current;
   $("card").classList.toggle("flipped", revealed);
+  fitCard();
 
   if (!current) {
     $("card").dataset.type = "";
@@ -403,6 +444,14 @@ function render() {
   $("example").textContent = current.example_target
     ? current.example_target + " — " + (current.example_english || "") : "";
 }
+
+// phones: tell the CSS how much room the top bars and bottom buttons take, so the card fills the rest
+function fitCard() {
+  const r = document.documentElement.style;
+  r.setProperty("--above", Math.round($("scene").getBoundingClientRect().top + scrollY + 8) + "px");
+  r.setProperty("--below", ($("buttons").offsetHeight + 8) + "px");
+}
+window.addEventListener("resize", () => { if (mode !== "deck") fitCard(); });
 
 // ================= the deck screen =================
 function setOptions(sel, items, prev) {
@@ -497,7 +546,64 @@ function rate(good) {
   save(); next();
 }
 
-// ================= study timer: Pomodoro (default), 15 min, 30 min or 1 hour =================
+// ================= card gestures: tap to flip, swipe right = Good, swipe left = Again =================
+// They live on the card only, so scrolling in the Deck tab (which has no card) is never affected.
+const scene = $("scene");
+let drag = null, flying = false;
+
+// move the card sideways with a slight tilt, and glow green/red once it's far enough to count
+function slide(x, animate) {
+  scene.style.transition = animate ? "transform .25s ease, opacity .25s ease" : "none";
+  scene.style.transform = x ? "translateX(" + x + "px) rotate(" + x / 25 + "deg)" : "";
+  scene.dataset.swipe = Math.abs(x) < 40 ? "" : x > 0 ? "good" : "again";
+}
+
+// tap: show the answer, or once it's showing, flip back and forth to look again
+function flip() {
+  if (!revealed) { revealed = true; render(); }
+  else $("card").classList.toggle("flipped");
+}
+
+scene.addEventListener("pointerdown", e => {
+  if (!current || flying || e.target.closest(".speak")) return;
+  e.preventDefault();   // stops a mouse drag from highlighting text on the page
+  drag ={ id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, sideways: false };
+});
+
+scene.addEventListener("pointermove", e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (!drag.sideways && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+    drag.sideways = true;
+    scene.setPointerCapture(e.pointerId);
+  }
+  if (drag.sideways && revealed) { drag.dx = dx; slide(dx, false); }   // no swiping before you've seen the answer
+});
+
+scene.addEventListener("pointerup", e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const d = drag; drag = null;
+  if (!d.sideways && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 10) { flip(); return; }
+  if (!revealed) return;
+  if (Math.abs(d.dx) < Math.min(100, scene.offsetWidth * 0.3)) { slide(0, true); return; }   // not far enough: snap back
+  // far enough: fly off that side, rate the card, then fade the next one in
+  const good = d.dx > 0;
+  flying = true;
+  slide((good ? 1 : -1) * window.innerWidth, true);
+  scene.style.opacity = "0";
+  setTimeout(() => {
+    rate(good);
+    slide(0, false);
+    void scene.offsetWidth;
+    scene.style.transition = "opacity .2s ease";
+    scene.style.opacity = "";
+    flying = false;
+  }, 250);
+});
+
+scene.addEventListener("pointercancel", () => { drag = null; if (!flying) slide(0, true); });
+
+// ================= study timer:Pomodoro (default), 15 min, 30 min or 1 hour =================
 let phase = "focus";       // "focus" or "break"
 let cycle = 0;             // focus sessions finished in the current round
 let remaining = 0, endAt = 0, ticking = null, actx = null;
