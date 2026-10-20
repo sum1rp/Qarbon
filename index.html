@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qarbon</title>
+<style>
+  :root { color-scheme: dark; --bg:#080818; --card:#14142b; --text:#ecebff; --muted:#9d9bc7;
+          --accent:#7b6cff; --line:rgba(150,140,255,.35); --type:#6b7a8f; }
+  [hidden] { display:none !important; }
+
+  /* ---------- galaxy background ---------- */
+  body { font-family: system-ui, sans-serif; color:var(--text); margin:0; padding:24px;
+         display:flex; flex-direction:column; align-items:center; min-height:100vh; box-sizing:border-box;
+         background:
+           radial-gradient(ellipse at 15% 5%, rgba(123,108,255,.30), transparent 50%),
+           radial-gradient(ellipse at 85% 25%, rgba(60,170,255,.20), transparent 55%),
+           radial-gradient(ellipse at 50% 100%, rgba(255,90,200,.16), transparent 50%),
+           var(--bg);
+         background-attachment: fixed; }
+  body::before { content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.8;
+         background-image:
+           radial-gradient(1px 1px at 20px 30px, #fff, transparent),
+           radial-gradient(1.5px 1.5px at 90px 120px, #cfd8ff, transparent),
+           radial-gradient(1px 1px at 160px 60px, #fff, transparent),
+           radial-gradient(1px 1px at 50px 170px, #ffd9ff, transparent),
+           radial-gradient(1.5px 1.5px at 130px 20px, #fff, transparent);
+         background-size:200px 200px; animation: twinkle 6s ease-in-out infinite alternate; }
+  @keyframes twinkle { from { opacity:.45; } to { opacity:.95; } }
+
+  h1 { font-size:1.9rem; margin:0 0 12px; letter-spacing:.22em; text-transform:uppercase;
+       background:linear-gradient(90deg,#b9a9ff,#6fc3ff,#ff9be6); -webkit-background-clip:text;
+       background-clip:text; color:transparent; }
+  #status, #msg { color:var(--muted); font-size:.9rem; margin:4px 0; text-align:center; }
+  #diag { color:var(--muted); font-size:.75rem; margin:18px 0 0; opacity:.75; text-align:center; }
+
+  /* ---------- startup / error banner ---------- */
+  #boot { max-width:560px; margin:0 0 12px; padding:10px 14px; border-radius:10px; font-size:.9rem;
+          background:rgba(255,190,60,.15); border:1px solid rgba(255,190,60,.6); color:#ffe2a8; }
+  #boot.err { background:rgba(255,80,100,.18); border-color:rgba(255,100,120,.8); color:#ffd0d6; }
+
+  /* ---------- timer ---------- */
+  #timer { display:flex; align-items:center; gap:10px; margin-bottom:14px; padding:6px 14px;
+           border:1px solid var(--line); border-radius:999px; background:rgba(20,20,45,.6); }
+  #time { font-variant-numeric:tabular-nums; font-size:1.1rem; font-weight:600; min-width:3.6em; text-align:center; }
+  #timer.done #time { color:#ffd447; }
+  #timer button { padding:5px 12px; font-size:.85rem; }
+  #sessions { color:var(--muted); font-size:.8rem; }
+  #tmode { padding:4px 8px; font-size:.8rem; }
+  #phase { font-size:.8rem; font-weight:600; padding:2px 10px; border-radius:999px; background:#7b6cff; color:#fff; }
+  #timer.onbreak #phase { background:#2fbf9b; }
+  #timer.onbreak #time { color:#2fbf9b; }
+
+  /* ---------- tabs ---------- */
+  #tabs { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; justify-content:center; }
+  #tabs button { padding:8px 16px; font-size:.9rem; }
+  #tabs button.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  #cardview { width:100%; display:flex; flex-direction:column; align-items:center; }
+
+  /* ---------- card colors by part of speech ---------- */
+  #card[data-type="noun"]       { --type:#2fbf9b; }
+  #card[data-type="verb"]       { --type:#ff5d8f; }
+  #card[data-type="adjective"]  { --type:#ffb347; }
+  #card[data-type="adverb"]     { --type:#a06bff; }
+  #card[data-type="pronoun"]    { --type:#4aa3ff; }
+
+  /* ---------- flip animation ---------- */
+  #scene { width:100%; max-width:340px; height:440px; margin:20px 0; perspective:1000px; }
+  #card { position:relative; width:100%; height:100%; transition:transform .6s; transform-style:preserve-3d; }
+  #card.flipped { transform:rotateY(180deg); }
+  #card.noanim { transition:none; }
+
+  /* ---------- the card: colored frame with a panel inside ---------- */
+  .face { position:absolute; inset:0; box-sizing:border-box; padding:12px; border-radius:20px;
+          backface-visibility:hidden; -webkit-backface-visibility:hidden;
+          background:linear-gradient(145deg, transparent 40%, rgba(255,255,255,.35)), var(--type);
+          box-shadow:0 6px 24px rgba(0,0,0,.5); }
+  .back-face { transform:rotateY(180deg); }
+  .inner { height:100%; box-sizing:border-box; color:var(--text); border-radius:12px; padding:14px;
+           display:flex; flex-direction:column;
+           background:radial-gradient(circle at 20% 0%, rgba(123,108,255,.22), transparent 60%), var(--card); }
+
+  .top { display:flex; justify-content:space-between; align-items:center; font-size:.85rem; margin-bottom:10px; min-height:26px; }
+  .pill { background:var(--type); color:#fff; padding:3px 10px; border-radius:999px; font-weight:600; text-transform:capitalize; }
+  .new { background:#ffd447; color:#5a4500; padding:2px 9px; border-radius:999px; font-size:.78rem; font-weight:600; }
+
+  .art { flex:1; display:flex; align-items:center; justify-content:center; text-align:center; padding:12px;
+         border-radius:10px; background:linear-gradient(160deg, rgba(255,255,255,.03), rgba(0,0,0,.35)); }
+  #front { font-size:2rem; font-weight:700; color:var(--text); }
+  #answer { font-size:1.6rem; font-weight:700; color:var(--type); }
+  .textbox { margin-top:10px; border:1px solid rgba(150,140,255,.3); border-radius:10px;
+             padding:10px; font-size:.9rem; color:var(--muted); min-height:64px; }
+
+  /* audio buttons */
+  .speak { margin-top:8px; background:none; border:1px solid rgba(150,140,255,.45);
+           border-radius:999px; padding:4px 12px; font-size:1.1rem; cursor:pointer; }
+  .textbox .speak { margin:0 0 0 6px; padding:2px 8px; font-size:1rem; }
+
+  /* ---------- buttons ---------- */
+  #buttons { display:flex; gap:12px; }
+  button, select, input[type="search"] { font-size:1rem; padding:10px 20px; border-radius:10px;
+                   border:1px solid var(--line); background:rgba(30,30,62,.85); color:var(--text); cursor:pointer; }
+  #show, #good { background:linear-gradient(135deg,#7b6cff,#4aa3ff); color:#fff; border:none; }
+
+  /* ---------- deck view ---------- */
+  #deckview { width:100%; max-width:560px; }
+  #filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  #filters select, #filters input { font-size:.9rem; padding:8px 12px; }
+  #filters input { flex:1; min-width:160px; cursor:text; }
+  #decksummary { color:var(--muted); font-size:.9rem; margin:10px 0; }
+  #practicefiltered { background:linear-gradient(135deg,#7b6cff,#4aa3ff); color:#fff; border:none; margin-bottom:12px; }
+  #decklist { max-height:60vh; overflow-y:auto; border:1px solid var(--line); border-radius:10px; background:rgba(20,20,45,.55); }
+  .row { display:flex; justify-content:space-between; gap:12px; padding:10px 12px; font-size:.95rem;
+         border-bottom:1px solid rgba(150,140,255,.15); }
+  .row:last-child { border-bottom:none; }
+  .row .w { font-weight:600; }
+  .row .m { color:var(--muted); }
+  .row .ex { color:var(--muted); font-size:.8rem; margin-top:2px; }
+  .row .s { color:var(--muted); white-space:nowrap; font-size:.8rem; text-align:right; }
+  .row .s.due { color:#ffd447; }
+  .row .s.n { color:#6fc3ff; }
+
+  #settings { margin-top:28px; display:flex; flex-wrap:wrap; gap:12px; align-items:center;
+              justify-content:center; color:var(--muted); font-size:.9rem; max-width:560px; }
+  #settings select { padding:6px 10px; font-size:.9rem; max-width:200px; }
+  #voiceinfo { font-size:.8rem; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation:none !important; } }
+</style>
+</head>
+<body>
+  <h1>Qarbon</h1>
+
+  <div id="boot">Starting Qarbon… If this message stays, the page's code did not finish loading (the file may have been cut off).</div>
+
+  <div id="timer">
+    <select id="tmode" title="Timer style">
+      <option value="pomodoro">Pomodoro 25/5</option>
+      <option value="m15">15 min</option>
+      <option value="m30">30 min</option>
+      <option value="hour">1 hour</option>
+    </select>
+    <span id="phase">Focus</span>
+    <span id="time">25:00</span>
+    <button id="tstart">Start</button>
+    <button id="treset">Reset</button>
+    <span id="sessions"></span>
+  </div>
+
+  <div id="tabs">
+    <button id="tab-daily">Daily review</button>
+    <button id="tab-deck">Deck</button>
+    <button id="tab-practice">Practice all</button>
+  </div>
+
+  <div id="cardview">
+    <div id="status"></div>
+    <div id="scene">
+      <div id="card">
+        <div class="face front-face"><div class="inner">
+          <div class="top">
+            <span id="type1" class="pill"></span>
+            <span id="newbadge" class="new">New</span>
+          </div>
+          <div class="art"><div>
+            <div id="front"></div>
+            <button class="speak" data-speak="front" title="Hear it">🔊</button>
+          </div></div>
+          <div class="textbox">Think it through, then show the answer.</div>
+        </div></div>
+        <div class="face back-face"><div class="inner">
+          <div class="top">
+            <span id="type2" class="pill"></span>
+            <span id="gender" class="pill"></span>
+          </div>
+          <div class="art"><div id="answer"></div></div>
+          <div class="textbox"><span id="example"></span><button class="speak" data-speak="example" title="Hear the sentence">🔊</button></div>
+        </div></div>
+      </div>
+    </div>
+
+    <div id="buttons">
+      <button id="show">Show answer</button>
+      <button id="again" hidden>Again (1)</button>
+      <button id="good" hidden>Good (2)</button>
+    </div>
+  </div>
+
+  <div id="deckview" hidden>
+    <div id="filters">
+      <input type="search" id="search" placeholder="Search words or meanings...">
+      <select id="level"></select>
+      <select id="type"></select>
+    </div>
+    <button id="practicefiltered">Practice these</button>
+    <div id="decksummary"></div>
+    <div id="decklist"></div>
+  </div>
+
+  <div id="settings">
+    <label>New cards per day
+      <select id="perday"><option>10</option><option>20</option><option>30</option></select>
+    </label>
+    <label>Voice <select id="voice"></select></label>
+    <span id="voiceinfo"></span>
+    <label>Import CSV <input type="file" id="file" accept=".csv"></label>
+    <button id="export">Export backup</button>
+    <label>Restore backup <input type="file" id="restore" accept=".json"></label>
+  </div>
+  <div id="msg"></div>
+  <div id="diag"></div>
+
+<script>
+// ================= error catcher: any problem shows up on the page itself =================
+function showError(msg) {
+  const b = document.getElementById("boot");
+  if (!b) return;
+  b.hidden = false;
+  b.classList.add("err");
+  b.textContent = "Something broke: " + msg + "  —  open the console (Chrome: Cmd+Option+J) and tell Claude what it says.";
+}
+window.addEventListener("error", e => showError((e.message || "unknown error") + (e.lineno ? " (line " + e.lineno + ")" : "")));
+window.addEventListener("unhandledrejection", e => showError(String((e.reason && e.reason.message) || e.reason)));
+
+// ================= basics =================
+const BUILD = "Qarbon build 5";
+const KEY = "flashcards-v1";   // same key as before, so existing progress carries over
+const $ = id => document.getElementById(id);
+const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const today = () => iso(new Date());
+function addDays(n) { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); }
+
+const VOICES = { female: "Amélie", male: "Thomas" };
+const PER_DAY_CHOICES = [10, 20, 30];
+// minutes for each timer style. Pomodoro: 25 focus, 5 break, a longer 15 break after every 4th focus.
+const TIMER_MODES = {
+  pomodoro: { focus: 25, short: 5, long: 15, every: 4 },
+  m15:      { focus: 15, short: 3, long: 3, every: 1 },
+  m30:      { focus: 30, short: 5, long: 5, every: 1 },
+  hour:    { focus: 60, short: 10, long: 10, every: 1 }
+};
+
+// ================= saving and loading =================
+let storageOK = true;
+try { localStorage.setItem("_qtest", "1"); localStorage.removeItem("_qtest"); } catch (e) { storageOK = false; }
+
+const FRESH = { cards: [], newPerDay: 10, newDate: "", newDone: 0, voice: "female", sessions: 0, timerMode: "pomodoro" };
+
+// make sure whatever we loaded (or restored) has the right shape
+function clean(data) {
+  const s = Object.assign({}, FRESH, data && typeof data === "object" ? data : {});
+  s.cards = (Array.isArray(s.cards) ? s.cards : [])
+    .filter(c => c && typeof c.front === "string" && c.front.trim())
+    .map(c => {
+      c.interval = Number(c.interval) > 0 ? Number(c.interval) : 1;
+      c.reviews = Number(c.reviews) || 0;
+      c.correct = Number(c.correct) || 0;
+      c.due = typeof c.due === "string" && c.due ? c.due : today();
+      return c;
+    });
+  s.newPerDay = PER_DAY_CHOICES.includes(Number(s.newPerDay)) ? Number(s.newPerDay) : 10;
+  s.newDone = Number(s.newDone) || 0;
+  s.sessions = Number(s.sessions) || 0;
+  if (!VOICES[s.voice]) s.voice = "female";
+  if (!TIMER_MODES[s.timerMode]) s.timerMode = "pomodoro";
+  return s;
+}
+
+function load() {
+  let data = null;
+  try { data = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+  return clean(data);
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); storageOK = true; } catch (e) { storageOK = false; }
+}
+let state = load();
+
+// ================= levels (read from each card's tags, like "A1;core") =================
+const LEVELS = { A1: "Beginner (A1)", A2: "Elementary (A2)", B1: "Intermediate (B1)", B2: "Upper intermediate (B2)" };
+const levelOf = c => (c.tags || "").split(";").map(t => t.trim()).find(t => LEVELS[t]) || "";
+
+// ================= CSV reading (handles quoted fields) =================
+function parseCSV(text) {
+  const rows = []; let row = [], field = "", q = false;
+  text = text.replace(/^﻿/, "");
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; }
+      else field += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(field); field = ""; rows.push(row); row = [];
+    } else field += c;
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => r.length > 1 || (r[0] && r[0].trim()));
+}
+
+// ================= modes: "daily" (spaced repetition), "deck" (browse), "practice" (free review) =================
+let mode = "daily";
+let queue = [], current = null, revealed = false;
+let practice = { total: 0, right: 0, missed: new Set() };
+
+function shuffle(a) {
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+function dailyList() {
+  const t = today();
+  if (state.newDate !== t) { state.newDate = t; state.newDone = 0; }
+  const reviews = shuffle(state.cards.filter(c => c.reviews > 0 && c.due <= t));
+  const newLeft = Math.max(0, state.newPerDay - state.newDone);
+  const fresh = state.cards.filter(c => c.reviews === 0).slice(0, newLeft);
+  save();
+  return [...reviews, ...fresh];
+}
+
+function setMode(m, list) {
+  mode = m;
+  if (m === "deck") { render(); return; }
+  if (m === "daily") queue = dailyList();
+  if (m === "practice") {
+    queue = shuffle(list);
+    practice = { total: list.length, right: 0, missed: new Set() };
+  }
+  next();
+}
+
+function startPractice(list) {
+  if (!list.length) { $("msg").textContent = "No cards to practice yet. Import a pack first."; return; }
+  $("msg").textContent = "";
+  setMode("practice", list);
+}
+
+// re-sync the screen after cards change (import, restore, settings)
+function refresh() { if (mode === "daily") setMode("daily"); else render(); }
+
+function next() {
+  current = queue.shift() || null;
+  revealed = false;
+  const c = $("card");
+  c.classList.add("noanim");       // un-flip instantly so the next answer never peeks through
+  c.classList.remove("flipped");
+  void c.offsetWidth;
+  c.classList.remove("noanim");
+  render();
+}
+
+function updateDiag() {
+  const t = today();
+  const due = state.cards.filter(c => c.reviews > 0 && c.due <= t).length;
+  $("diag").textContent = BUILD + " · " + state.cards.length + " cards loaded · " + due +
+    " due for review · saving " + (storageOK ? "on" : "OFF (this browser is blocking storage)");
+}
+
+function render() {
+  $("cardview").hidden = mode === "deck";
+  $("deckview").hidden = mode !== "deck";
+  ["daily", "deck", "practice"].forEach(m => $("tab-" + m).classList.toggle("on", m === mode));
+  updateDiag();
+  if (mode === "deck") { renderDeck(); return; }
+
+  const left = queue.length + (current ? 1 : 0);
+  const practicing = mode === "practice";
+  $("status").textContent = practicing
+    ? "Practice · " + left + " left · nothing here affects your schedule"
+    : left + " card(s) left today · " + state.cards.length + " in deck";
+  $("again").textContent = practicing ? "Missed (1)" : "Again (1)";
+  $("good").textContent = practicing ? "Got it (2)" : "Good (2)";
+  $("show").hidden = !current || revealed;
+  $("again").hidden = $("good").hidden = !current || !revealed;
+  $("card").classList.toggle("flipped", revealed);
+
+  if (!current) {
+    $("card").dataset.type = "";
+    $("front").textContent = practicing
+      ? "Practice complete! " + practice.right + " of " + practice.total + " right on the first try"
+      : state.cards.length ? "Done for today! Try “Practice all” to keep going." : "Import a CSV pack to begin";
+    $("answer").textContent = $("example").textContent = "";
+    $("type1").textContent = $("type2").textContent = "";
+    $("newbadge").hidden = $("gender").hidden = true;
+    return;
+  }
+
+  const isNew = current.reviews === 0;
+  const genders = { m: "masculine", f: "feminine", "m/f": "either" };
+
+  $("card").dataset.type = current.part_of_speech || "";
+  $("type1").textContent = $("type2").textContent = current.part_of_speech || "word";
+  $("newbadge").hidden = practicing || !isNew;
+  $("front").textContent = current.front;
+  $("answer").textContent = current.back || "";
+  $("gender").textContent = genders[current.gender] || "";
+  $("gender").hidden = !genders[current.gender];
+  $("example").textContent = current.example_target
+    ? current.example_target + " — " + (current.example_english || "") : "";
+}
+
+// ================= the deck screen =================
+function setOptions(sel, items, prev) {
+  sel.innerHTML = "";
+  items.forEach(([v, l]) => {
+    const o = document.createElement("option"); o.value = v; o.textContent = l; sel.appendChild(o);
+  });
+  if (items.some(i => i[0] === prev)) sel.value = prev;
+}
+
+function fillFilters() {
+  const levels = [...new Set(state.cards.map(c => levelOf(c) || "none"))].sort();
+  setOptions($("level"),
+    [["all", "All levels"], ...levels.map(l => [l, LEVELS[l] || "Unrated"])], $("level").value);
+  const types = [...new Set(state.cards.map(c => c.part_of_speech || "other"))].sort();
+  setOptions($("type"),
+    [["all", "All word types"], ...types.map(t => [t, t])], $("type").value);
+}
+
+function filtered() {
+  const q = $("search").value.trim().toLowerCase();
+  const lv = $("level").value || "all", ty = $("type").value || "all";
+  return state.cards.filter(c =>
+    (lv === "all" || (levelOf(c) || "none") === lv) &&
+    (ty === "all" || (c.part_of_speech || "other") === ty) &&
+    (!q || c.front.toLowerCase().includes(q) || (c.back || "").toLowerCase().includes(q)));
+}
+
+function statusOf(c) {
+  if (c.reviews === 0) return ["new", "n"];
+  if (c.due <= today()) return ["due today", "due"];
+  return ["next " + c.due, ""];
+}
+
+function renderList() {
+  const list = filtered();
+  const counts = {};
+  state.cards.forEach(c => { const l = LEVELS[levelOf(c)] || "Unrated"; counts[l] = (counts[l] || 0) + 1; });
+  const started = state.cards.filter(c => c.reviews > 0).length;
+  $("decksummary").textContent = state.cards.length + " cards · " +
+    Object.entries(counts).map(([l, n]) => l + ": " + n).join(" · ") +
+    " · " + started + " started · showing " + list.length;
+  $("practicefiltered").textContent = "Practice these (" + list.length + ")";
+
+  const box = $("decklist");
+  box.innerHTML = "";
+  list.forEach(c => {
+    const row = document.createElement("div"); row.className = "row";
+    const left = document.createElement("div");
+    const w = document.createElement("span"); w.className = "w"; w.textContent = c.front;
+    const m = document.createElement("span"); m.className = "m"; m.textContent = " — " + (c.back || "");
+    left.append(w, m);
+    if (c.example_target) {
+      const ex = document.createElement("div"); ex.className = "ex"; ex.textContent = c.example_target;
+      left.appendChild(ex);
+    }
+    const [label, cls] = statusOf(c);
+    const s = document.createElement("div"); s.className = "s " + cls; s.textContent = label;
+    row.append(left, s);
+    box.appendChild(row);
+  });
+  if (!list.length) box.textContent = state.cards.length ? "No matching cards." : "No cards yet. Import a CSV pack below.";
+}
+
+function renderDeck() { fillFilters(); renderList(); }
+
+$("search").oninput = renderList;
+$("level").onchange = renderList;
+$("type").onchange = renderList;
+$("practicefiltered").onclick = () => startPractice(filtered());
+
+$("tab-daily").onclick = () => setMode("daily");
+$("tab-deck").onclick = () => setMode("deck");
+$("tab-practice").onclick = () => startPractice(state.cards);
+
+// ================= answering =================
+function rate(good) {
+  if (!current) return;
+  if (mode === "practice") {
+    // free review: nothing is saved, missed cards come back at the end
+    if (good) { if (!practice.missed.has(current.front)) practice.right++; }
+    else { practice.missed.add(current.front); queue.push(current); }
+    next();
+    return;
+  }
+  const wasNew = current.reviews === 0;
+  if (good) { current.interval = (current.interval || 1) * 2; current.correct = (current.correct || 0) + 1; }
+  else current.interval = 1;
+  current.reviews++;
+  current.due = addDays(current.interval);
+  if (wasNew) state.newDone++;
+  save(); next();
+}
+
+// ================= study timer: Pomodoro (default), 15 min, 30 min or 1 hour =================
+let phase = "focus";       // "focus" or "break"
+let cycle = 0;             // focus sessions finished in the current round
+let remaining = 0, endAt = 0, ticking = null, actx = null;
+const fmt = s => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+const tm = () => TIMER_MODES[state.timerMode];
+const isLongBreak = () => phase === "break" && tm().every > 1 && cycle > 0 && cycle % tm().every === 0;
+const phaseSeconds = () => 60 * (phase === "focus" ? tm().focus : isLongBreak() ? tm().long : tm().short);
+const phaseName = () => phase === "focus" ? "Focus" : isLongBreak() ? "Long break" : "Break";
+
+function showTime() {
+  $("time").textContent = fmt(remaining);
+  $("phase").textContent = phaseName() + (state.timerMode === "pomodoro" && phase === "focus" ? " " + (cycle % tm().every + 1) + "/" + tm().every : "");
+  $("timer").classList.toggle("onbreak", phase === "break");
+  $("sessions").textContent = state.sessions ? "· " + state.sessions + " done" : "";
+  document.title = ticking ? fmt(remaining) + " · " + phaseName() + " · Qarbon" : "Qarbon";
+}
+
+function chime() {
+  if (!actx) return;
+  [660, 880, 1100].forEach((f, i) => {
+    const t = actx.currentTime + i * 0.25;
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = "sine"; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.2, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+    o.connect(g); g.connect(actx.destination);
+    o.start(t); o.stop(t + 0.7);
+  });
+}
+
+function tick() {
+  remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+  showTime();
+  if (remaining === 0) finishPhase();
+}
+
+function startTimer() {
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) {}
+  endAt = Date.now() + remaining * 1000;
+  ticking = setInterval(tick, 500);
+  $("timer").classList.remove("done");
+  $("tstart").textContent = "Pause";
+  showTime();
+}
+
+function pauseTimer() {
+  remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+  clearInterval(ticking); ticking = null;
+  $("tstart").textContent = "Resume";
+  showTime();
+}
+
+// back to the start of a fresh round (used by Reset, switching style, and restoring a backup)
+function resetTimer() {
+  clearInterval(ticking); ticking = null;
+  phase = "focus"; cycle = 0;
+  remaining = phaseSeconds();
+  $("timer").classList.remove("done");
+  $("tstart").textContent = "Start";
+  showTime();
+}
+
+function syncTimerUI() { $("tmode").value = state.timerMode; resetTimer(); }
+
+// a focus or break ran out: chime, then line up the next phase (press Start when you're ready)
+function finishPhase() {
+  clearInterval(ticking); ticking = null;
+  const wasFocus = phase === "focus";
+  if (wasFocus) { state.sessions = (state.sessions || 0) + 1; cycle++; save(); }
+  try { chime(); } catch (e) {}
+  phase = wasFocus ? "break" : "focus";
+  remaining = phaseSeconds();
+  showTime();
+  $("tstart").textContent = "Start";
+  $("msg").textContent = wasFocus
+    ? "Focus session complete (" + state.sessions + " so far). " + phaseName() + " is ready: " + Math.round(remaining / 60) + " min. Press Start."
+    : "Break over. Next focus session is ready. Press Start.";
+}
+
+$("tstart").onclick = () => ticking ? pauseTimer() : startTimer();
+$("treset").onclick = resetTimer;
+$("tmode").onchange = e => { state.timerMode = e.target.value; save(); resetTimer(); };
+
+// ================= audio: two voices, female (Amélie) and male (Thomas) =================
+const plain = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const hasSpeech = () => "speechSynthesis" in window;
+const frVoices = () => hasSpeech() ? speechSynthesis.getVoices().filter(v => v.lang && v.lang.startsWith("fr")) : [];
+
+function findVoice() {
+  const want = plain(VOICES[state.voice] || VOICES.female);
+  return frVoices().find(v => plain(v.name).includes(want));
+}
+
+function speak(text) {
+  if (!hasSpeech() || !text) return;
+  const clean = text.replace(/\s*\/\s*/g, ", ").replace(/\.\.\./g, " ");
+  const u = new SpeechSynthesisUtterance(clean);
+  u.lang = "fr-FR";
+  u.rate = 0.85;   // 1 = normal speed
+  const v = findVoice() || frVoices()[0];
+  if (v) u.voice = v;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+function updateVoiceInfo() {
+  const el = $("voiceinfo");
+  if (!hasSpeech()) { el.textContent = "(this browser has no speech support)"; return; }
+  const fr = frVoices(), v = findVoice();
+  if (!fr.length) el.textContent = "(no French voices found yet)";
+  else if (v) el.textContent = "(using " + v.name + ")";
+  else el.textContent = "(" + VOICES[state.voice] + " isn't installed here, using " + fr[0].name + ")";
+}
+
+function fillVoices() {
+  const sel = $("voice");
+  sel.innerHTML = '<option value="female">Female (Amélie)</option><option value="male">Male (Thomas)</option>';
+  sel.value = state.voice;
+  updateVoiceInfo();
+}
+fillVoices();
+if (hasSpeech()) speechSynthesis.onvoiceschanged = updateVoiceInfo;   // voices often load a moment late
+
+$("voice").onchange = e => {
+  state.voice = e.target.value; save();
+  updateVoiceInfo();
+  if (current) speak(current.front);   // quick preview
+};
+
+document.addEventListener("click", e => {
+  const b = e.target.closest(".speak");
+  if (!b || !current) return;
+  speak(b.dataset.speak === "front" ? current.front : current.example_target);
+});
+
+// ================= buttons and keyboard =================
+$("show").onclick = () => { revealed = true; render(); };
+$("again").onclick = () => rate(false);
+$("good").onclick = () => rate(true);
+document.addEventListener("keydown", e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (mode === "deck" || !current || ["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)) return;
+  if (!revealed && (e.key === " " || e.key === "Enter")) { e.preventDefault(); $("show").click(); }
+  else if (revealed && e.key === "1") rate(false);
+  else if (revealed && e.key === "2") rate(true);
+});
+
+$("perday").value = String(state.newPerDay);
+$("perday").onchange = e => { state.newPerDay = Number(e.target.value); save(); refresh(); };
+
+// ================= import a CSV pack =================
+$("file").addEventListener("change", async e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  let rows;
+  try { rows = parseCSV(await f.text()); } catch (err) { $("msg").textContent = "Couldn't read that file."; return; }
+  e.target.value = "";
+  if (rows.length < 2) { $("msg").textContent = "That file is empty or has no card rows."; return; }
+
+  const head = rows[0].map(h => h.trim().toLowerCase());
+  if (!head.includes("front") || !head.includes("back")) {
+    $("msg").textContent = "The first row must include 'front' and 'back' columns. Found: " + head.join(", ");
+    return;
+  }
+
+  const have = new Set(state.cards.map(c => c.front.trim().toLowerCase()));
+  let added = 0, dupes = 0, bad = 0;
+  for (const r of rows.slice(1)) {
+    const o = {}; head.forEach((h, i) => { if (h) o[h] = (r[i] || "").trim(); });
+    if (!o.front || !o.back) { bad++; continue; }
+    const key = o.front.toLowerCase();
+    if (have.has(key)) { dupes++; continue; }
+    Object.assign(o, { interval: 1, due: today(), reviews: 0, correct: 0 });
+    state.cards.push(o); have.add(key); added++;
+  }
+  save();
+  $("msg").textContent = "Added " + added + " new card(s)" +
+    (dupes ? ", skipped " + dupes + " already in your deck" : "") +
+    (bad ? ", ignored " + bad + " row(s) missing a front or back" : "");
+  refresh();
+});
+
+// ================= export and restore a backup =================
+$("export").onclick = () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "qarbon-backup-" + today() + ".json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  $("msg").textContent = "Backup downloaded (" + state.cards.length + " cards). Check your Downloads folder.";
+};
+
+$("restore").addEventListener("change", async e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  let data;
+  try { data = JSON.parse(await f.text()); } catch (err) { data = null; }
+  e.target.value = "";
+  if (!data || !Array.isArray(data.cards)) {
+    $("msg").textContent = "That file doesn't look like a Qarbon backup, so nothing was changed.";
+    return;
+  }
+  const restored = clean(data);
+  if (!confirm("Replace your current progress with this backup (" + restored.cards.length + " cards)?")) return;
+  state = restored;
+  save();
+  fillVoices();
+  syncTimerUI();
+  $("perday").value = String(state.newPerDay);
+  setMode("daily");
+  $("msg").textContent = "Restored " + state.cards.length + " card(s) from backup";
+});
+
+// ================= start =================
+syncTimerUI();
+setMode("daily");
+if (!storageOK) $("msg").textContent = "Heads up: this browser is blocking saving (private window?). Progress won't be kept.";
+$("boot").hidden = true;   // only reached if everything above ran without a crash
+</script>
+</body>
+</html>

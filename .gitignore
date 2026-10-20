@@ -1,0 +1,8 @@
+# Files that stay on this Mac and never go to GitHub
+cards.py
+import_pack.py
+hello.py
+cards.json
+index.previous.html
+CLAUDE.md
+.DS_Store

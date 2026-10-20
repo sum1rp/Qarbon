@@ -1,0 +1,5 @@
+front,back,part_of_speech,gender,example_target,example_english,tags
+le pain,bread,noun,m,J'achète du pain tous les matins.,I buy bread every morning.,A1;food
+la boulangerie,bakery,noun,f,La boulangerie ouvre à sept heures.,The bakery opens at seven.,A1;food
+manger,to eat,verb,none,Nous mangeons à midi.,We eat at noon.,A1;food
+l'eau,water,noun,f,Je voudrais de l'eau.,I would like some water.,A1;food
