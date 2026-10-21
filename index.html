@@ -4,7 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qarbon</title>
-<link rel="stylesheet" href="css/styles.css?v=30">
+<link rel="stylesheet" href="css/styles.css?v=33">
+<!-- the atom icons: the little one in the browser tab, and the one iPhones use for "Add to Home Screen" -->
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=33">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=33">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -17,55 +20,57 @@
 
   <!-- ===== screen 1: home ===== -->
   <section id="home">
-    <h1 class="welcome">Welcome to <span id="homelogo"></span></h1>   <!-- the logo is drawn in here by the script -->
+    <h1 class="welcome">Welcome to <span id="homelogo" class="qlogo spin" role="img" aria-label="Qarbon"></span></h1>   <!-- the logo is drawn in here by the script -->
     <p class="sub">Knowledge that connects us all</p>
-    <!-- the orbit: the black hole in the middle, and one world per mode around it (placed by angle, --a) -->
-    <div class="orbit">
-      <span class="orbitpath" aria-hidden="true"></span>
-      <!-- the black hole: each layer is one part of it (see "the black hole" in the styles) -->
-      <button id="blackhole" aria-label="Enter the black hole">
-        <span class="bh-glow"></span>
-        <span class="bh-ring"></span>
-        <span class="bh-disk"></span>
-        <span class="bh-core"></span>
-        <span class="bh-disk bh-front"></span>
-      </button>
-      <!-- 🃏 Review: a ringed planet, coming back around on its orbit -->
-      <button class="world" data-mode="daily" style="--a:-90deg">
-        <span class="body planet" aria-hidden="true"><span class="ring back"></span><span class="sphere"></span><span class="ring front"></span></span>
-        <span class="wname">Review</span><span class="wsub" id="ws-daily"></span>
-      </button>
-      <!-- 🗂 Decks: a constellation, separate stars joined into a shape -->
-      <button class="world" data-mode="deck" style="--a:-30deg">
-        <span class="body constellation" aria-hidden="true">
-          <svg viewBox="0 0 60 60"><path d="M8 42 L20 22 L34 30 L46 12 M34 30 L52 40 L30 50 L8 42"/>
-            <circle cx="8" cy="42" r="2.2"/><circle cx="20" cy="22" r="2.6"/><circle cx="34" cy="30" r="2"/>
-            <circle cx="46" cy="12" r="2.8"/><circle cx="52" cy="40" r="2.2"/><circle cx="30" cy="50" r="2"/></svg>
-        </span>
-        <span class="wname">Decks</span><span class="wsub" id="ws-deck"></span>
-      </button>
-      <!-- 🔁 Practice: a moon, circling with no pressure -->
-      <button class="world" data-mode="practice" style="--a:30deg">
-        <span class="body moon" aria-hidden="true"></span>
-        <span class="wname">Practice</span><span class="wsub"></span>
-      </button>
-      <!-- 🔥 B.A.R. Exam: a comet, burning up -->
-      <button class="world" data-mode="burn" style="--a:90deg">
-        <span class="body comet" aria-hidden="true"><span class="tail"></span><span class="head"></span></span>
-        <span class="wname">B.A.R. Exam</span><span class="wsub"></span>
-      </button>
-      <!-- ⏱ Focus: a pulsar, a star that pulses on a steady rhythm like a timer -->
-      <button class="world" data-mode="focus" style="--a:150deg">
-        <span class="body pulsar" aria-hidden="true"><span class="beam"></span><span class="core"></span></span>
-        <span class="wname">Focus</span><span class="wsub"></span>
-      </button>
-      <!-- 📖 Reading: a nebula, where stars are born -->
-      <button class="world" data-mode="reading" style="--a:210deg">
-        <span class="body nebula" aria-hidden="true"></span>
-        <span class="wname">Reading</span><span class="wsub" id="ws-reading"></span>
-      </button>
+    <!-- the carousel: one world at a time. Swipe, tap ‹ ›, or use the arrow keys; tap the world to enter it.
+         It starts on the black hole and wraps around after Reading. -->
+    <div class="carousel">
+      <button class="arrow" id="prevworld" aria-label="Previous world">‹</button>
+      <div class="stage" id="stage" aria-roledescription="carousel">
+        <!-- the black hole: each layer is one part of it (see "the black hole" in the styles). Opens Review on your last deck -->
+        <button class="slide on" data-mode="hole">
+          <span class="body bh" aria-hidden="true"><span class="bh-glow"></span><span class="bh-ring"></span><span class="bh-disk"></span><span class="bh-core"></span><span class="bh-disk bh-front"></span></span>
+          <span class="wname">Black hole</span><span class="wsub" id="ws-hole"></span>
+        </button>
+        <!-- 🃏 Review: a ringed planet, coming back around on its orbit -->
+        <button class="slide" data-mode="daily">
+          <span class="body planet" aria-hidden="true"><span class="ring back"></span><span class="sphere"></span><span class="ring front"></span></span>
+          <span class="wname">Review</span><span class="wsub" id="ws-daily"></span>
+        </button>
+        <!-- 🗂 Decks: a constellation, separate stars joined into a shape -->
+        <button class="slide" data-mode="deck">
+          <span class="body constellation" aria-hidden="true">
+            <svg viewBox="0 0 60 60"><path d="M8 42 L20 22 L34 30 L46 12 M34 30 L52 40 L30 50 L8 42"/>
+              <circle cx="8" cy="42" r="2.2"/><circle cx="20" cy="22" r="2.6"/><circle cx="34" cy="30" r="2"/>
+              <circle cx="46" cy="12" r="2.8"/><circle cx="52" cy="40" r="2.2"/><circle cx="30" cy="50" r="2"/></svg>
+          </span>
+          <span class="wname">Decks</span><span class="wsub" id="ws-deck"></span>
+        </button>
+        <!-- 🔁 Practice: a moon, circling with no pressure -->
+        <button class="slide" data-mode="practice">
+          <span class="body moon" aria-hidden="true"></span>
+          <span class="wname">Practice</span><span class="wsub"></span>
+        </button>
+        <!-- 🔥 B.A.R. Exam: a comet, burning up -->
+        <button class="slide" data-mode="burn">
+          <span class="body comet" aria-hidden="true"><span class="tail"></span><span class="head"></span></span>
+          <span class="wname">B.A.R. Exam</span><span class="wsub"></span>
+        </button>
+        <!-- ⏱ Focus: a pulsar, a star that pulses on a steady rhythm like a timer -->
+        <button class="slide" data-mode="focus">
+          <span class="body pulsar" aria-hidden="true"><span class="beam"></span><span class="core"></span></span>
+          <span class="wname">Focus</span><span class="wsub"></span>
+        </button>
+        <!-- 📖 Reading: a nebula, where stars are born -->
+        <button class="slide" data-mode="reading">
+          <span class="body nebula" aria-hidden="true"></span>
+          <span class="wname">Reading</span><span class="wsub" id="ws-reading"></span>
+        </button>
+      </div>
+      <button class="arrow" id="nextworld" aria-label="Next world">›</button>
     </div>
-    <p class="hint">Tap a world to begin</p>
+    <div class="dots" id="worlddots"></div>   <!-- one dot per world, made by the script -->
+    <p class="hint" id="homehint">Swipe to explore · tap to enter</p>
     <button id="howtolink" class="linkbtn">How to use Qarbon</button>
   </section>
 
@@ -82,7 +87,7 @@
     <div class="howsec">
       <h3>Getting started</h3>
       <ul>
-        <li>On the home screen, each mode is a world around the black hole: <b>Review</b> is the ringed planet, <b>Decks</b> the constellation, <b>Practice</b> the moon, <b>B.A.R. Exam</b> the comet, <b>Focus</b> the pulsar and <b>Reading</b> the nebula. Tap one to go straight there. The black hole opens Review. Small lines under them show cards due, your deck and the books you're reading.</li>
+        <li>The home screen shows one world at a time, starting with the black hole. Swipe left or right to move between them (on a computer: the ‹ › buttons or the arrow keys). <b>Review</b> is the ringed planet, <b>Decks</b> the constellation, <b>Practice</b> the moon, <b>B.A.R. Exam</b> the comet, <b>Focus</b> the pulsar and <b>Reading</b> the nebula. Tap a world to go straight there. The black hole opens Review on your last deck. The small line under each world shows cards due, your deck or the books you're reading.</li>
         <li>The app opens on the deck you used last (Beginner 150 the first time).</li>
         <li>Pick what you're doing from the <b>Mode</b> menu at the top: <b>🃏 Review</b>, <b>🗂 Decks</b>, <b>🔁 Practice</b>, <b>🔥 B.A.R. Exam</b>, <b>⏱ Focus</b> or <b>📖 Reading</b>.</li>
         <li>Built-in stacks: <b>Beginner 150</b> and <b>Level 2</b> (150 more words). <b>All my cards</b> has everything.</li>
@@ -301,11 +306,6 @@
        It's the same timer and the same music as in the timer dropdown above. -->
   <section id="focus" hidden>
 
-    <!-- shown while you're reading a book: focus time counts toward it -->
-    <div id="readbar" hidden>
-      <span>📖 Reading <b id="readtitle"></b> · <span id="readwhere"></span></span>
-      <button id="readdone">Done reading</button>
-    </div>
     <!-- "How far did you get?": after a focus session, or when you tap Done reading -->
     <div id="readcheck" hidden>
       <b id="readq"></b>
@@ -359,6 +359,12 @@
       <label>Long break after every … focus sessions<input type="number" id="c-every" min="1" max="12" inputmode="numeric"></label>
     </div>
     <p id="fmsg"></p>
+
+    <!-- shown while you're reading a book: focus time counts toward it (at the bottom, out of the timer's way) -->
+    <div id="readbar" hidden>
+      <span>📖 Reading <b id="readtitle"></b> · <span id="readwhere"></span></span>
+      <button id="readdone">Done reading</button>
+    </div>
 
   </section>
 
@@ -563,19 +569,19 @@
   </main>
 
 <!-- the program, in order: packs (data) first, start.js last. Every file shares the same variables.
-     ?v=30 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
+     ?v=33 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
      (Book texts in js/books/ and the PDF viewer only load when you open a book.) -->
-<script src="js/packs.js?v=30"></script>
-<script src="js/basics.js?v=30"></script>
-<script src="js/look.js?v=30"></script>
-<script src="js/data.js?v=30"></script>
-<script src="js/cards.js?v=30"></script>
-<script src="js/timer.js?v=30"></script>
-<script src="js/burn.js?v=30"></script>
-<script src="js/music.js?v=30"></script>
-<script src="js/app.js?v=30"></script>
-<script src="js/reading.js?v=30"></script>
-<script src="js/account.js?v=30"></script>
-<script src="js/start.js?v=30"></script>
+<script src="js/packs.js?v=33"></script>
+<script src="js/basics.js?v=33"></script>
+<script src="js/look.js?v=33"></script>
+<script src="js/data.js?v=33"></script>
+<script src="js/cards.js?v=33"></script>
+<script src="js/timer.js?v=33"></script>
+<script src="js/burn.js?v=33"></script>
+<script src="js/music.js?v=33"></script>
+<script src="js/app.js?v=33"></script>
+<script src="js/reading.js?v=33"></script>
+<script src="js/account.js?v=33"></script>
+<script src="js/start.js?v=33"></script>
 </body>
 </html>

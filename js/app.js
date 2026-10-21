@@ -157,7 +157,7 @@ function allStacks() {
 // show one screen and hide the others, with a soft fade in
 function show(screen) {
   ["home", "study", "howto", "focus", "reading"].forEach(s => { $(s).hidden = s !== screen; });
-  if (screen === "home") worldInfo();
+  if (screen === "home") { worldInfo(); resetWorlds(); }
   const el = $(screen);
   el.classList.remove("fadein"); void el.offsetWidth; el.classList.add("fadein");
   scrollTo(0, 0);
@@ -277,51 +277,117 @@ $("direction").onchange = e => {
   refresh();   // rebuild today's review with the new direction
 };
 
-// the small lines under some worlds: cards due, the deck you're on, books you're reading
+// the small lines under the worlds: cards due, the deck you're on, books you're reading
 function worldInfo() {
   const all = allStacks(), s = all.find(x => x.id === state.stackId) || all[0], t = today();
   const cards = s.words ? state.cards.filter(c => s.words.has(wordKey(c))) : state.cards;
   const due = cards.filter(c => active(c) && dirsOf(s).some(d => { const x = sideOf(c, d); return x.reviews > 0 && x.due <= t; })).length;
+  $("ws-hole").textContent = "Dive in · " + s.name;
   $("ws-daily").textContent = due ? due + " due" : "";
   $("ws-deck").textContent = s.name;
   const reading = state.books.filter(b => !isFinished(b)).length;
   $("ws-reading").textContent = reading ? reading + (reading === 1 ? " book" : " books") : "";
 }
 
+// ----- the home carousel: one world at a time -----
+const slides = [...document.querySelectorAll(".slide")];
+let world = 0;          // which slide is showing (0 = the black hole)
+let launching = false;  // true while a world is zooming toward you, so taps and swipes wait
+
+// the dots underneath: one per world (the black hole's is drawn hollow)
+$("worlddots").innerHTML = slides.map((s, i) =>
+  `<button class="${i ? "" : "hole"}" aria-label="${s.querySelector(".wname").textContent}"></button>`).join("");
+const worldDots = [...$("worlddots").children];
+worldDots.forEach((d, i) => { d.onclick = () => goWorld(i, i > world ? 1 : -1); });
+
+// show world i. dir = 1: it slides in from the right (going forward), -1: from the left (going back).
+// Going past Reading wraps back to the black hole, and the other way round.
+function goWorld(i, dir) {
+  if (launching) return;
+  i = (i + slides.length) % slides.length;
+  const out = slides[world], inn = slides[i];
+  if (out !== inn) {
+    out.classList.remove("on");                              // fades out…
+    out.style.opacity = "";
+    out.style.transition = "";
+    out.style.transform = `translateX(${-dir * 40}px) scale(.92)`;   // …drifting away from the new one
+    inn.style.transition = "none";                           // put the new one just off to the side, with no animation…
+    inn.style.transform = `translateX(${dir * 40}px) scale(.92)`;
+    void inn.offsetWidth;                                    // (let the browser place it there first)
+    inn.style.transition = "";
+    inn.style.transform = "";                                // …then let it fade and slide into the middle
+    inn.classList.add("on");
+  } else {                                                   // same world: just settle back after a short drag
+    out.style.transition = out.style.transform = out.style.opacity = "";
+  }
+  world = i;
+  slides.forEach((s, k) => { s.tabIndex = k === i ? 0 : -1; });   // only the showing world can be reached with Tab
+  worldDots.forEach((d, k) => d.setAttribute("aria-current", k === i));
+}
+$("prevworld").onclick = () => goWorld(world - 1, -1);
+$("nextworld").onclick = () => goWorld(world + 1, 1);
+// on a computer: ← and → move between worlds while the home screen is showing
+document.addEventListener("keydown", e => {
+  if ($("home").hidden || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "ArrowLeft") { e.preventDefault(); goWorld(world - 1, -1); }
+  if (e.key === "ArrowRight") { e.preventDefault(); goWorld(world + 1, 1); }
+});
+if (matchMedia("(hover: hover)").matches) $("homehint").textContent = "‹ › or arrow keys to explore · click to enter";
+
+// swiping: the world follows your finger a little, and moves on if you swiped more than 45px.
+// A "pointer" is a finger, a mouse or a pen; these events work the same for all of them.
+let swipeX = null, swipeDx = 0;
+const stage = $("stage");
+stage.addEventListener("pointerdown", e => {
+  if (launching) return;
+  swipeX = e.clientX; swipeDx = 0;
+  stage.setPointerCapture(e.pointerId);   // keep getting the moves even if the finger leaves the stage
+});
+stage.addEventListener("pointermove", e => {
+  if (swipeX === null) return;
+  swipeDx = e.clientX - swipeX;
+  const s = slides[world];
+  s.style.transition = "none";
+  s.style.transform = `translateX(${swipeDx * .6}px)`;
+  s.style.opacity = Math.max(.25, 1 - Math.abs(swipeDx) / 260);
+});
+stage.addEventListener("pointerup", () => {
+  if (swipeX === null) return;
+  swipeX = null;
+  if (Math.abs(swipeDx) > 45) goWorld(world + (swipeDx < 0 ? 1 : -1), swipeDx < 0 ? 1 : -1);
+  else { goWorld(world, 1); if (Math.abs(swipeDx) < 8) enterWorld(); }   // barely moved: that was a tap
+});
+// the browser took over the touch (you were scrolling up or down): settle back, and don't count it as a tap
+stage.addEventListener("pointercancel", () => { swipeX = null; goWorld(world, 1); });
+// Enter or Space on the world (a mouse click or a tap is handled by pointerup above; keyboard clicks have detail 0)
+slides.forEach(s => s.addEventListener("click", e => { if (e.detail === 0) enterWorld(); }));
+
+// back on the home screen: always start on the black hole
+function resetWorlds() {
+  slides.forEach(s => { s.classList.remove("go"); s.style.transition = s.style.transform = s.style.opacity = ""; });
+  goWorld(0, 1);
+}
+
 // tap a world: it rushes toward you, then the app opens straight into that mode
-function enterWorld(button) {
-  const home = $("home");
-  if (home.classList.contains("launching") || home.classList.contains("entering")) return;
-  home.classList.add("launching");
-  button.classList.add("go");
+function enterWorld() {
+  if (launching) return;
+  launching = true;
+  const s = slides[world];
+  $("home").classList.add("launching");
+  s.classList.add("go");
   document.documentElement.classList.add("zooming");
   const wait = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700;
   setTimeout(() => {
-    home.classList.remove("launching");
-    button.classList.remove("go");
+    $("home").classList.remove("launching");
     document.documentElement.classList.remove("zooming");
-    openApp();   // opens Review on your last deck…
-    const m = button.dataset.mode;   // …then switches to the world you tapped
+    launching = false;
+    openApp();   // opens Review on your last deck (that's all the black hole does)…
+    const m = s.dataset.mode;   // …then switches to the world you tapped
     if (m === "practice") startPractice(stackCards().filter(active));
     else if (m === "burn") startBurn();
-    else if (m !== "daily") setMode(m);
+    else if (m !== "daily" && m !== "hole") setMode(m);
   }, wait);
 }
-document.querySelectorAll(".world").forEach(b => { b.onclick = () => enterWorld(b); });
-
-// tap the black hole: you're pulled in, then the app opens
-$("blackhole").onclick = () => {
-  const home = $("home");
-  if (home.classList.contains("entering")) return;
-  home.classList.add("entering");
-  document.documentElement.classList.add("zooming");
-  const wait = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 900;
-  setTimeout(() => {
-    home.classList.remove("entering");
-    document.documentElement.classList.remove("zooming");
-    openApp();
-  }, wait);
-};
 
 // the how-to page remembers which screen opened it, so Back returns there
 let howFrom = "home";

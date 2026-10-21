@@ -111,6 +111,12 @@ function applyMerged(m) {
     });
   };
   const before = JSON.stringify(settingsOf(state));
+  // a book or deck that was folded into its twin (see foldTwins): follow it to the one that's kept
+  const moves = m.moves || { deck: {}, book: {} };
+  state.readingBook = movedTo(moves.book, state.readingBook);
+  state.stackId = movedTo(moves.deck, state.stackId);
+  if (stack && stack.custom) stack.id = movedTo(moves.deck, stack.id);
+  for (const from of Object.keys(moves.book)) movePdf(from, movedTo(moves.book, from));
   state.cards = reuse(state.cards, m.cards, cardKey);
   state.decks = reuse(state.decks, m.decks, d => d.id);
   state.books = reuse(state.books, m.books, b => b.id);

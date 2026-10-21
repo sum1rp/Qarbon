@@ -20,26 +20,66 @@
          display:flex; flex-direction:column; align-items:center; min-height:100vh; box-sizing:border-box;
          background:radial-gradient(ellipse at 15% 0%, rgba(123,108,255,.08), transparent 55%), var(--bg); }
   #sky, #twinkle { position:fixed; top:0; left:0; z-index:-1; pointer-events:none; }
-  html.zooming { overflow:hidden; }   /* no scrollbars while the black hole grows past the screen edges */
+  html.zooming { overflow:hidden; }   /* no scrollbars while a world grows past the screen edges */
 
   /* ---------- home screen ---------- */
   #home { width:100%; max-width:560px; min-height:85svh; display:flex; flex-direction:column;
-          align-items:center; justify-content:center; text-align:center; }
-  .welcome { font-size:1rem; font-weight:500; letter-spacing:.3em; color:var(--muted); background:none; margin:0; }
-  /* the "Qarbon Constellation" logo (an SVG drawn by qarbonLogo() in the script) */
-  .welcome span { display:block; width:100%; max-width:280px; margin:12px auto 4px; }
-  .welcome svg { display:block; width:100%; height:auto; }
-  .sub, .hint { color:var(--muted); margin:8px 0; }
-  .hint { font-size:.85rem; letter-spacing:.1em; animation:breathe 3s ease-in-out infinite alternate; }
+          align-items:center; text-align:center; padding-top:12px; box-sizing:border-box; }
+  .welcome { font-size:.8rem; font-weight:500; letter-spacing:.3em; text-transform:uppercase; color:var(--muted);
+             background:none; margin:0; }
+  #homelogo { display:block; font-size:3.4rem; margin:8px 0 0; }
+  .sub, .hint { color:var(--muted); margin:6px 0 0; }
+  .hint { font-size:.8rem; letter-spacing:.1em; animation:breathe 3s ease-in-out infinite alternate; }
   @keyframes breathe { from { opacity:.45; } to { opacity:1; } }
+
+  /* ---------- the Qarbon logo: white Amiri italic letters, an atom for the "o" (made by qarbonLogo() in js/look.js) ---------- */
+  /* the logo's font: Amiri italic (free, SIL Open Font License, github.com/aliftype/amiri), a calligraphic style made to
+     match Naskh, the classic Arabic book script. Stored right here (only the letters Q a r b n, 1 KB) so it works offline */
+  @font-face { font-family:"Amiri Logo"; font-style:italic; font-weight:400; font-display:block;
+               src:url(data:font/woff2;base64,d09GMgABAAAAAAT4AA4AAAAACIwAAASnAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGhYbdhwwBmAATBEICodYhkABNgIkAxwLEAAEIAWDDAcgG/EGEVWjrVF8kcBT8bzsCSq8jmN01UReaYB8QlfHSfwXxPN25Ly/e7aruyQV1PKELuaBXUAWXVwJO2Snl6SEY5X0p+IEY9LYSRM0tpa7pYE8SBpkFkV+EvxL0IoooChJKgy8eQFwMK+htKWLg+OWpAf7AA2cU7dngb4Fr5hNFXSODDxgCf1YRZGegL/Y7YDycW7Ql5PO03kTBLAGABSCYIoggCXBJKKKS2mewHZVd2YysEUH+DWiVq5ITwbm8HIz5MoCzeXe+aZAQrs2gZALtSiYaDJBq7cIajY1mlg0T+fu9LBw4LsB0jdJDNflpiRMQI0rjw1VlqdxTQKJUlNiMj1ZvHBBNZkA+mhgg7783zCYZWrNgADIkoqAP+aAAjTAGQ0BnNFJBywxR6FooIe1bDAMoIFu1njeYCwaR41dxg7kem6u3M7jaQaAbbcopB1kEoHTkSsqE37CQGcTaWNpTykp54SGuwN6X2zPs9dDVG5TQxdnXmi+N+8d7l/B8FqQyOO3JND7kiQqr0kwvAqKmVh28e3k7fXrZmYK7Tsmz5zh/aYF+90gyK1z6oJPfq0HBYw/kCwx4HKQpk/3ZNfh60uX7Opk560IPytkDYD6BKdOLWRZdrutPlBXF71H3L3qt65steFHd/k6DTrW5QnNXl+7WDaX1NOzk0fvGu4+0JBgn+V0l1r/sHenLXcdoxfsoptMTjrXd0udOX/eSqbo3dPVcLeP4GSKcf0Wl0Euc9mgCZcu0Dtpya7dIhl6Nc9OWGVo2//Omdfv3nfYd3eM1qSS3AoZkeTBoiiGZLJERKs2oPjfarlNy0Tv7W+JHaSrcpsDPZ0awqLyHfstfOzxoUZldBMJrxAi2tTGyQ+JjNcuxeiKs4NIaHMQManieJtly+caKiT6YT9qlUnqXEi1tJSagoB7nLoKX+LHjY9cjB6TUHZpXO9Qa0O1OkuCGtfEolRZBjJAqVPD5aJjVsCEixIGGScZ6G2Dscgg+3hZGxqrOgjRzKtHzIOELNqOCCtxjNWpIMr/JnjxC/Qm4K7tj7/o03M2FDA6yqtIFZJEkbvqHJgvkGY7nJ+Q5xTYrqGQT9LqEjC6oL/ZfpCLELFTag8r4IWcSiVsSjLQFtym8Nb0byfH77xMPgMdJma+ZiK/JxzgxXrqHDK7DgxcgK+TWQ4spK1eFJLDsDZxcaR55oxGejJsdjT/AiqkOfouangVjX//CinyNa7KWBA1KdUYkyctqygtddNqa7MxnKjNiZLP/nJwlHEeBiTDD96cHueYRoQ06qsBQABhYNuyaUaIZPY3c017B3DH0i0BYFPIXOm/+zdZeUFFFKaoWsF310TP5KAWoQPxajzFj5nJKmNWNbJlBScZJVKecJFO3CQAFwQwUw446QVEIQhFIJpAJxqiWwAnwEMXLDlBV1gzT9eI5Rxdx513dBM8BVzDFHdxCWMYr7kqyhVkURI5FiTL8M0AMg+tq2pGwXMe6ixZ4ahtLYd5AbLrqHVcFEEoqrzttphPhk6I2ipfrzHzi2a1Uvxki7fWeCYSL24ZrGqhZ9vJsITDyVFOYP9n89I29NA7u34fw7H8nygA) format("woff2"); }
+  /* the atom is drawn in a 100 x 100 box, so its lines grow and shrink with the text */
+  .qlogo { display:inline-flex; align-items:baseline; justify-content:center; color:#fff; line-height:1.25; white-space:nowrap;
+           font-family:"Amiri Logo", Georgia, serif; font-style:italic; font-weight:400; letter-spacing:0; text-transform:none; }
+  .qlogo .atom { width:.54em; height:.54em; align-self:center; margin:0 .04em; transform:translateY(.08em); overflow:visible; }
+  /* on the home logo only: the orbits slowly turn and the electrons softly pulse */
+  .qlogo.spin .orbits { transform-origin:50% 50%; animation:swirl 18s linear infinite; }
+  .qlogo.spin .e { animation:blink 2.4s ease-in-out infinite alternate; }
+  @keyframes blink { from { opacity:.55; } to { opacity:1; } }
+
+  /* ---------- the carousel of worlds on the home screen ---------- */
+  /* one world at a time, big and centered. The others sit on top of it, see-through, until it's their turn */
+  .carousel { position:relative; width:100%; flex:1; min-height:300px; display:flex; align-items:center; }
+  .stage { position:relative; flex:1; align-self:stretch; touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:grab; }
+  .slide { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+           border:none; border-radius:0; background:none; padding:0; color:var(--text); opacity:0; pointer-events:none; transform:scale(.92);
+           transition:opacity .45s ease, transform .45s ease; -webkit-tap-highlight-color:transparent;
+           --w:min(150px, 38vw, 22svh); }
+  .slide.on { opacity:1; pointer-events:auto; transform:none; }
+  .slide[data-mode="hole"] { --w:min(200px, 50vw, 28svh); }   /* the black hole is the biggest */
+  .slide:focus-visible { outline:none; }
+  .slide:focus-visible .wname { text-decoration:underline; text-underline-offset:4px; }
+  .slide .body { position:relative; display:block; width:var(--w); height:var(--w); border-radius:50%; margin-bottom:22px; }
+  .wname { font-size:1.35rem; font-weight:600; text-shadow:0 1px 6px #000; }
+  .wsub { font-size:.9rem; color:var(--muted); min-height:1.3em; }
+  /* the ‹ › buttons on either side */
+  .arrow { position:relative; z-index:2; width:44px; height:44px; flex:none; padding:0; border-radius:50%; border:1px solid var(--line);
+           background:rgba(13,13,20,.6); color:var(--text); font-size:1.5rem; line-height:1; margin:0 6px; }
+  .arrow:hover { background:var(--raised); }
+  /* the dots underneath: one per world, the black hole's drawn hollow */
+  .dots { display:flex; gap:10px; justify-content:center; margin:6px 0 10px; }
+  .dots button { width:8px; height:8px; padding:0; border-radius:50%; border:none; background:rgba(255,255,255,.25);
+                 transition:background .3s, transform .3s; }
+  .dots button.hole { background:none; box-shadow:0 0 0 1.5px rgba(255,255,255,.35) inset; }
+  .dots button[aria-current="true"] { background:#fff; transform:scale(1.3); }
+  /* tapping a world: it rushes toward you while everything else fades */
+  .slide.go .body { transform:scale(5); opacity:0; transition:transform .7s cubic-bezier(.5,0,.75,0), opacity .6s; }
+  #home.launching .welcome, #home.launching .sub, #home.launching .slide.go .wname, #home.launching .slide.go .wsub,
+  #home.launching .arrow, #home.launching .dots, #home.launching .hint, #home.launching .linkbtn { opacity:0; transition:opacity .4s; }
 
   /* the black hole, built from five layers (inset = how far each sits in from the edges):
      a soft glow, a thin ring of light bent around the hole, the hot gas disk seen almost edge-on,
      the black center, and the near half of the disk passing in front of it */
-  #blackhole { position:relative; width:min(34vw, 190px, 25svh); aspect-ratio:1; margin:0; padding:0; z-index:1;
-               border:none; border-radius:50%; background:none; cursor:pointer;
-               transition:transform .9s cubic-bezier(.5,0,.75,0), opacity .9s ease-in; }
-  #blackhole span { position:absolute; border-radius:50%; pointer-events:none; }
+  .bh span { position:absolute; border-radius:50%; pointer-events:none; }
   .bh-glow { inset:0; background:radial-gradient(circle closest-side, rgba(255,170,90,.32) 38%, rgba(123,108,255,.14) 62%, transparent);
              animation:pulse 6s ease-in-out infinite alternate; }
   /* the ring: a color wheel (brighter on one side, like the real thing) cut down to a thin circle by a mask */
@@ -55,42 +95,18 @@
   .bh-core { inset:31%; background:#000; box-shadow:0 0 22px 6px rgba(255,170,90,.35); }
   @keyframes swirl { to { transform:rotate(360deg); } }
   @keyframes pulse { from { transform:scale(.92); opacity:.7; } to { transform:scale(1.08); opacity:1; } }
-  /* tapping it: you're pulled in. It grows and turns until the black center fills the screen */
-  #home.entering #blackhole { transform:scale(10) rotate(30deg); opacity:0; }
-  #home.entering .welcome, #home.entering .sub, #home.entering .hint, #home.entering .world,
-  #home.entering .orbitpath { opacity:0; transition:opacity .4s; }
-
-  /* ---------- the orbit of worlds on the home screen ---------- */
-  /* the black hole sits in the middle; each world is placed around it by its angle (--a), using cos() and sin() */
-  .orbit { position:relative; width:min(94vw, 520px); height:min(56svh, 470px); margin:14px 0 22px;
-           display:grid; place-items:center; --rx:38%; --ry:39%; --w:clamp(48px, 14vw, 68px); }
-  .orbitpath { position:absolute; inset:calc(50% - var(--ry)) calc(50% - var(--rx)); border-radius:50%;
-               border:1px dashed rgba(255,255,255,.12); pointer-events:none; }
-  .world { position:absolute; left:calc(50% + cos(var(--a)) * var(--rx)); top:calc(50% + sin(var(--a)) * var(--ry));
-           transform:translate(-50%, calc(var(--w) / -2)); display:flex; flex-direction:column; align-items:center; gap:2px;
-           padding:0; border:none; background:none; color:var(--text); cursor:pointer; z-index:2; min-width:44px;
-           transition:transform .7s cubic-bezier(.5,0,.75,0), opacity .5s; }
-  .world .body { position:relative; display:block; width:var(--w); height:var(--w); border-radius:50%; transition:transform .25s; }
-  .world:hover .body, .world:focus-visible .body { transform:scale(1.1); }
-  .world:focus-visible { outline:2px solid #6fc3ff; outline-offset:4px; border-radius:12px; }
-  .wname { font-size:.82rem; font-weight:600; white-space:nowrap; text-shadow:0 1px 6px #000; }
-  .wsub { font-size:.7rem; color:var(--muted); white-space:nowrap; min-height:1em; }
-  /* tapping a world: it rushes toward you, like the black hole does */
-  #home.launching .world:not(.go), #home.launching #blackhole, #home.launching .orbitpath,
-  #home.launching .welcome, #home.launching .sub, #home.launching .hint { opacity:0; transition:opacity .4s; }
-  .world.go { transform:translate(-50%, calc(var(--w) / -2)) scale(6); opacity:0; }
 
   /* Review: a ringed planet. Its back ring is behind the sphere, its front ring (lower half) in front */
   .planet .sphere { position:absolute; inset:0; border-radius:50%; z-index:1; overflow:hidden;
                     background:radial-gradient(circle at 35% 30%, #b8ecff, #4a8fe0 45%, #1b2b6e 82%);
-                    box-shadow:inset -7px -6px 14px rgba(0,0,0,.6), 0 0 18px rgba(80,160,255,.45); }
+                    box-shadow:inset -16px -14px 30px rgba(0,0,0,.6), 0 0 34px rgba(80,160,255,.45); }
   .planet .sphere::before { content:""; position:absolute; inset:-50%; background:repeating-linear-gradient(160deg,
-                    rgba(255,255,255,.1) 0 5px, transparent 5px 11px); animation:drift 14s linear infinite; }
+                    rgba(255,255,255,.1) 0 11px, transparent 11px 24px); animation:drift 14s linear infinite; }
   .planet .ring { position:absolute; left:-34%; right:-34%; top:39%; height:24%; border-radius:50%;
-                  border:2px solid rgba(255,214,170,.8); transform:rotate(-16deg); }
+                  border:3px solid rgba(255,214,170,.8); transform:rotate(-16deg); }
   .planet .ring.back { z-index:0; }
   .planet .ring.front { z-index:2; clip-path:inset(50% 0 0 0); }
-  @keyframes drift { to { transform:translateX(22px); } }
+  @keyframes drift { to { transform:translateX(48px); } }
   /* Decks: a constellation of stars joined by faint lines, twinkling one by one */
   .constellation svg { width:100%; height:100%; overflow:visible; }
   .constellation path { fill:none; stroke:rgba(185,169,255,.55); stroke-width:.8; }
@@ -105,13 +121,13 @@
             radial-gradient(circle at 70% 30%, rgba(0,0,0,.16) 0 6%, transparent 7%),
             radial-gradient(circle at 40% 70%, rgba(0,0,0,.14) 0 5%, transparent 6%),
             radial-gradient(circle at 40% 35%, #f4f2ea, #bdb9ad 55%, #6f6b64 86%);
-          box-shadow:inset -9px -6px 14px rgba(0,0,0,.55), 0 0 14px rgba(230,230,255,.25); }
+          box-shadow:inset -20px -14px 30px rgba(0,0,0,.55), 0 0 30px rgba(230,230,255,.25); }
   /* B.A.R. Exam: a comet, a bright head with a flickering tail behind it */
   .comet .head { position:absolute; right:12%; top:12%; width:42%; height:42%; border-radius:50%;
                  background:radial-gradient(circle, #fff 0 22%, #ffd27a 42%, rgba(255,120,60,0) 72%);
-                 box-shadow:0 0 16px rgba(255,170,90,.8); }
+                 box-shadow:0 0 34px rgba(255,170,90,.8); }
   .comet .tail { position:absolute; right:30%; top:30%; width:105%; height:20%; border-radius:999px; transform-origin:right center;
-                 transform:rotate(-38deg); filter:blur(1px); animation:flicker 1.6s ease-in-out infinite alternate;
+                 transform:rotate(-38deg); filter:blur(2px); animation:flicker 1.6s ease-in-out infinite alternate;
                  background:linear-gradient(to left, rgba(255,214,140,.95), rgba(255,93,143,.45) 55%, transparent); }
   @keyframes flicker { from { opacity:.65; } to { opacity:1; } }
   /* Focus: a pulsar, a bright core, two sweeping beams, and a pulse ring every 1.5 seconds */
@@ -124,7 +140,7 @@
                    animation:ping 1.5s ease-out infinite; }
   @keyframes ping { from { transform:scale(.5); opacity:1; } to { transform:scale(1.5); opacity:0; } }
   /* Reading: a small nebula, soft colored clouds slowly turning */
-  .nebula { filter:blur(1.5px); animation:swirl 30s linear infinite;
+  .nebula { filter:blur(3px); animation:swirl 30s linear infinite;
             background:
               radial-gradient(circle, rgba(255,255,255,.95) 0 5%, rgba(255,230,250,.5) 10%, transparent 18%),
               radial-gradient(ellipse 50% 34% at 36% 42%, rgba(255,90,200,.85), transparent 72%),
@@ -132,9 +148,9 @@
               radial-gradient(ellipse 50% 50% at 50% 50%, rgba(123,108,255,.75), transparent 75%); }
   /* short screens (iPhone SE): a little tighter */
   @media (max-height: 620px) {
-    .welcome span { max-width:220px; }
-    .orbit { height:min(51svh, 470px); margin-top:6px; --ry:42%; }
-    #blackhole { width:min(34vw, 190px, 22svh); }
+    #homelogo { font-size:2.8rem; margin-top:4px; }
+    .carousel { min-height:240px; }
+    .slide .body { margin-bottom:12px; }
   }
 
   /* ---------- choosing a deck (in the Decks tab) ---------- */
@@ -164,10 +180,10 @@
   #studyhead { position:relative; width:100%; max-width:560px; min-height:44px; margin-bottom:10px;
                display:flex; align-items:center; justify-content:center; }
   #studyhead h1 { margin:0; background:none; }
-  /* the small constellation logo in the top bar: a button that goes back to the black hole */
+  /* the small atom logo in the top bar: a button that goes back to the black hole */
   #logo { display:flex; align-items:center; justify-content:center; height:44px; padding:0 8px;
           border:none; border-radius:12px; background:none; cursor:pointer; }
-  #logo svg { display:block; height:30px; width:auto; }
+  #logo .qlogo { font-size:1.6rem; }
   #gohome, #gohelp, #gosettings, #howback { position:absolute; left:0; top:0; width:44px; height:44px; padding:0; font-size:1.5rem; border-radius:50%; }
   #gohelp { left:auto; right:0; font-size:1.2rem; }
   #gosettings { left:auto; right:50px; font-size:1.2rem; }

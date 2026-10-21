@@ -1,60 +1,25 @@
-// Qarbon · js/look.js: the constellation logo and the star background.
+// Qarbon · js/look.js: the atom logo and the star background.
 // The script files run in the order index.html lists them, and share one set of variables.
 
-// ================= the "Qarbon Constellation" logo =================
-// Qarbon Constellation logo. Returns an SVG string.
-// Each letter sits on a 7-wide x 10-tall grid: s = star positions, l = lines joining star indexes.
-const QARBON_GLYPHS = {
-  Q: { w: 7.5, s: [[3.5,0],[6,1.6],[6.6,5],[5.2,8.8],[2,9],[0.5,5.2],[1.1,1.6],[4.6,7.4],[7.4,10.6]],
-       l: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0],[7,8]] },
-  A: { w: 7, s: [[0,10],[3.5,0],[7,10],[1.7,5.4],[5.3,5.4]], l: [[0,1],[1,2],[3,4]] },
-  R: { w: 6.2, s: [[0,10],[0,0],[4.4,0.3],[6,2.6],[4.4,5],[0,5],[6,10]], l: [[0,1],[1,2],[2,3],[3,4],[4,5],[4,6]] },
-  B: { w: 6.2, s: [[0,10],[0,0],[4,0.2],[5.4,2.4],[3.8,5],[0,5],[5.2,6.4],[6.2,8.4],[4.4,10]],
-       l: [[0,1],[1,2],[2,3],[3,4],[4,5],[4,6],[6,7],[7,8],[8,0]] },
-  O: { w: 7, s: [[3.5,0],[6.6,2.4],[7,6.2],[4.8,9.8],[1.6,9.4],[0,6],[0.6,2.2]], l: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0]] },
-  N: { w: 6.4, s: [[0,10],[0,0],[6.4,10],[6.4,0]], l: [[0,1],[1,2],[2,3]] }
-};
-const QARBON_STAR_SIZES = [1, .55, .8, .45, .7, .6, .9, .5, .75]; // fixed so the logo is identical every time
-let qarbonLogoCount = 0;
-
+// ================= the Qarbon logo: "Qarb" + an atom + "n" =================
+// The atom is drawn in a 100 x 100 box: three thin orbits (each with one electron) and a nucleus in the middle.
+// w = line thickness, measured inside that box, so the atom grows and shrinks with the letters around it.
+function atomSVG(w) {
+  const electrons = [[96, 50], [4, 50], [50, 33.5]];   // where each orbit's electron sits
+  const orbits = [0, 60, 120].map((angle, i) =>
+    `<g transform="rotate(${angle} 50 50)"><ellipse cx="50" cy="50" rx="46" ry="16.5" fill="none" stroke="#fff" stroke-width="${w * .75}"/>` +
+    `<circle class="e" cx="${electrons[i][0]}" cy="${electrons[i][1]}" r="${w * 1.5}" fill="#fff" style="animation-delay:-${i * .8}s"/></g>`).join("");
+  return `<svg class="atom" viewBox="0 0 100 100" aria-hidden="true"><g class="orbits">${orbits}</g>` +
+         `<circle cx="50" cy="50" r="${w * 1.6}" fill="#fff"/></svg>`;
+}
+// the whole logo as HTML: plain letters, so it scales with the font size (set in the styles, .qlogo)
 function qarbonLogo({ small = false } = {}) {
-  const gap = 3, pad = 1.6;
-  let x = pad, k = 0;
-  const stars = [], lines = [];
-  for (const ch of "QARBON") {
-    const g = QARBON_GLYPHS[ch];
-    const pts = g.s.map(([sx, sy]) => [x + sx, pad + sy]);
-    pts.forEach(([px, py], i) => stars.push({
-      x: px, y: py,
-      r: (small ? .55 : .42) + QARBON_STAR_SIZES[(k + i) % QARBON_STAR_SIZES.length] * (small ? .55 : .45)
-    }));
-    g.l.forEach(([a, b]) => lines.push([pts[a], pts[b]]));
-    k += g.s.length;
-    x += g.w + gap;
-  }
-  const W = +(x - gap + pad).toFixed(1), H = 10 + pad * 2 + 1;
-  const id = "qarbonGrad" + (qarbonLogoCount++); // unique id, since the logo appears more than once
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Qarbon">
-    <defs>
-      <linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${W}" y2="0">
-        <stop offset="0" stop-color="#b9a9ff"/><stop offset=".5" stop-color="#6fc3ff"/><stop offset="1" stop-color="#ff9be6"/>
-      </linearGradient>
-      <filter id="${id}Glow" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="${small ? .35 : .45}" result="b"/>
-        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
-    <g stroke="url(#${id})" stroke-width="${small ? .28 : .16}" stroke-linecap="round" opacity=".55">`;
-  for (const [[x1, y1], [x2, y2]] of lines) svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
-  svg += `</g><g fill="url(#${id})" filter="url(#${id}Glow)">`;
-  for (const s of stars) svg += `<circle cx="${s.x.toFixed(2)}" cy="${s.y.toFixed(2)}" r="${s.r.toFixed(2)}"/>`;
-  svg += `</g></svg>`;
-  return svg;
+  return "Qarb" + atomSVG(small ? 6.5 : 4.5) + "n";   // slightly thicker lines in the small top-bar logo, so it stays clear
 }
 
-// draw it: big on the home screen, small in the top bar (both are generated, so no font files are needed)
+// draw it: big on the home screen (its orbits turn, see .spin in the styles), small in the top bar
 $("homelogo").innerHTML = qarbonLogo();
-$("logo").innerHTML = qarbonLogo({ small: true });
+$("logo").innerHTML = `<span class="qlogo">${qarbonLogo({ small: true })}</span>`;
 
 // ================= space background: stars, the Milky Way and faint nebulae, drawn on a canvas =================
 const sky = $("sky"), twinkle = $("twinkle");

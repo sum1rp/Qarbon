@@ -54,29 +54,36 @@ function showMusic(autoplay) {
   f.allow = "autoplay; encrypted-media; picture-in-picture";
   f.referrerPolicy = "strict-origin-when-cross-origin";   // YouTube needs to know which website the player is on
   host.appendChild(f);
+  startPlacing();
 }
 
 // Keep the player sitting exactly on top of the music panel you can see. When neither panel is
 // showing (timer dropdown closed, or another page), it's parked off-screen, still playing.
 // Moving it this way, instead of moving it into the other panel, is what stops the music restarting.
+// It checks on every screen refresh, but only while there is a player (no music = no checking, saves battery).
+let placing = false;   // true while the checking loop is running
 function placePlayer() {
   const host = $("playerhost");
-  if (host.firstChild) {
-    // a slot counts as visible if it takes up space and isn't inside a closed dropdown
-    // (Safari still reports a size for things inside a closed dropdown, so that's checked separately)
-    const slot = [...document.querySelectorAll(".playerslot")]
-      .find(s => s.getClientRects().length && s.offsetWidth && !s.closest("details:not([open])"));
-    const r = slot && slot.getBoundingClientRect();
-    const pos = r ? [r.left + scrollX, r.top + scrollY, r.width, r.height] : [-10000, 0, 320, 180];
-    const key = pos.map(Math.round).join();
-    if (key !== host.dataset.pos) {   // only touch the page when something actually moved
-      host.dataset.pos = key;
-      [host.style.left, host.style.top, host.style.width, host.style.height] = pos.map(n => Math.round(n) + "px");
-    }
+  if (!host.firstChild) { placing = false; return; }   // the music was removed: stop checking
+  // a slot counts as visible if it takes up space and isn't inside a closed dropdown
+  // (Safari still reports a size for things inside a closed dropdown, so that's checked separately)
+  const slot = [...document.querySelectorAll(".playerslot")]
+    .find(s => s.getClientRects().length && s.offsetWidth && !s.closest("details:not([open])"));
+  const r = slot && slot.getBoundingClientRect();
+  const pos = r ? [r.left + scrollX, r.top + scrollY, r.width, r.height] : [-10000, 0, 320, 180];
+  const key = pos.map(Math.round).join();
+  if (key !== host.dataset.pos) {   // only touch the page when something actually moved
+    host.dataset.pos = key;
+    [host.style.left, host.style.top, host.style.width, host.style.height] = pos.map(n => Math.round(n) + "px");
   }
   requestAnimationFrame(placePlayer);   // check again on the next screen refresh
 }
-requestAnimationFrame(placePlayer);
+// start the loop (if it isn't already running)
+function startPlacing() {
+  if (placing) return;
+  placing = true;
+  requestAnimationFrame(placePlayer);
+}
 
 // ⏮ ⏭: ask the player to change track, using each site's official message format
 function musicCommand(which) {

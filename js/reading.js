@@ -179,7 +179,9 @@ function renderLibrary() {
     const btns = document.createElement("div"); btns.className = "bookbtns";
     const add = document.createElement("button"); add.className = "read"; add.textContent = "+ Add to my books";
     add.onclick = () => {
-      state.books.push({ id: "book-" + Date.now(), title: lb.title, author: lb.author, chapters: lb.chapters.slice(), open: false,
+      // library books get the same id on every device (like "lib-siddhartha"), so syncing sees they're one book
+      const id = lb.meta.textId ? "lib-" + lb.meta.textId : "book-" + Date.now();
+      state.books.push({ id, title: lb.title, author: lb.author, chapters: lb.chapters.slice(), open: false,
                          done: 0, minutes: 0, sessions: 0, added: today(), finished: "", log: [], meta: { ...lb.meta } });
       save();
       renderBooks();
@@ -475,6 +477,16 @@ const idb = (mode, fn) => pdfStore(mode).then(st => new Promise((ok, fail) => {
 const putPdf = async (id, file) => { const data = await file.arrayBuffer(); return idb("readwrite", st => st.put({ name: file.name, data }, id)); };
 const getPdf = id => idb("readonly", st => st.get(id));
 const delPdf = id => idb("readwrite", st => st.delete(id));
+// a book was folded into its twin while syncing: its PDF (kept on this device) moves along with it
+async function movePdf(from, to) {
+  try {
+    const f = await getPdf(from);
+    if (!f || from === to) return;
+    if (!(await getPdf(to))) await idb("readwrite", st => st.put(f, to));
+    await delPdf(from);
+    pdfBooks.delete(from); pdfBooks.add(to);
+  } catch (e) {}   // no PDFs on this device (or no storage): nothing to move
+}
 let pdfBooks = new Set();   // ids of books that have a PDF on this device
 try {
   idb("readonly", st => st.getAllKeys()).then(keys => { pdfBooks = new Set(keys); if (!$("reading").hidden) renderBooks(); }).catch(() => {});
