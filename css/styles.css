@@ -44,6 +44,7 @@
   /* on the home logo only: the orbits slowly turn and the electrons softly pulse */
   .qlogo.spin .orbits { transform-origin:50% 50%; animation:swirl 18s linear infinite; }
   .qlogo.spin .e { animation:blink 2.4s ease-in-out infinite alternate; }
+  @keyframes swirl { to { transform:rotate(360deg); } }
   @keyframes blink { from { opacity:.55; } to { opacity:1; } }
 
   /* ---------- the carousel of worlds on the home screen ---------- */
@@ -62,9 +63,9 @@
   .wname { font-size:1.35rem; font-weight:600; text-shadow:0 1px 6px #000; }
   .wsub { font-size:.9rem; color:var(--muted); min-height:1.3em; }
   /* the ‹ › buttons on either side */
-  .arrow { position:relative; z-index:2; width:44px; height:44px; flex:none; padding:0; border-radius:50%; border:1px solid var(--line);
+  .carousel .arrow { position:relative; z-index:2; width:44px; height:44px; flex:none; padding:0; border-radius:50%; border:1px solid var(--line);
            background:rgba(13,13,20,.6); color:var(--text); font-size:1.5rem; line-height:1; margin:0 6px; }
-  .arrow:hover { background:var(--raised); }
+  .carousel .arrow:hover { background:var(--raised); }
   /* the dots underneath: one per world, the black hole's drawn hollow */
   .dots { display:flex; gap:10px; justify-content:center; margin:6px 0 10px; }
   .dots button { width:8px; height:8px; padding:0; border-radius:50%; border:none; background:rgba(255,255,255,.25);
@@ -76,76 +77,57 @@
   #home.launching .welcome, #home.launching .sub, #home.launching .slide.go .wname, #home.launching .slide.go .wsub,
   #home.launching .arrow, #home.launching .dots, #home.launching .hint, #home.launching .linkbtn { opacity:0; transition:opacity .4s; }
 
-  /* the black hole, built from five layers (inset = how far each sits in from the edges):
-     a soft glow, a thin ring of light bent around the hole, the hot gas disk seen almost edge-on,
-     the black center, and the near half of the disk passing in front of it */
-  .bh span { position:absolute; border-radius:50%; pointer-events:none; }
-  .bh-glow { inset:0; background:radial-gradient(circle closest-side, rgba(255,170,90,.32) 38%, rgba(123,108,255,.14) 62%, transparent);
-             animation:pulse 6s ease-in-out infinite alternate; }
-  /* the ring: a color wheel (brighter on one side, like the real thing) cut down to a thin circle by a mask */
-  .bh-ring { inset:24%; filter:blur(1px); animation:swirl 14s linear infinite;
-             background:conic-gradient(from 200deg, #fff3d6, #ffb347, #ff6a3d, #b37bff, #ffb347, #fff3d6);
-             -webkit-mask:radial-gradient(circle closest-side, transparent 71%, #000 75%, #000 86%, transparent 93%);
-             mask:radial-gradient(circle closest-side, transparent 71%, #000 75%, #000 86%, transparent 93%); }
-  /* the disk: a wide, flat ellipse of glowing gas, hottest (whitest) at its inner edge */
-  .bh-disk { inset:40% -14%; filter:blur(1px);
-             background:radial-gradient(ellipse closest-side, transparent 27%, #fff3d6 31%, #ffb347 40%,
-                                        rgba(255,90,60,.75) 55%, rgba(123,108,255,.3) 72%, transparent); }
-  .bh-front { clip-path:inset(50% 0 0 0); }   /* only the lower (near) half is drawn in front of the hole */
-  .bh-core { inset:31%; background:#000; box-shadow:0 0 22px 6px rgba(255,170,90,.35); }
-  @keyframes swirl { to { transform:rotate(360deg); } }
-  @keyframes pulse { from { transform:scale(.92); opacity:.7; } to { transform:scale(1.08); opacity:1; } }
-
-  /* Review: a ringed planet. Its back ring is behind the sphere, its front ring (lower half) in front */
-  .planet .sphere { position:absolute; inset:0; border-radius:50%; z-index:1; overflow:hidden;
-                    background:radial-gradient(circle at 35% 30%, #b8ecff, #4a8fe0 45%, #1b2b6e 82%);
-                    box-shadow:inset -16px -14px 30px rgba(0,0,0,.6), 0 0 34px rgba(80,160,255,.45); }
-  .planet .sphere::before { content:""; position:absolute; inset:-50%; background:repeating-linear-gradient(160deg,
-                    rgba(255,255,255,.1) 0 11px, transparent 11px 24px); animation:drift 14s linear infinite; }
-  .planet .ring { position:absolute; left:-34%; right:-34%; top:39%; height:24%; border-radius:50%;
-                  border:3px solid rgba(255,214,170,.8); transform:rotate(-16deg); }
-  .planet .ring.back { z-index:0; }
-  .planet .ring.front { z-index:2; clip-path:inset(50% 0 0 0); }
-  @keyframes drift { to { transform:translateX(48px); } }
-  /* Decks: a constellation of stars joined by faint lines, twinkling one by one */
-  .constellation svg { width:100%; height:100%; overflow:visible; }
-  .constellation path { fill:none; stroke:rgba(185,169,255,.55); stroke-width:.8; }
-  .constellation circle { fill:#fff; filter:drop-shadow(0 0 3px #b9a9ff); animation:twinkle 2.6s ease-in-out infinite alternate; }
-  .constellation circle:nth-of-type(2n) { animation-delay:-1.3s; }
-  .constellation circle:nth-of-type(3n) { animation-delay:-.6s; }
-  @keyframes twinkle { from { opacity:.35; } to { opacity:1; } }
-  /* Practice: a moon with craters and a soft shadow */
-  .moon { background:
-            radial-gradient(circle at 32% 38%, rgba(0,0,0,.22) 0 8%, transparent 9%),
-            radial-gradient(circle at 62% 62%, rgba(0,0,0,.2) 0 11%, transparent 12%),
-            radial-gradient(circle at 70% 30%, rgba(0,0,0,.16) 0 6%, transparent 7%),
-            radial-gradient(circle at 40% 70%, rgba(0,0,0,.14) 0 5%, transparent 6%),
-            radial-gradient(circle at 40% 35%, #f4f2ea, #bdb9ad 55%, #6f6b64 86%);
-          box-shadow:inset -20px -14px 30px rgba(0,0,0,.55), 0 0 30px rgba(230,230,255,.25); }
-  /* B.A.R. Exam: a comet, a bright head with a flickering tail behind it */
-  .comet .head { position:absolute; right:12%; top:12%; width:42%; height:42%; border-radius:50%;
-                 background:radial-gradient(circle, #fff 0 22%, #ffd27a 42%, rgba(255,120,60,0) 72%);
-                 box-shadow:0 0 34px rgba(255,170,90,.8); }
-  .comet .tail { position:absolute; right:30%; top:30%; width:105%; height:20%; border-radius:999px; transform-origin:right center;
-                 transform:rotate(-38deg); filter:blur(2px); animation:flicker 1.6s ease-in-out infinite alternate;
-                 background:linear-gradient(to left, rgba(255,214,140,.95), rgba(255,93,143,.45) 55%, transparent); }
-  @keyframes flicker { from { opacity:.65; } to { opacity:1; } }
-  /* Focus: a pulsar, a bright core, two sweeping beams, and a pulse ring every 1.5 seconds */
-  .pulsar .core { position:absolute; inset:28%; border-radius:50%;
-                  background:radial-gradient(circle, #fff 0 25%, #9fd8ff 45%, rgba(80,160,255,0) 75%); }
-  .pulsar .beam { position:absolute; left:46%; top:-30%; width:8%; height:160%; border-radius:999px;
-                  background:linear-gradient(transparent, rgba(160,220,255,.85), transparent 48%, transparent 52%, rgba(160,220,255,.85), transparent);
-                  animation:swirl 3.2s linear infinite; }
-  .pulsar::after { content:""; position:absolute; inset:18%; border-radius:50%; border:2px solid rgba(160,220,255,.7);
-                   animation:ping 1.5s ease-out infinite; }
-  @keyframes ping { from { transform:scale(.5); opacity:1; } to { transform:scale(1.5); opacity:0; } }
-  /* Reading: a small nebula, soft colored clouds slowly turning */
-  .nebula { filter:blur(3px); animation:swirl 30s linear infinite;
-            background:
-              radial-gradient(circle, rgba(255,255,255,.95) 0 5%, rgba(255,230,250,.5) 10%, transparent 18%),
-              radial-gradient(ellipse 50% 34% at 36% 42%, rgba(255,90,200,.85), transparent 72%),
-              radial-gradient(ellipse 52% 36% at 64% 60%, rgba(60,170,255,.8), transparent 72%),
-              radial-gradient(ellipse 50% 50% at 50% 50%, rgba(123,108,255,.75), transparent 75%); }
+  /* the worlds: real things (js/worlds.js). Photos are NASA / Event Horizon Telescope images on black;
+     "screen" blending drops their black, so only the light shows over the star sky */
+  .world .photo { position:absolute; left:50%; top:50%; width:100%; transform:translate(-50%, -50%);
+                  mix-blend-mode:screen; pointer-events:none; }
+  .world canvas, .world svg { position:absolute; pointer-events:none; }
+  /* Black hole: Sagittarius A* in polarized light, faded at its edge and turning once every 2 minutes like its gas */
+  #w-hole .photo { width:118%; -webkit-mask:radial-gradient(closest-side, #000 62%, transparent); mask:radial-gradient(closest-side, #000 62%, transparent);
+                   animation:holeturn 120s linear infinite; }
+  @keyframes holeturn { from { transform:translate(-50%, -50%) rotate(0); } to { transform:translate(-50%, -50%) rotate(-360deg); } }
+  /* Review: the Earth. The still photo shows until the live globe (a canvas, a bit bigger for its glow) is ready */
+  #w-earth .photo { mix-blend-mode:normal; border-radius:50%; clip-path:circle(49.5%); }
+  #w-earth.live .photo { display:none; }
+  #w-earth canvas { left:50%; top:50%; width:112%; height:112%; transform:translate(-50%, -50%); }
+  /* Decks: the Big Dipper, drawn on a canvas a bit wider than the world so the handle fits */
+  #w-dipper canvas { left:-25%; top:-12%; width:150%; height:124%; }
+  /* Practice: the Moon (an SVG: NASA's full Moon with tonight's shadow masked off) */
+  #w-moon svg { inset:0; width:100%; height:100%; overflow:visible; filter:drop-shadow(0 0 18px rgba(220,225,255,.18)); }
+  /* B.A.R. Exam: the Sun, with a soft glow around it */
+  #w-sun .photo { width:108%; -webkit-mask:radial-gradient(closest-side, #000 86%, transparent); mask:radial-gradient(closest-side, #000 86%, transparent);
+                  filter:drop-shadow(0 0 18px rgba(255,90,30,.45)); }
+  #w-sun .shock, #w-sun .flash { position:absolute; left:50%; top:50%; border-radius:50%; pointer-events:none; opacity:0; }
+  #w-sun .shock { width:100%; height:100%; margin:-50% 0 0 -50%; border:3px solid rgba(255,220,180,.9);
+                  box-shadow:0 0 30px rgba(255,170,90,.8), inset 0 0 30px rgba(255,170,90,.6); }
+  #w-sun .flash { width:60%; height:60%; margin:-30% 0 0 -30%; background:radial-gradient(circle, #fff 0 20%, rgba(255,230,190,.9) 40%, rgba(255,140,60,0) 70%); }
+  /* tapping the Sun: it goes supernova. It swells and glows hotter, its core collapses, then it blows apart:
+     a burst of white light and a blast wave racing outward, before B.A.R. Exam opens (enterWorld waits for it) */
+  .slide[data-mode="burn"].go .body { transition:none; animation:none; transform:none; opacity:1; }
+  .slide[data-mode="burn"].go .photo { animation:supernova 1.5s cubic-bezier(.4,0,.2,1) forwards; }
+  .slide[data-mode="burn"].go .shock { animation:shockwave 1.5s ease-out forwards; }
+  .slide[data-mode="burn"].go .flash { animation:sunflash 1.5s ease-out forwards; }
+  @keyframes supernova {
+    0%   { transform:translate(-50%, -50%) scale(1);    filter:drop-shadow(0 0 18px rgba(255,90,30,.45)) brightness(1); opacity:1; }
+    35%  { transform:translate(-50%, -50%) scale(1.18); filter:drop-shadow(0 0 40px rgba(255,140,60,.9)) brightness(1.8) saturate(1.3); opacity:1; }
+    48%  { transform:translate(-50%, -50%) scale(.55);  filter:drop-shadow(0 0 60px #fff) brightness(3); opacity:1; }
+    100% { transform:translate(-50%, -50%) scale(7);    filter:drop-shadow(0 0 80px #fff) brightness(4); opacity:0; } }
+  @keyframes shockwave { 0%, 46% { transform:scale(.3); opacity:0; } 50% { opacity:1; } 100% { transform:scale(9); opacity:0; } }
+  @keyframes sunflash { 0%, 44% { transform:scale(.2); opacity:0; } 52% { transform:scale(2.5); opacity:1; } 100% { transform:scale(14); opacity:0; } }
+  /* Focus: the Crab Nebula. A ring pulses out from the pulsar at its heart (the real one spins 30 times a second;
+     slowed right down here so it never flickers) */
+  #w-crab .photo { width:128%; -webkit-mask:radial-gradient(closest-side, #000 70%, transparent); mask:radial-gradient(closest-side, #000 70%, transparent); }
+  #w-crab .pulse { position:absolute; left:50%; top:50%; width:16%; aspect-ratio:1; margin:-8% 0 0 -8%; border-radius:50%;
+                   border:1.5px solid rgba(190,225,255,.85); animation:ping 1.6s ease-out infinite; }
+  #w-crab .glint { position:absolute; left:50%; top:50%; width:5%; aspect-ratio:1; margin:-2.5% 0 0 -2.5%; border-radius:50%;
+                   background:#fff; box-shadow:0 0 10px 4px rgba(200,230,255,.9); animation:beat 1.6s ease-out infinite; }
+  @keyframes ping { from { transform:scale(.4); opacity:1; } to { transform:scale(3.4); opacity:0; } }
+  @keyframes beat { 0% { opacity:1; transform:scale(1.4); } 25% { opacity:.55; transform:scale(1); } 100% { opacity:.55; } }
+  /* Reading: the Helix Nebula, slowly breathing */
+  #w-helix .photo { width:128%; -webkit-mask:radial-gradient(closest-side, #000 60%, transparent); mask:radial-gradient(closest-side, #000 60%, transparent);
+                    animation:breathe-in 14s ease-in-out infinite alternate; }
+  @keyframes breathe-in { from { transform:translate(-50%, -50%) scale(1); } to { transform:translate(-50%, -50%) scale(1.05); } }
+  @media (prefers-reduced-motion: reduce) { #w-hole .photo, #w-crab .pulse, #w-crab .glint, #w-helix .photo { animation:none; } }
   /* short screens (iPhone SE): a little tighter */
   @media (max-height: 620px) {
     #homelogo { font-size:2.8rem; margin-top:4px; }
@@ -234,7 +216,7 @@
   /* open: the controls appear underneath */
   #tcontrols { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; padding:4px 12px 10px; }
   /* music panels: one in the timer dropdown, one on the Focus page. Both use the same player. */
-  .musicpanel { display:flex; flex-direction:column; gap:8px; }
+  .musicpanel, .musicbody { display:flex; flex-direction:column; gap:8px; }
   #timer .musicpanel { padding:8px 12px 12px; border-top:1px solid var(--line); }
   .musicpanel .label { color:var(--muted); font-size:.85rem; }
   /* the slot is an empty space the size of the player; the real player is laid on top of it (see placePlayer) */
@@ -244,13 +226,53 @@
   #playerhost { position:absolute; left:-10000px; top:0; z-index:4; border-radius:10px; overflow:hidden; }
   #playerhost iframe { display:block; width:100%; height:100%; border:0; }
   .musicnav { display:flex; gap:8px; }
-  .musicnav button { flex:1; }
+  .musicnav button { flex:1; min-width:0; padding:8px 4px; }
   .musicnav[hidden] { display:none; }
   .musicform, .searchrow { display:flex; gap:8px; }
   .musicform input, .searchrow input { flex:1; min-width:0; padding:8px 12px; font-size:.9rem; border-radius:10px;
                      border:1px solid var(--line); background:var(--surface); color:var(--text); }
   .musicmsg { color:var(--muted); font-size:.85rem; }
   .musicmsg:empty { display:none; }
+  .musicnav button[hidden], .filecard[hidden], .played[hidden], .mymusic[hidden] { display:none; }
+  .musicshuffle[aria-pressed="true"], .musicrepeat.on { border-color:var(--accent); color:var(--accent); }
+  /* your own song: its cover, name, a progress bar you can drag, and the times */
+  .filecard { display:flex; gap:12px; align-items:center; padding:10px; border-radius:10px; background:var(--surface); border:1px solid var(--line); text-align:left; }
+  .filecard .cover { width:64px; height:64px; flex:none; border-radius:8px; overflow:hidden; display:grid; place-items:center;
+                     font-size:1.6rem; color:var(--muted); background:linear-gradient(135deg, #2a2348, #13131C); }
+  .filecard .cover img { width:100%; height:100%; object-fit:cover; }
+  .fmeta { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .fmeta b, .fmeta .fartist { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .fmeta .fartist { color:var(--muted); font-size:.85rem; min-height:1.2em; }
+  .seek { width:100%; margin:6px 0 0; accent-color:var(--accent); }
+  .ftimes { display:flex; justify-content:space-between; color:var(--muted); font-size:.75rem; font-variant-numeric:tabular-nums; }
+  /* "Choose music files": a label that looks like a button; tapping it opens the file picker (the real input is invisible) */
+  .filebtn { position:relative; display:flex; align-items:center; justify-content:center; min-height:40px; border-radius:10px;
+             border:1px dashed var(--line-strong); color:var(--text); font-size:.9rem; cursor:pointer; }
+  .filebtn:hover { background:var(--raised); }
+  .filebtn input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+  .filebtn:focus-within { outline:2px solid var(--accent); outline-offset:2px; }
+  /* the honest line about iPhones and background music */
+  .iphone { margin:0; padding:8px 10px; border-radius:10px; background:rgba(255,212,71,.08); border:1px solid rgba(255,212,71,.25);
+            color:#f3e3a6; font-size:.8rem; text-align:left; }
+  /* the two lists: your music on this phone, and what played this session */
+  .mymusic { border:1px solid var(--line); border-radius:10px; background:var(--surface); text-align:left; }
+  .mymusic summary { cursor:pointer; padding:10px 12px; font-size:.9rem; min-height:24px; }
+  .mymusic ol { padding:0 6px 6px; }
+  .played h4 { margin:2px 0 4px; font-size:.72rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); text-align:left; }
+  .played ol, .mymusic ol { list-style:none; margin:0; display:flex; flex-direction:column; gap:4px; }
+  .played ol { padding:0; }
+  .played li, .mymusic li { display:flex; gap:4px; }
+  .song { flex:1; min-width:0; display:flex; align-items:center; gap:10px; min-height:44px; padding:6px 10px; border-radius:10px;
+          border:1px solid transparent; background:var(--surface); text-align:left; }
+  .song:hover { border-color:var(--line); background:var(--raised); }
+  .song .ic { flex:none; width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-size:.65rem;
+              background:rgba(123,108,255,.18); color:#b9b0ff; }
+  .song .t { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.9rem; }
+  .song .t.link { color:var(--muted); font-family:ui-monospace, Menlo, monospace; font-size:.8rem; }
+  .song .src { flex:none; font-size:.7rem; color:var(--muted); max-width:30%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .song.cur { border-color:rgba(123,108,255,.45); }
+  .song.cur .ic { background:var(--accent-fill); color:#fff; }
+  .songdel { flex:none; width:44px; padding:0; border-radius:10px; color:var(--muted); }
 
   /* ---------- Focus page: the timer and music on their own ---------- */
   #focus { width:100%; max-width:480px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; }
@@ -276,8 +298,16 @@
   #fcustom label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.8rem; text-align:left; }
   #fcustom input { font-size:1rem; padding:8px 10px; border-radius:10px; border:1px solid var(--line);
                    background:var(--surface); color:var(--text); }
-  .focusmusic { width:100%; box-sizing:border-box; padding:12px; border:1px solid var(--line); border-radius:14px;
-                background:var(--surface); text-align:left; }
+  /* the music dropdown at the top of Focus: looks like the small timer dropdown. Closed, one line: ♪ what's playing ▾ */
+  .focusmusic { width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:18px; background:var(--raised); text-align:left; gap:0; }
+  .focusmusic summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; min-height:44px; padding:0 14px; }
+  .focusmusic summary::-webkit-details-marker { display:none; }
+  .focusmusic .note { color:var(--accent); flex:none; }
+  #focusnow { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #focusnow.empty { color:var(--muted); }
+  .focusmusic .arrow { color:var(--muted); flex:none; transition:transform .2s; }
+  .focusmusic[open] .arrow { transform:rotate(180deg); }
+  .focusmusic .musicbody { padding:12px; border-top:1px solid var(--line); }
   #fmsg { color:var(--muted); font-size:.9rem; min-height:1.2em; margin:0; }
   .homebtn { margin-top:4px; min-height:44px; border-radius:999px; }
   .homerow { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }

@@ -277,7 +277,7 @@ $("direction").onchange = e => {
   refresh();   // rebuild today's review with the new direction
 };
 
-// the small lines under the worlds: cards due, the deck you're on, books you're reading
+// the small lines under the worlds: cards due, the deck you're on, tonight's Moon, books you're reading
 function worldInfo() {
   const all = allStacks(), s = all.find(x => x.id === state.stackId) || all[0], t = today();
   const cards = s.words ? state.cards.filter(c => s.words.has(wordKey(c))) : state.cards;
@@ -285,6 +285,7 @@ function worldInfo() {
   $("ws-hole").textContent = "Dive in · " + s.name;
   $("ws-daily").textContent = due ? due + " due" : "";
   $("ws-deck").textContent = s.name;
+  $("ws-practice").textContent = moonLine();   // tonight's Moon (js/worlds.js)
   const reading = state.books.filter(b => !isFinished(b)).length;
   $("ws-reading").textContent = reading ? reading + (reading === 1 ? " book" : " books") : "";
 }
@@ -376,7 +377,8 @@ function enterWorld() {
   $("home").classList.add("launching");
   s.classList.add("go");
   document.documentElement.classList.add("zooming");
-  const wait = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700;
+  // the Sun's supernova takes a little longer than the usual zoom
+  const wait = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : s.dataset.mode === "burn" ? 1500 : 700;
   setTimeout(() => {
     $("home").classList.remove("launching");
     document.documentElement.classList.remove("zooming");

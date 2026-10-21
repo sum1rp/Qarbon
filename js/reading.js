@@ -461,18 +461,8 @@ function bookTextId(b) {
   return lib ? lib.meta.textId : "";
 }
 
-// ----- PDFs: kept in this browser's IndexedDB (a storage area for bigger files), never uploaded -----
-function pdfStore(mode) {
-  return new Promise((ok, fail) => {
-    const r = indexedDB.open("qarbon-files", 1);
-    r.onupgradeneeded = () => r.result.createObjectStore("pdfs");
-    r.onerror = () => fail(r.error);
-    r.onsuccess = () => ok(r.result.transaction("pdfs", mode).objectStore("pdfs"));
-  });
-}
-const idb = (mode, fn) => pdfStore(mode).then(st => new Promise((ok, fail) => {
-  const r = fn(st); r.onsuccess = () => ok(r.result); r.onerror = () => fail(r.error);
-}));
+// ----- PDFs: kept in this browser's IndexedDB (the "pdfs" store, see fileStore in js/data.js), never uploaded -----
+const idb = (mode, fn) => fileDo("pdfs", mode, fn);
 // the PDF is stored as its raw bytes (an ArrayBuffer): some Safari versions can't store a File object itself
 const putPdf = async (id, file) => { const data = await file.arrayBuffer(); return idb("readwrite", st => st.put({ name: file.name, data }, id)); };
 const getPdf = id => idb("readonly", st => st.get(id));

@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qarbon</title>
-<link rel="stylesheet" href="css/styles.css?v=33">
+<link rel="stylesheet" href="css/styles.css?v=35">
 <!-- the atom icons: the little one in the browser tab, and the one iPhones use for "Add to Home Screen" -->
-<link rel="icon" type="image/svg+xml" href="favicon.svg?v=33">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=33">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=35">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=35">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -15,6 +15,8 @@
   <!-- the one music player. It's moved on top of whichever music panel is showing,
        so the music never restarts when you switch pages. -->
   <div id="playerhost"></div>
+  <!-- the one player for your own music files (js/music.js): the music panels only show its controls -->
+  <audio id="songaudio" preload="auto"></audio>
 
   <div id="boot">Starting Qarbon… If this message stays, the page's code did not finish loading (the file may have been cut off).</div>
 
@@ -27,43 +29,42 @@
     <div class="carousel">
       <button class="arrow" id="prevworld" aria-label="Previous world">‹</button>
       <div class="stage" id="stage" aria-roledescription="carousel">
-        <!-- the black hole: each layer is one part of it (see "the black hole" in the styles). Opens Review on your last deck -->
+        <!-- the worlds are real things (drawn or filled in by js/worlds.js; photos in img/).
+             The black hole opens Review on your last deck. Each photo waits in data-src until the home screen is up. -->
+        <!-- the black hole: Sagittarius A*, at the center of our galaxy (Event Horizon Telescope) -->
         <button class="slide on" data-mode="hole">
-          <span class="body bh" aria-hidden="true"><span class="bh-glow"></span><span class="bh-ring"></span><span class="bh-disk"></span><span class="bh-core"></span><span class="bh-disk bh-front"></span></span>
+          <span class="body world" id="w-hole" aria-hidden="true"><img class="photo" alt="" src="img/sgr-a.jpg"></span>
           <span class="wname">Black hole</span><span class="wsub" id="ws-hole"></span>
         </button>
-        <!-- 🃏 Review: a ringed planet, coming back around on its orbit -->
+        <!-- 🃏 Review: the Earth, live (a still photo until the live globe is ready) -->
         <button class="slide" data-mode="daily">
-          <span class="body planet" aria-hidden="true"><span class="ring back"></span><span class="sphere"></span><span class="ring front"></span></span>
+          <span class="body world" id="w-earth" aria-hidden="true"><img class="photo" alt="" data-src="img/earth.jpg"></span>
           <span class="wname">Review</span><span class="wsub" id="ws-daily"></span>
         </button>
-        <!-- 🗂 Decks: a constellation, separate stars joined into a shape -->
+        <!-- 🗂 Decks: the Big Dipper, separate stars joined into a shape -->
         <button class="slide" data-mode="deck">
-          <span class="body constellation" aria-hidden="true">
-            <svg viewBox="0 0 60 60"><path d="M8 42 L20 22 L34 30 L46 12 M34 30 L52 40 L30 50 L8 42"/>
-              <circle cx="8" cy="42" r="2.2"/><circle cx="20" cy="22" r="2.6"/><circle cx="34" cy="30" r="2"/>
-              <circle cx="46" cy="12" r="2.8"/><circle cx="52" cy="40" r="2.2"/><circle cx="30" cy="50" r="2"/></svg>
-          </span>
+          <span class="body world" id="w-dipper" aria-hidden="true"></span>
           <span class="wname">Decks</span><span class="wsub" id="ws-deck"></span>
         </button>
-        <!-- 🔁 Practice: a moon, circling with no pressure -->
+        <!-- 🔁 Practice: the Moon, in tonight's phase -->
         <button class="slide" data-mode="practice">
-          <span class="body moon" aria-hidden="true"></span>
-          <span class="wname">Practice</span><span class="wsub"></span>
+          <span class="body world" id="w-moon" aria-hidden="true"></span>
+          <span class="wname">Practice</span><span class="wsub" id="ws-practice"></span>
         </button>
-        <!-- 🔥 B.A.R. Exam: a comet, burning up -->
+        <!-- 🔥 B.A.R. Exam: the Sun (NASA's Solar Dynamics Observatory). Tap it and it goes supernova, then the exam opens.
+             .shock is the blast wave and .flash the burst of light (see "supernova" in the styles) -->
         <button class="slide" data-mode="burn">
-          <span class="body comet" aria-hidden="true"><span class="tail"></span><span class="head"></span></span>
+          <span class="body world" id="w-sun" aria-hidden="true"><img class="photo" alt="" data-src="img/sun.jpg"><span class="shock"></span><span class="flash"></span></span>
           <span class="wname">B.A.R. Exam</span><span class="wsub"></span>
         </button>
-        <!-- ⏱ Focus: a pulsar, a star that pulses on a steady rhythm like a timer -->
+        <!-- ⏱ Focus: the Crab Nebula, with the pulsar at its heart pulsing on a steady rhythm like a timer -->
         <button class="slide" data-mode="focus">
-          <span class="body pulsar" aria-hidden="true"><span class="beam"></span><span class="core"></span></span>
+          <span class="body world" id="w-crab" aria-hidden="true"><img class="photo" alt="" data-src="img/crab-nebula.jpg"><span class="pulse"></span><span class="glint"></span></span>
           <span class="wname">Focus</span><span class="wsub"></span>
         </button>
-        <!-- 📖 Reading: a nebula, where stars are born -->
+        <!-- 📖 Reading: the Helix Nebula -->
         <button class="slide" data-mode="reading">
-          <span class="body nebula" aria-hidden="true"></span>
+          <span class="body world" id="w-helix" aria-hidden="true"><img class="photo" alt="" data-src="img/helix-nebula.jpg"></span>
           <span class="wname">Reading</span><span class="wsub" id="ws-reading"></span>
         </button>
       </div>
@@ -87,7 +88,8 @@
     <div class="howsec">
       <h3>Getting started</h3>
       <ul>
-        <li>The home screen shows one world at a time, starting with the black hole. Swipe left or right to move between them (on a computer: the ‹ › buttons or the arrow keys). <b>Review</b> is the ringed planet, <b>Decks</b> the constellation, <b>Practice</b> the moon, <b>B.A.R. Exam</b> the comet, <b>Focus</b> the pulsar and <b>Reading</b> the nebula. Tap a world to go straight there. The black hole opens Review on your last deck. The small line under each world shows cards due, your deck or the books you're reading.</li>
+        <li>The home screen shows one world at a time, starting with the black hole. Swipe left or right to move between them (on a computer: the ‹ › buttons or the arrow keys). <b>Review</b> is the Earth, <b>Decks</b> the Big Dipper, <b>Practice</b> the Moon, <b>B.A.R. Exam</b> the Sun (tap it and watch), <b>Focus</b> the Crab Nebula and <b>Reading</b> the Helix Nebula. Tap a world to go straight there. The black hole opens Review on your last deck. The small line under each world shows cards due, your deck, tonight's Moon or the books you're reading.</li>
+        <li>They're all real: the black hole is <b>Sagittarius A*</b>, the one at the center of our galaxy, as photographed by the Event Horizon Telescope. The Earth is live: it turns, and it's lit where the Sun really is right now, with city lights on the night side. The Moon shows <b>tonight's actual phase</b>, and the stars behind everything are the real night sky (see <b>Space images</b> below).</li>
         <li>The app opens on the deck you used last (Beginner 150 the first time).</li>
         <li>Pick what you're doing from the <b>Mode</b> menu at the top: <b>🃏 Review</b>, <b>🗂 Decks</b>, <b>🔁 Practice</b>, <b>🔥 B.A.R. Exam</b>, <b>⏱ Focus</b> or <b>📖 Reading</b>.</li>
         <li>Built-in stacks: <b>Beginner 150</b> and <b>Level 2</b> (150 more words). <b>All my cards</b> has everything.</li>
@@ -147,7 +149,7 @@
       <h3>⏱ Focus (timer and music for any studying)</h3>
       <ul>
         <li>Choose <b>⏱ Focus</b> in the Mode menu (or <b>⤢ Focus page</b> in the small timer dropdown). The Mode menu takes you straight back to Review or anything else.</li>
-        <li>The music player is at the top, then a big clock with a ring that empties as time passes. <b>Start/Pause</b>, <b>Reset</b>, and <b>Skip</b> (jump to the break, or back to focus; a skipped focus session isn't counted). On a computer, Space starts and pauses.</li>
+        <li>At the top is the <b>♪ music dropdown</b>: closed, it shows what's playing; tap it for the player and your lists. Then a big clock with a ring that empties as time passes. <b>Start/Pause</b>, <b>Reset</b>, and <b>Skip</b> (jump to the break, or back to focus; a skipped focus session isn't counted). On a computer, Space starts and pauses.</li>
         <li>It's the <b>same timer and music</b> as the flashcards' dropdown: start it here, go study cards, and it keeps going.</li>
       </ul>
     </div>
@@ -175,7 +177,11 @@
         <li><b>Custom</b> (set in ⏱ Focus): choose the focus, break and long-break lengths, and after how many focus sessions the long break comes.</li>
         <li>A chime plays when time is up, and the next part waits for you to press Start. Finished focus sessions are counted.</li>
         <li><b>Music:</b> paste a <b>YouTube</b> or <b>SoundCloud</b> link and press Play. It keeps playing when you close the panel or switch pages (a ♪ shows next to the time). <b>Remove music</b> clears it.</li>
-        <li><b>⏮ Previous / Next ⏭</b> appear for playlists (YouTube playlists, and SoundCloud links with /sets/ in them).</li>
+        <li><b>Your own songs:</b> <b>📁 Choose music files</b> opens the Files app (On My iPhone, iCloud Drive, Downloads). Pick one or several: MP3, M4A, AAC and WAV work best. Their name, artist and cover come from the file. They're kept <b>on this device</b> (not synced, too big) under <b>My music on this phone</b>, where ✕ removes one. Songs from Apple Music can't be used: Apple doesn't let websites read them.</li>
+        <li>Your own songs play in Qarbon's player: a progress bar you can drag, ⏮ ❚❚ ⏭, 🔀 shuffle and 🔁 repeat (tap again for 🔂, repeat one song). Their name and buttons also show on the lock screen.</li>
+        <li><b>Played this session:</b> the last 10 songs, newest first. Tap one to play it again. It's forgotten when you close Qarbon.</li>
+        <li><b>⏮ Previous / Next ⏭</b> move through a playlist (YouTube playlists, and SoundCloud links with /sets/ in them), through your own songs, or else through Played this session.</li>
+        <li><b>On iPhone:</b> YouTube and SoundCloud pause when the screen locks or you switch apps (Apple's and YouTube's rules; sometimes ▶ in Control Center starts them again). Your own songs usually keep going. Added to the Home Screen, music may stop sooner. Inside Qarbon, switching modes never stops the music.</li>
         <li>YouTube may not play when index.html is opened straight from the Mac. It works on the website.</li>
       </ul>
     </div>
@@ -209,11 +215,24 @@
     </div>
 
     <div class="howsec">
+      <h3>Space images</h3>
+      <ul>
+        <li><b>Sky:</b> the real night sky around the north galactic pole (the darkest part of the sky, away from the Milky Way), drawn from the Yale Bright Star Catalog: 6,331 stars at their true positions, brightness and colors.</li>
+        <li><b>Black hole:</b> Sagittarius A* in polarized light (2024), EHT Collaboration / ESO, CC BY 4.0.</li>
+        <li><b>Earth:</b> NASA Earth Observatory: Blue Marble (land and sea), cloud cover, and Black Marble 2016 (city lights).</li>
+        <li><b>Moon:</b> NASA's Scientific Visualization Studio (full Moon, from Lunar Reconnaissance Orbiter data). The phase is worked out from the date (Meeus' formula).</li>
+        <li><b>Big Dipper:</b> the real positions, brightness and colors of its stars, plus Alcor.</li>
+        <li><b>Sun:</b> NASA's Solar Dynamics Observatory (in extreme ultraviolet light, 304 Å, October 2026).</li>
+        <li><b>Crab Nebula</b> (Hubble's mosaic, 2005) and <b>Helix Nebula</b> (Hubble): NASA, ESA, STScI.</li>
+      </ul>
+    </div>
+
+    <div class="howsec">
       <h3>iPhone tips</h3>
       <ul>
         <li>In Safari, tap <b>Share → Add to Home Screen</b> to open Qarbon like an app.</li>
         <li>Keep Safari's zoom at 100%.</li>
-        <li>Sound only starts after a tap (Apple's rule), and music stops when the screen locks.</li>
+        <li>Sound only starts after a tap (Apple's rule). YouTube and SoundCloud stop when the screen locks; your own music files usually keep playing.</li>
         <li>The <b>build number</b> at the bottom of the study page tells you which version you have.</li>
       </ul>
     </div>
@@ -263,6 +282,20 @@
     <button id="setdone">Done</button>
   </div>
 
+  <!-- the Mode menu: what you're doing right now (at the top, right under the logo bar) -->
+  <div id="modebar">
+    <label for="modeselect">Mode</label>
+    <select id="modeselect">
+      <option value="daily">🃏 Review</option>
+      <option value="deck">🗂 Decks</option>
+      <option value="practice">🔁 Practice</option>
+      <option value="burn">🔥 B.A.R. Exam</option>
+      <option value="focus">⏱ Focus</option>
+      <option value="reading">📖 Reading</option>
+    </select>
+    <span class="arrow" aria-hidden="true">▾</span>
+  </div>
+
   <!-- <details> is a built-in dropdown panel: tap the <summary> line to open or close it -->
   <details id="timer">
     <summary><span id="phase">Focus</span><span id="time">25:00</span><span class="arrow">▾</span></summary>
@@ -277,34 +310,20 @@
          It keeps playing when this panel is closed. -->
     <div class="musicpanel">
       <div class="label">♪ Music while you study</div>
-      <div class="playerslot"></div>
-      <div class="musicnav" hidden><button class="musicprev">⏮ Previous</button><button class="musicnext">Next ⏭</button></div>
-      <div class="musicform">
-        <input type="url" class="musicurl" placeholder="Paste a YouTube or SoundCloud link" autocomplete="off">
-        <button class="musicset">Play</button>
-      </div>
-      <div class="musicmsg"></div>
-      <button class="musicclear" hidden>Remove music</button>
+      <div class="musicbody"></div>   <!-- the player, buttons and lists: filled in by js/music.js -->
     </div>
   </details>
-
-  <!-- the Mode menu: what you're doing right now -->
-  <div id="modebar">
-    <label for="modeselect">Mode</label>
-    <select id="modeselect">
-      <option value="daily">🃏 Review</option>
-      <option value="deck">🗂 Decks</option>
-      <option value="practice">🔁 Practice</option>
-      <option value="burn">🔥 B.A.R. Exam</option>
-      <option value="focus">⏱ Focus</option>
-      <option value="reading">📖 Reading</option>
-    </select>
-    <span class="arrow" aria-hidden="true">▾</span>
-  </div>
 
   <!-- ===== ⏱ Focus mode: the study timer and music, for any kind of studying =====
        It's the same timer and the same music as in the timer dropdown above. -->
   <section id="focus" hidden>
+
+    <!-- music, as a dropdown like the small timer: closed, it shows what's playing, so Focus is mostly the big clock.
+         The music keeps playing when it's closed (the player is parked off-screen, see placePlayer in js/music.js). -->
+    <details class="musicpanel focusmusic" id="focusmusic">
+      <summary><span class="note" aria-hidden="true">♪</span><span id="focusnow">Add music</span><span class="arrow" aria-hidden="true">▾</span></summary>
+      <div class="musicbody"></div>
+    </details>
 
     <!-- "How far did you get?": after a focus session, or when you tap Done reading -->
     <div id="readcheck" hidden>
@@ -319,18 +338,6 @@
         <button id="readsave" class="read">Save</button>
         <button id="readlater">Not now</button>
       </div>
-    </div>
-
-    <div class="musicpanel focusmusic">
-      <div class="label">♪ Music</div>
-      <div class="playerslot"></div>
-      <div class="musicnav" hidden><button class="musicprev">⏮ Previous</button><button class="musicnext">Next ⏭</button></div>
-      <div class="musicform">
-        <input type="url" class="musicurl" placeholder="Paste a YouTube or SoundCloud link" autocomplete="off">
-        <button class="musicset">Play</button>
-      </div>
-      <div class="musicmsg"></div>
-      <button class="musicclear" hidden>Remove music</button>
     </div>
 
     <div class="fclock">
@@ -569,19 +576,21 @@
   </main>
 
 <!-- the program, in order: packs (data) first, start.js last. Every file shares the same variables.
-     ?v=33 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
+     ?v=35 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
      (Book texts in js/books/ and the PDF viewer only load when you open a book.) -->
-<script src="js/packs.js?v=33"></script>
-<script src="js/basics.js?v=33"></script>
-<script src="js/look.js?v=33"></script>
-<script src="js/data.js?v=33"></script>
-<script src="js/cards.js?v=33"></script>
-<script src="js/timer.js?v=33"></script>
-<script src="js/burn.js?v=33"></script>
-<script src="js/music.js?v=33"></script>
-<script src="js/app.js?v=33"></script>
-<script src="js/reading.js?v=33"></script>
-<script src="js/account.js?v=33"></script>
-<script src="js/start.js?v=33"></script>
+<script src="js/packs.js?v=35"></script>
+<script src="js/basics.js?v=35"></script>
+<script src="js/stars.js?v=35"></script>
+<script src="js/look.js?v=35"></script>
+<script src="js/worlds.js?v=35"></script>
+<script src="js/data.js?v=35"></script>
+<script src="js/cards.js?v=35"></script>
+<script src="js/timer.js?v=35"></script>
+<script src="js/burn.js?v=35"></script>
+<script src="js/music.js?v=35"></script>
+<script src="js/app.js?v=35"></script>
+<script src="js/reading.js?v=35"></script>
+<script src="js/account.js?v=35"></script>
+<script src="js/start.js?v=35"></script>
 </body>
 </html>

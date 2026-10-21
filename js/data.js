@@ -264,6 +264,27 @@ function mergeStates(a, b) {   // a = this device, b = online (both already clea
   };
 }
 
+// ================= bigger files kept on this device only (IndexedDB) =================
+// IndexedDB is the browser's storage area for big things. Qarbon's database "qarbon-files" has three stores:
+//   pdfs      the PDFs attached to books (js/reading.js)
+//   songs     your own music files, as raw bytes (js/music.js)
+//   songinfo  each song's name, artist, album and cover, kept apart so the list loads without reading every song
+// Nothing here is synced or put in backups: these files stay on the device they were added on.
+function fileStore(name, mode) {
+  return new Promise((ok, fail) => {
+    const r = indexedDB.open("qarbon-files", 2);   // version 2 added the song stores
+    r.onupgradeneeded = () => ["pdfs", "songs", "songinfo"].forEach(n => {
+      if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n);
+    });
+    r.onerror = () => fail(r.error);
+    r.onsuccess = () => ok(r.result.transaction(name, mode).objectStore(name));
+  });
+}
+// run one request on a store (like st => st.get(id)) and get its result
+const fileDo = (name, mode, fn) => fileStore(name, mode).then(st => new Promise((ok, fail) => {
+  const r = fn(st); r.onsuccess = () => ok(r.result); r.onerror = () => fail(r.error);
+}));
+
 // ================= levels (read from each card's tags, like "A1;core") =================
 const LEVELS = { A1: "Beginner (A1)", A2: "Elementary (A2)", B1: "Intermediate (B1)", B2: "Upper intermediate (B2)" };
 const levelOf = c => (c.tags || "").split(";").map(t => t.trim()).find(t => LEVELS[t]) || "";
