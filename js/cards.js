@@ -99,6 +99,8 @@ function render() {
   $("reading").hidden = mode !== "reading";
   $("media").hidden = mode !== "media";
   $("timer").hidden = mode === "focus";   // in ⏱ Focus the big clock replaces the small timer dropdown
+  // in 🎧 Media the timer dropdown is only the timer: the music panel is under the iPod (see "#study.inmedia" in the styles)
+  $("study").classList.toggle("inmedia", mode === "media");
   $("burnview").hidden = mode !== "burn";
   $("modeselect").value = mode;           // the Mode menu always shows where you are
   updateDiag();

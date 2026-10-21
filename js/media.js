@@ -36,16 +36,15 @@ function songsMenu(title, list) {
     : [{ label: "No songs yet", dim: true }, { label: "Add music files below", dim: true }] };
 }
 const nowScreen = () => ({ now: true, title: "Now Playing" });
-const onOff = b => b ? "On" : "Off";
-const SKINS = { white: "White", black: "Black", u2: "U2 Edition" };
+const SKINS = { white: "White", fiber: "Qarbon Fiber", silver: "Silver", red: "Red", blue: "Blue", green: "Green", u2: "U2", neon: "Neon", clear: "Clear" };
 
 function mainMenu() {
   return { title: "iPod", items: () => [
+    { label: "Now Playing", more: true, go: () => ipOpen(nowScreen()) },   // always at the top
     { label: "Music", more: true, go: () => ipOpen(musicMenu()) },
     { label: "Videos", more: true, go: () => ipOpen(videosMenu()) },
     { label: "Shuffle Songs", go: () => { if (shuffleSongs()) ipOpen(nowScreen()); } },
-    { label: "Settings", more: true, go: () => ipOpen(settingsMenu()) },
-    ...(nowPlaying() ? [{ label: "Now Playing", more: true, go: () => ipOpen(nowScreen()) }] : [])
+    { label: "Settings", more: true, go: () => ipOpen(settingsMenu()) }
   ] };
 }
 function musicMenu() {
@@ -92,6 +91,8 @@ function videosMenu() {
       go: () => { if (i >= 0) playPlayed(i); else playLink(p.link, true); ipOpen(nowScreen()); } }));
   } };
 }
+
+const onOff = b => b ? "On" : "Off";
 function settingsMenu() {
   return { title: "Settings", items: () => [
     { label: "Shuffle", value: shuffleOn ? "Songs" : "Off", go: () => { shuffleOn = !shuffleOn; renderMusic(); } },
@@ -195,15 +196,18 @@ function isPlaying() { return musicKind === "file" ? songIndex >= 0 && !audio.pa
 function renderMedia() {
   if (mode !== "media") return;
   if (!ipStack.length) ipOpen(mainMenu());
+  if (ipJump && nowPlaying() && Date.now() - ipJump < 5000) { ipJump = 0; ipStack.length = 1; ipOpen(nowScreen()); return; }
   ipod.dataset.skin = state.ipodSkin;
-  $("ip-skins").querySelectorAll("button").forEach(b => b.setAttribute("aria-checked", b.dataset.skin === state.ipodSkin));
+  // the Color dropdown: the mini iPod and name of the chosen skin, and which one is ticked in the list
+  $("ip-colormini").dataset.skin = state.ipodSkin;
+  $("ip-colorname").textContent = SKINS[state.ipodSkin];
+  $("ip-colorlist").querySelectorAll("button").forEach(b => b.setAttribute("aria-checked", b.dataset.pick === state.ipodSkin));
   const s = ipTop();
   $("ip-title").textContent = s.title;
   $("ip-state").innerHTML = nowPlaying() ? (isPlaying() ? ICONS.play : ICONS.pause) : "";
   $("ip-list").hidden = !!s.now;
   $("ip-now").hidden = !s.now || nowPlaying() === "YouTube";     // a song, SoundCloud, or "Nothing playing"
   $("ip-video").hidden = !s.now || nowPlaying() !== "YouTube";   // a video, in the screen
-  $("ip-sc").hidden = nowPlaying() !== "SoundCloud";   // SoundCloud's player is too wide for the screen: it sits below
   if (s.now) return renderNow();
   // the menu: only the rows that fit, plus a scroll bar if there are more
   const items = s.items();
@@ -339,18 +343,27 @@ document.addEventListener("keydown", e => {
   if (k) { e.preventDefault(); k(); }
 });
 
-// ================= under the iPod: its color, and adding music =================
-$("ip-skins").addEventListener("click", e => {
-  const b = e.target.closest("[data-skin]");
+// ================= under the iPod: its color =================
+// the Color dropdown's list: one button per skin, each with a mini iPod in that skin's colors (the same CSS as the big one)
+$("ip-colorlist").innerHTML = Object.entries(SKINS).map(([k, name]) =>
+  `<button role="radio" aria-checked="false" data-pick="${k}"><span class="ip-mini" data-skin="${k}" aria-hidden="true"><i></i></span>${name}</button>`).join("");
+$("ip-colorlist").addEventListener("click", e => {
+  const b = e.target.closest("[data-pick]");
   if (!b) return;
-  state.ipodSkin = b.dataset.skin;
+  state.ipodSkin = b.dataset.pick;
   save();
+  $("ip-color").open = false;   // close the dropdown once you've chosen
   renderMedia();
 });
-$("ip-add").querySelector(".musicset").onclick = () => { unlockAudio(); setMusic($("ip-add")); if (nowPlaying()) { ipStack.length = 1; ipOpen(nowScreen()); } };
-$("ip-add").querySelector(".musicurl").addEventListener("keydown", e => { if (e.key === "Enter") $("ip-add").querySelector(".musicset").click(); });
-$("ip-add").querySelector(".musicfile").addEventListener("click", unlockAudio);
-$("ip-add").querySelector(".musicfile").addEventListener("change", e => { addSongs([...e.target.files]); e.target.value = ""; });
+// The music panel under the iPod is run by js/music.js, like the other two. When you start something from it
+// (a link, a song from your lists, new files), the iPod jumps to Now Playing. Songs take a moment to load,
+// so this only notes "jump when it starts" (ipJump), and renderMedia does it once the music has changed.
+let ipJump = 0;   // when you asked (0 = no jump waiting); it's forgotten after 5 seconds
+const wantJump = () => { ipJump = Date.now(); };
+// { capture: true }: hear the tap on the way down to the button, before the button's own code starts the music
+$("ip-music").addEventListener("click", e => { if (e.target.closest(".musicset, [data-song], [data-played]")) wantJump(); }, { capture: true });
+$("ip-music").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches(".musicurl")) wantJump(); }, { capture: true });
+$("ip-music").addEventListener("change", e => { if (e.target.matches(".musicfile")) wantJump(); }, { capture: true });
 
 // after choosing 🎧 Media in the Mode menu, let go of the menu, so the arrow keys scroll the iPod (not change the mode)
 $("modeselect").addEventListener("change", () => { if (mode === "media") $("modeselect").blur(); });

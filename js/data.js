@@ -81,8 +81,10 @@ function clean(data) {
   if (!s.books.some(b => b.id === s.readingBook)) s.readingBook = "";
   s.stackId = typeof s.stackId === "string" ? s.stackId : "";   // the deck you used last
   s.readerSize = Number(s.readerSize) >= 14 && Number(s.readerSize) <= 28 ? Number(s.readerSize) : 18;   // the reader's text size (this device)
-  // the 🎧 Media iPod (this device): its front ("white", "black" or "u2") and the wheel's tick sound
-  s.ipodSkin = ["white", "black", "u2"].includes(s.ipodSkin) ? s.ipodSkin : "white";
+  // the 🎧 Media iPod (this device): its front ("white", "fiber", "u2", "silver", "red", "blue", "green", "neon" or "clear") and the wheel's tick sound
+  if (s.ipodSkin === "galaxy") s.ipodSkin = "clear";   // "Galaxy" was renamed "Clear" (build 40)
+  if (s.ipodSkin === "black") s.ipodSkin = "fiber";    // Black was replaced by Qarbon Fiber (build 43)
+  s.ipodSkin = ["white", "fiber", "silver", "red", "blue", "green", "u2", "neon", "clear"].includes(s.ipodSkin) ? s.ipodSkin : "white";
   s.ipodClick = s.ipodClick !== false;
   // for syncing: things you deleted ("card:chat" → when), and when your settings last changed
   const del = s.deleted && typeof s.deleted === "object" ? s.deleted : {};

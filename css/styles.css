@@ -211,7 +211,7 @@
                    align-items:center; gap:10px; padding:6px 14px; min-height:32px; }
   #timer summary::-webkit-details-marker { display:none; }
   #timer #phase { justify-self:end; }
-  #timer .arrow { justify-self:start; color:var(--muted); transition:transform .2s; }
+  #timer .arrow { justify-self:end; margin-right:2px; font-size:.9rem; color:var(--muted); transition:transform .2s; }   /* far right, like the Mode menu's ▾ */
   #timer[open] .arrow { transform:rotate(180deg); }
   /* open: the controls appear underneath */
   #tcontrols { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; padding:4px 12px 10px; }
@@ -255,12 +255,11 @@
   .iphone { margin:0; padding:8px 10px; border-radius:10px; background:rgba(255,212,71,.08); border:1px solid rgba(255,212,71,.25);
             color:#f3e3a6; font-size:.8rem; text-align:left; }
   /* the two lists: your music on this phone, and what played this session */
-  .mymusic { border:1px solid var(--line); border-radius:10px; background:var(--surface); text-align:left; }
-  .mymusic summary { cursor:pointer; padding:10px 12px; font-size:.9rem; min-height:24px; }
-  .mymusic ol { padding:0 6px 6px; }
-  .played h4 { margin:2px 0 4px; font-size:.72rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); text-align:left; }
+  /* the two lists are dropdowns: My music on this phone, and Played this session */
+  .mymusic, .played { border:1px solid var(--line); border-radius:10px; background:var(--surface); text-align:left; }
+  .mymusic summary, .played summary { cursor:pointer; padding:10px 12px; font-size:.9rem; min-height:24px; }
+  .mymusic ol, .played ol { padding:0 6px 6px; }
   .played ol, .mymusic ol { list-style:none; margin:0; display:flex; flex-direction:column; gap:4px; }
-  .played ol { padding:0; }
   .played li, .mymusic li { display:flex; gap:4px; }
   .song { flex:1; min-width:0; display:flex; align-items:center; gap:10px; min-height:44px; padding:6px 10px; border-radius:10px;
           border:1px solid transparent; background:var(--surface); text-align:left; }
@@ -372,9 +371,11 @@
   #readbar button { min-height:44px; }
   #readcheck { flex-direction:column; align-items:stretch; }
   #readcheck .bookbtns { margin:0; }
-  /* a little ♪ next to the time when music is set, placed so it doesn't push the time off-center */
+  /* a little clock next to the time (music has its own place now: 🎧 Media), placed so it doesn't push the time off-center.
+     The clock is a tiny SVG drawing used as a "mask": its shape is cut out of a block painted in the muted text color */
   #time { position:relative; }
-  #timer.hasmusic #time::after { content:"♪"; position:absolute; left:100%; margin-left:4px; font-size:.8em; color:var(--muted); }
+  #time::after { content:""; position:absolute; left:100%; top:50%; width:.8em; height:.8em; margin:-.4em 0 0 6px; background:var(--muted);
+                 -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.6' fill='none' stroke='%23000' stroke-width='1.6'/%3E%3Cpath d='M8 4.2V8l2.6 1.6' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.6' fill='none' stroke='%23000' stroke-width='1.6'/%3E%3Cpath d='M8 4.2V8l2.6 1.6' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat; }
   #time { font-variant-numeric:tabular-nums; font-size:1.1rem; font-weight:600; min-width:3.6em; text-align:center; }
   #timer.done #time { color:#ffd447; }
   #timer button { padding:5px 12px; font-size:.85rem; }
@@ -654,15 +655,22 @@
              radial-gradient(120% 40% at 50% 0%, rgba(255,255,255,calc(var(--ip-gloss) * .6)), transparent 70%); }
 
 /* the three fronts */
-#media .ipod[data-skin="white"] { --ip-front:linear-gradient(180deg, #ffffff 0%, #f6f6f4 45%, #e7e7e3 100%); --ip-rim:rgba(255,255,255,.9);
+#media .ipod[data-skin="white"], #media .ip-mini[data-skin="white"] { --ip-front:linear-gradient(180deg, #ffffff 0%, #f6f6f4 45%, #e7e7e3 100%); --ip-rim:rgba(255,255,255,.9);
   --ip-gloss:.0; --ip-wheel:radial-gradient(circle at 50% 38%, #fafaf8 0%, #efefec 55%, #dededa 100%);
   --ip-wheel-edge:rgba(0,0,0,.10); --ip-label:#7f8287; --ip-center:radial-gradient(circle at 50% 30%, #ffffff 0%, #f7f7f5 55%, #e4e4e0 100%);
   --ip-bezel:#1a1a1c; }
-#media .ipod[data-skin="black"] { --ip-front:linear-gradient(180deg, #2a2a2e 0%, #0e0e10 40%, #050506 100%); --ip-rim:rgba(255,255,255,.12);
-  --ip-gloss:.16; --ip-wheel:radial-gradient(circle at 50% 38%, #313134 0%, #222225 60%, #18181a 100%);
-  --ip-wheel-edge:rgba(0,0,0,.6); --ip-label:#d6d6da; --ip-center:radial-gradient(circle at 50% 28%, #3a3a3e 0%, #121214 60%, #050506 100%);
-  --ip-bezel:#000; }
-#media .ipod[data-skin="u2"] { --ip-front:linear-gradient(180deg, #2a2a2e 0%, #0e0e10 40%, #050506 100%); --ip-rim:rgba(255,255,255,.12);
+/* Qarbon Fiber (build 43, in place of Black): gloss carbon-fiber twill (img/carbon-twill.svg, a 2×2 weave drawn as an SVG)
+   under a clear coat (a diagonal shine and darker edges), with a spun-aluminum wheel like a machined dial and a black center.
+   "Spun" aluminum is the circular brushing on machined metal: a cone of light and dark around the middle. */
+#media .ipod[data-skin="fiber"], #media .ip-mini[data-skin="fiber"] { --ip-rim:rgba(255,255,255,.14); --ip-gloss:0; --ip-bezel:#000;
+  --ip-front:linear-gradient(118deg, rgba(255,255,255,.20) 0%, rgba(255,255,255,.06) 28%, rgba(255,255,255,0) 42%, rgba(255,255,255,0) 70%, rgba(255,255,255,.05) 82%, rgba(255,255,255,0) 94%),
+             radial-gradient(120% 75% at 50% 28%, rgba(0,0,0,0) 40%, rgba(0,0,0,.45) 100%),
+             url("../img/carbon-twill.svg") 0 0 / 15px 15px, #08080a;
+  --ip-wheel:conic-gradient(from 20deg, #e9ebee, #aeb3ba 12%, #f1f3f5 25%, #a3a9b0 38%, #e5e8eb 50%, #aeb3ba 62%, #f1f3f5 75%, #a3a9b0 88%, #e9ebee);
+  --ip-wheel-edge:rgba(0,0,0,.45); --ip-label:#2f3237;
+  --ip-center:radial-gradient(circle at 50% 28%, #3a3a3e 0%, #121214 60%, #050506 100%); }
+#media .ipod[data-skin="fiber"] .ip-wheel { box-shadow:inset 0 .5cqw .8cqw rgba(255,255,255,.5), inset 0 -.6cqw 1cqw rgba(0,0,0,.25), 0 0 0 .3cqw rgba(0,0,0,.6), 0 .8cqw 2cqw rgba(0,0,0,.6); }
+#media .ipod[data-skin="u2"], #media .ip-mini[data-skin="u2"] { --ip-front:linear-gradient(180deg, #2a2a2e 0%, #0e0e10 40%, #050506 100%); --ip-rim:rgba(255,255,255,.12);
   --ip-gloss:.16; --ip-wheel:radial-gradient(circle at 50% 38%, #e0262f 0%, #c3141d 58%, #a10e16 100%);
   --ip-wheel-edge:rgba(0,0,0,.55); --ip-label:#111; --ip-center:radial-gradient(circle at 50% 28%, #3a3a3e 0%, #121214 60%, #050506 100%);
   --ip-bezel:#000; }
@@ -771,17 +779,87 @@
 #media .ip-wheel.ip-press-c .ip-center { filter:brightness(.93); }
 #media .ip-wheel.ip-turning { cursor:grabbing; }
 
-/* ----- under the iPod: add music, and SoundCloud (too wide for the screen) ----- */
-#media .ip-add { width:100%; max-width:340px; display:flex; flex-direction:column; gap:8px; }
-#media .ip-add .filebtn { align-self:stretch; }
-#media .ip-sc { width:100%; max-width:340px; }
-#media .ip-sc .playerslot { display:block; height:166px; }
-#media .ip-hint { margin:0; color:var(--muted); font-size:.8rem; text-align:center; }
-/* the color switch under the iPod: three little swatches */
-#media .ip-skins { display:flex; gap:8px; }
-#media .ip-skins button { display:flex; align-items:center; gap:8px; min-height:44px; padding:6px 14px; font-size:.9rem; border-radius:999px; }
-#media .ip-skins button[aria-checked="true"] { border-color:var(--accent); color:var(--text); box-shadow:0 0 0 1px var(--accent); }
-#media .ip-skins i { width:16px; height:16px; border-radius:50%; flex:none; box-shadow:inset 0 0 0 1px rgba(255,255,255,.35); }
-#media .ip-skins [data-skin="white"] i { background:linear-gradient(180deg, #fff, #dcdcd8); }
-#media .ip-skins [data-skin="black"] i { background:linear-gradient(180deg, #3a3a3e, #050506); }
-#media .ip-skins [data-skin="u2"] i { background:radial-gradient(circle, #d81e27 0 45%, #0a0a0b 50%); }
+/* ----- under the iPod: the music panel, open (no dropdown) ----- */
+#media .ip-music { width:100%; max-width:340px; box-sizing:border-box; padding:12px; text-align:left;
+  border:1px solid var(--line); border-radius:18px; background:var(--raised); }
+#media .ip-music .playerslot.yt { display:none; }   /* YouTube plays in the iPod's screen instead (SoundCloud stays here) */
+/* the color dropdown under the iPod: looks like the Mode menu ("Color" on the left, ▾ on the right), with a little
+   picture of the chosen iPod. It's a <details> (like the other dropdowns) instead of a <select>, because an iPhone's
+   own menu can only show words, not pictures. Open, it's a grid of every skin as a mini iPod. */
+#media .ip-colorbar { width:100%; max-width:340px; box-sizing:border-box; border:1px solid var(--line); border-radius:18px; background:var(--raised); }
+#media .ip-colorbar summary { list-style:none; position:relative; display:flex; align-items:center; justify-content:center; min-height:52px;
+  padding:0 44px 0 64px; cursor:pointer; }
+#media .ip-colorbar summary::-webkit-details-marker { display:none; }
+#media .ip-colorbar .ip-cl, #media .ip-colorbar .ip-arrow { position:absolute; top:50%; transform:translateY(-50%); color:var(--muted); }
+#media .ip-colorbar .ip-cl { left:14px; font-size:.85rem; }
+#media .ip-colorbar .ip-arrow { right:16px; font-size:.9rem; transition:transform .2s; }
+#media .ip-colorbar[open] .ip-arrow { transform:translateY(-50%) rotate(180deg); }
+#media .ip-cnow { display:flex; align-items:center; gap:10px; font-size:1.05rem; font-weight:600; }
+#media .ip-colorlist { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; padding:4px 12px 12px; }
+#media .ip-colorlist button { display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 4px 8px; font-size:.85rem; border-radius:12px; }
+#media .ip-colorlist button[aria-checked="true"] { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+/* a mini iPod: its front, a lit screen, and the wheel with its center button, in the skin's own colors */
+#media .ip-mini { position:relative; flex:none; width:24px; height:40px; border-radius:5px / 4px; box-sizing:border-box;
+  background:var(--ip-front); box-shadow:0 0 0 1px rgba(255,255,255,.28), inset 0 0 0 1px var(--ip-rim); }
+#media .ip-mini::before { content:""; position:absolute; left:3px; right:3px; top:3px; height:12px; border-radius:1.5px;
+  background:linear-gradient(180deg, #f4f8fc, #d9e4ef); box-shadow:0 0 0 1px var(--ip-bezel); }
+#media .ip-mini::after { content:""; position:absolute; left:50%; top:19px; width:15px; height:15px; margin-left:-7.5px; border-radius:50%;
+  background:var(--ip-wheel); box-shadow:0 0 0 1px var(--ip-wheel-edge); }
+#media .ip-mini i { position:absolute; z-index:1; left:50%; top:24px; width:5px; height:5px; margin-left:-2.5px; border-radius:50%;
+  background:var(--ip-center); box-shadow:0 0 0 .5px var(--ip-wheel-edge); }
+#media .ip-colorlist .ip-mini { width:30px; height:50px; border-radius:6px / 5px; }
+#media .ip-colorlist .ip-mini::before { left:4px; right:4px; top:4px; height:15px; }
+#media .ip-colorlist .ip-mini::after { top:24px; width:19px; height:19px; margin-left:-9.5px; }
+#media .ip-colorlist .ip-mini i { top:30.5px; width:6px; height:6px; margin-left:-3px; }
+
+/* more fronts: green anodized aluminum (like the 2005 iPod mini) */
+#media .ipod[data-skin="green"], #media .ip-mini[data-skin="green"] { --ip-rim:rgba(255,255,255,.35); --ip-gloss:.22;
+  --ip-front:repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 1px, rgba(0,0,0,.035) 1px 2px),   /* fine brushed lines */
+             linear-gradient(180deg, #b4e09a 0%, #86c466 42%, #5f9e45 100%);
+  --ip-wheel:radial-gradient(circle at 50% 38%, #fbfcfa 0%, #eceee9 58%, #dcdfd8 100%);
+  --ip-wheel-edge:rgba(30,60,20,.25); --ip-label:#3b7426; --ip-center:radial-gradient(circle at 50% 30%, #ffffff 0%, #f3f5f1 55%, #dfe2db 100%);
+  --ip-bezel:#16180f; }
+/* brushed silver like the 2007 iPod classic, red and blue anodized aluminum (build 41) */
+#media .ipod[data-skin="silver"], #media .ip-mini[data-skin="silver"] { --ip-rim:rgba(255,255,255,.7); --ip-gloss:.25;
+  --ip-front:repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 1px, rgba(0,0,0,.04) 1px 2px), linear-gradient(180deg, #f1f3f5 0%, #cfd3d8 50%, #aeb3ba 100%);
+  --ip-wheel:radial-gradient(circle at 50% 38%, #fbfbfa 0%, #eeeeec 58%, #dcdcd9 100%); --ip-wheel-edge:rgba(0,0,0,.14); --ip-label:#6e7177;
+  --ip-center:radial-gradient(circle at 50% 30%, #d7dade 0%, #b9bec4 60%, #9aa0a7 100%); --ip-bezel:#111; }
+#media .ipod[data-skin="red"], #media .ip-mini[data-skin="red"] { --ip-rim:rgba(255,255,255,.3); --ip-gloss:.22;
+  --ip-front:repeating-linear-gradient(90deg, rgba(255,255,255,.045) 0 1px, rgba(0,0,0,.04) 1px 2px), linear-gradient(180deg, #ef4550 0%, #cf1f2b 45%, #a3121c 100%);
+  --ip-wheel:radial-gradient(circle at 50% 38%, #fbfbfa 0%, #efefec 58%, #dededa 100%); --ip-wheel-edge:rgba(80,0,0,.25); --ip-label:#b3121d;
+  --ip-center:radial-gradient(circle at 50% 30%, #ffffff 0%, #f5f5f3 55%, #e2e2de 100%); --ip-bezel:#120607; }
+#media .ipod[data-skin="blue"], #media .ip-mini[data-skin="blue"] { --ip-rim:rgba(255,255,255,.35); --ip-gloss:.22;
+  --ip-front:repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, rgba(0,0,0,.04) 1px 2px), linear-gradient(180deg, #8cc8f2 0%, #4b98d6 48%, #2a6fae 100%);
+  --ip-wheel:radial-gradient(circle at 50% 38%, #fbfcfd 0%, #edf0f3 58%, #dbe0e6 100%); --ip-wheel-edge:rgba(0,30,70,.22); --ip-label:#25649e;
+  --ip-center:radial-gradient(circle at 50% 30%, #ffffff 0%, #f4f6f8 55%, #e0e5ea 100%); --ip-bezel:#0a1420; }
+/* neon: glowing purple wheel and screen edge, a cyan ring around the center button */
+#media .ipod[data-skin="neon"], #media .ip-mini[data-skin="neon"] { --ip-rim:rgba(123,108,255,.35); --ip-gloss:.1; --ip-front:linear-gradient(180deg, #0d0c16, #050509);
+  --ip-wheel:radial-gradient(circle at 50% 38%, #12111c 0%, #0b0a12 100%); --ip-wheel-edge:#7b6cff; --ip-label:#c9c2ff;
+  --ip-center:radial-gradient(circle at 50% 30%, #1a1830, #07070c); --ip-bezel:#000; }
+#media .ipod[data-skin="neon"] .ip-wheel { box-shadow:0 0 0 .4cqw #7b6cff, 0 0 5cqw rgba(123,108,255,.55), inset 0 0 4cqw rgba(123,108,255,.25); }
+#media .ipod[data-skin="neon"] .ip-wheel button { text-shadow:0 0 1.6cqw #7b6cff; filter:drop-shadow(0 0 1cqw rgba(123,108,255,.9)); }
+#media .ipod[data-skin="neon"] .ip-wheel .ip-center { box-shadow:0 0 0 .4cqw #45d6ff, 0 0 4cqw rgba(69,214,255,.5); }
+#media .ipod[data-skin="neon"] .ip-screen { box-shadow:0 0 0 .3cqw #7b6cff, 0 0 5cqw rgba(123,108,255,.45); }
+/* Clear: truly see-through. No back, no front, no frosted glass: the star background shows straight through
+   the whole iPod, wheel included. Only outlines are drawn: the steel edge (inset shadows that follow the rounded corners),
+   a thin ring around the screen, the wheel and the center button. The screen itself stays lit. */
+#media .ipod[data-skin="clear"], #media .ip-mini[data-skin="clear"] { background:none;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.85), inset 0 0 0 2.5px #8d939a, inset 0 0 0 3.2px rgba(255,255,255,.35);
+  --ip-rim:transparent; --ip-gloss:0; --ip-front:transparent; --ip-wheel:transparent; --ip-wheel-edge:rgba(255,255,255,.4);
+  --ip-label:#ecebf5; --ip-center:transparent; --ip-bezel:transparent; }
+#media .ipod[data-skin="clear"] .ip-face { box-shadow:none; }
+#media .ipod[data-skin="clear"] .ip-face::after, #media .ipod[data-skin="clear"] .ip-screen::after { display:none; }   /* no shine */
+#media .ipod[data-skin="clear"] .ip-screen { box-shadow:0 0 0 .3cqw rgba(255,255,255,.3); }
+#media .ipod[data-skin="clear"] .ip-wheel, #media .ipod[data-skin="clear"] .ip-wheel .ip-center { box-shadow:0 0 0 .3cqw rgba(255,255,255,.4); }
+/* in Media the timer dropdown (under the Mode menu) is only the timer: the music panel is under the iPod */
+#study.inmedia #timer .musicpanel { display:none; }
+
+/* ---------- Media world (home carousel): the Qarbon atom wearing headphones (mediaWorldSVG in js/worlds.js) ---------- */
+#w-media svg { inset:0; width:100%; height:100%; overflow:visible; }
+#w-media .mw-sway { transform-origin:100px 100px; animation:mwsway 2.6s ease-in-out infinite alternate; }   /* nodding along */
+#w-media .mw-orbits { transform-origin:100px 100px; animation:swirl 18s linear infinite; }
+#w-media .mw-e { animation:blink 2.4s ease-in-out infinite alternate; }
+#w-media .mw-ring path { opacity:0; animation:mwring 2s ease-out infinite; }   /* sound coming out of the ear cups */
+@keyframes mwsway { from { transform:rotate(-3deg); } to { transform:rotate(3deg); } }
+@keyframes mwring { 0% { opacity:0; } 25% { opacity:.9; } 100% { opacity:0; } }
+@media (prefers-reduced-motion: reduce) { #w-media .mw-sway, #w-media .mw-orbits, #w-media .mw-e, #w-media .mw-ring path { animation:none; } #w-media .mw-ring path { opacity:.6; } }

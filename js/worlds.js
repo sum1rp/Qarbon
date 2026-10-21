@@ -176,6 +176,43 @@ function makeEarth(box, maps) {
   };
 }
 
+// ================= 🎧 Media: the Qarbon atom, wearing headphones =================
+// Drawn as an SVG (shapes described in code, sharp at any size) in a 200 x 200 box: the logo's atom with glowing
+// orbits in the middle, studio headphones over it, and sound rings coming out of the ear cups.
+// The moving parts (orbits turning, the gentle sway, the rings) are CSS animations: see "Media world" in the styles.
+function mediaWorldSVG() {
+  const orbits = [0, 60, 120].map((angle, i) =>
+    `<g transform="rotate(${angle} 100 100)"><ellipse cx="100" cy="100" rx="66" ry="23" fill="none" stroke="url(#mw-orbit)" stroke-width="3.2"/>` +
+    `<circle class="mw-e" cx="${[166, 34, 100][i]}" cy="${[100, 100, 77][i]}" r="5.2" fill="#fff" filter="url(#mw-glow)" style="animation-delay:-${i * .8}s"/></g>`).join("");
+  // one ear cup, drawn on the left; the right one is the same, mirrored
+  const cup = `<g class="mw-cup">
+      <path d="M41 74 L35 74 L35 88" fill="none" stroke="url(#mw-metal)" stroke-width="4" stroke-linecap="round"/>
+      <rect x="15" y="84" width="30" height="58" rx="14" fill="url(#mw-shell)" stroke="rgba(255,255,255,.28)" stroke-width="1.2"/>
+      <rect x="40" y="90" width="11" height="46" rx="5.5" fill="#15131f" stroke="#7b6cff" stroke-width="1.4" stroke-opacity=".75"/>
+      <rect x="20" y="92" width="5" height="42" rx="2.5" fill="rgba(255,255,255,.18)"/>
+      <g class="mw-ring" fill="none" stroke="#a89dff" stroke-linecap="round">
+        <path d="M9 96 Q1 113 9 130" stroke-width="2.2"/><path d="M2 88 Q-10 113 2 138" stroke-width="1.6" style="animation-delay:.4s"/>
+      </g></g>`;
+  return `<svg viewBox="8 8 184 184" aria-hidden="true">
+    <defs>
+      <radialGradient id="mw-halo"><stop offset="0" stop-color="#7b6cff" stop-opacity=".35"/><stop offset=".55" stop-color="#2f74c8" stop-opacity=".1"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+      <linearGradient id="mw-orbit" x1="0" x2="1"><stop offset="0" stop-color="#b9b0ff"/><stop offset=".5" stop-color="#fff"/><stop offset="1" stop-color="#8fc2ff"/></linearGradient>
+      <linearGradient id="mw-band" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4858"/><stop offset=".5" stop-color="#1c1b24"/><stop offset="1" stop-color="#0b0a10"/></linearGradient>
+      <linearGradient id="mw-shell" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4b4a5a"/><stop offset=".45" stop-color="#1d1c26"/><stop offset="1" stop-color="#08080c"/></linearGradient>
+      <linearGradient id="mw-metal" x1="0" x2="1"><stop offset="0" stop-color="#d9dde3"/><stop offset=".5" stop-color="#7d848d"/><stop offset="1" stop-color="#eef1f4"/></linearGradient>
+      <filter id="mw-glow" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <circle cx="100" cy="100" r="108" fill="url(#mw-halo)"/>
+    <g class="mw-sway">
+      <g class="mw-orbits" filter="url(#mw-glow)">${orbits}</g>
+      <circle cx="100" cy="100" r="8" fill="#fff" filter="url(#mw-glow)"/>
+      <!-- the headband: a padded arc over the top, with a thin highlight along it -->
+      <path d="M36 82 C36 18 164 18 164 82" fill="none" stroke="url(#mw-band)" stroke-width="11" stroke-linecap="round"/>
+      <path d="M40 76 C42 26 158 26 160 76" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.6" stroke-linecap="round"/>
+      ${cup}<g transform="translate(200 0) scale(-1 1)">${cup}</g>
+    </g></svg>`;
+}
+
 // ================= putting the worlds on the home screen =================
 const liveWorlds = [];   // [world element, draw(time)]: the ones that keep moving (the Earth, the Big Dipper's twinkle)
 
@@ -190,6 +227,7 @@ function setUpWorlds() {
   // the photos: each <img> waits with its address in data-src until now
   document.querySelectorAll(".world img[data-src]").forEach(img => { img.src = img.dataset.src; img.removeAttribute("data-src"); });
   $("w-moon").innerHTML = moonSVG();
+  $("w-media").innerHTML = mediaWorldSVG();
   const dipper = document.createElement("canvas");
   $("w-dipper").appendChild(dipper);
   liveWorlds.push([$("w-dipper"), t => drawDipper(dipper, t)]);

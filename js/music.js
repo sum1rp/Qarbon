@@ -1,7 +1,7 @@
 // Qarbon · js/music.js: the music player. YouTube / SoundCloud links, and your own music files.
 // The script files run in the order index.html lists them, and share one set of variables.
 //
-// There are two music panels (in the small timer dropdown and in ⏱ Focus) but only ONE player:
+// There are three music panels (in the small timer dropdown, in ⏱ Focus, and under the 🎧 Media iPod) but only ONE player:
 //   - a YouTube or SoundCloud link plays in an iframe inside #playerhost, laid over whichever panel is showing
 //     (placePlayer). It's never moved into a panel, because moving an iframe reloads it and restarts the music.
 //   - your own files play in the one <audio id="songaudio">; the panels only show its controls.
@@ -89,7 +89,7 @@ function nowTitle() {
 }
 
 // ================= building the panels =================
-// Both panels get the same controls (filled in here, so index.html stays short). Inside each panel, the buttons
+// All the panels get the same controls (filled in here, so index.html stays short). Inside each panel, the buttons
 // have classes, not ids, because there are two of each.
 function musicPanelHTML() {
   return `
@@ -118,7 +118,7 @@ function musicPanelHTML() {
     <details class="mymusic" hidden><summary></summary><ol></ol></details>
     <p class="iphone">iPhone: YouTube and SoundCloud pause when the screen locks or you switch apps. Your own files usually keep going.</p>
     <div class="musicmsg"></div>
-    <div class="played" hidden><h4>Played this session</h4><ol></ol></div>
+    <details class="played" hidden><summary></summary><ol></ol></details>
     <button class="musicclear" hidden>Remove music</button>`;
 }
 const musicPanels = () => [...document.querySelectorAll(".musicpanel")];
@@ -171,6 +171,7 @@ function renderMusic() {
     // played this session
     const box = p.querySelector(".played");
     box.hidden = !played.length;
+    box.querySelector("summary").textContent = "🕘 Played this session · " + played.length;
     box.querySelector("ol").innerHTML = played.map((s, i) => {
       const cur = i === playedPos && (m || file);
       return `<li><button class="song${cur ? " cur" : ""}" data-played="${i}"><span class="ic">${cur ? "♪" : "▶"}</span>` +
