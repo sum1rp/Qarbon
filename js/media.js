@@ -19,7 +19,11 @@ const FORM_ROWS = 3;               // rows under the link box on the Add a Link 
 let ipStack = [];
 const ipTop = () => ipStack[ipStack.length - 1];
 const ipod = $("ipod");
-const canVolume = (() => { const a = new Audio(); a.volume = .5; return a.volume === .5; })();   // iPhones don't let pages set the volume
+// Can the wheel be the volume? Only on a computer. iPhones and iPads never let a page change the volume (some even
+// say it worked when nothing changed), so on them, and on any touch screen, the wheel moves through the song instead.
+const onIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const canVolume = !onIOS && !matchMedia("(pointer: coarse)").matches &&
+                  (() => { const a = new Audio(); a.volume = .5; return a.volume === .5; })();
 let ipScrub = false;               // Now Playing: true = the wheel moves through the song (on a Mac the wheel is the volume until you press the center)
 let ipShowVol = 0, ipShowScrub = 0;  // when the volume / scrub bar was last touched (they hide again after 2 seconds)
 let ipFull = false;                // full screen: the iPod fills the whole screen (see "full screen" below)
@@ -375,6 +379,17 @@ function renderNow() {
   $("ip-left").textContent = d ? "-" + clock(d - t) : "";
   box.querySelector(".ip-vol .ip-bar").style.setProperty("--p", audio.volume);
 }
+// tap or drag along the progress bar to jump to that spot in the song
+const ipPos = document.querySelector("#ip-now .ip-pos");
+function seekTo(e) {
+  if (nowPlaying() !== "file" || !audio.duration) return;
+  const r = ipPos.getBoundingClientRect();
+  audio.currentTime = Math.min(audio.duration - .5, Math.max(0, (e.clientX - r.left) / r.width * audio.duration));
+  ipShowScrub = Date.now();
+  renderNow();
+}
+ipPos.addEventListener("pointerdown", e => { ipPos.setPointerCapture(e.pointerId); seekTo(e); });
+ipPos.addEventListener("pointermove", e => { if (ipPos.hasPointerCapture(e.pointerId)) seekTo(e); });
 // hide the volume / scrub bar again 2 seconds after the wheel stops
 setInterval(() => { if (mode === "media" && ipTop() && ipTop().now && (ipShowVol || ipShowScrub)) renderNow(); }, 500);
 

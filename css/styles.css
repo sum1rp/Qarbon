@@ -748,6 +748,9 @@
   background:linear-gradient(180deg, #eef1f5, #fff); box-sizing:border-box; overflow:visible; }
 #media .ip-bar i { position:absolute; left:0; top:0; bottom:0; width:calc(var(--p, 0) * 100%);
   background:linear-gradient(180deg, #a6d2fb 0%, #5aa2ee 45%, #2f7fdc 55%, #4f97e8 100%); }
+/* the progress bar can be tapped or dragged: an invisible taller strip around it makes it easy to hit with a thumb */
+#media .ip-pos { cursor:pointer; touch-action:none; }
+#media .ip-pos::before { content:""; position:absolute; left:-2cqw; right:-2cqw; top:-3.5cqw; bottom:-3.5cqw; }
 /* scrubbing: a diamond marks where you are */
 #media .ip-bar b { display:none; position:absolute; top:50%; left:calc(var(--p, 0) * 100%); width:3.4cqw; height:3.4cqw;
   transform:translate(-50%, -50%) rotate(45deg); background:linear-gradient(135deg, #fff, #9fb1c4); border:.3cqw solid #3d5a7a; box-sizing:border-box; }
