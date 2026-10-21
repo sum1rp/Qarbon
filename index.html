@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qarbon</title>
-<link rel="stylesheet" href="css/styles.css?v=48">
+<link rel="stylesheet" href="css/styles.css?v=49">
 <!-- the atom icons: the little one in the browser tab, and the one iPhones use for "Add to Home Screen" -->
-<link rel="icon" type="image/svg+xml" href="favicon.svg?v=48">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=48">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=49">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=49">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -183,11 +183,12 @@
         <li><b>Click wheel:</b> circle your thumb around it to scroll; press the <b>center</b> to choose, <b>MENU</b> to go back, <b>⏮ ⏭</b> for the song before / after (⏮ first starts the song over), <b>▶❚❚</b> to play or pause. You can also tap a line on the screen.</li>
         <li><b>Music</b> sorts your songs into Playlists (Recently Added, Played This Session), Artists, Albums and Songs, using the names inside the files. Playing from an album or artist keeps ⏮ ⏭ in it ("3 of 12"). <b>Shuffle Songs</b> plays everything in a random order.</li>
         <li><b>Now Playing:</b> on iPhone, turning the wheel moves through the song (web pages can't change an iPhone's volume). You can also tap or drag the progress bar to jump to any spot. On a Mac it changes the volume; press the center to move through the song instead.</li>
+        <li><b>Visualizer</b> (your own songs): on Now Playing press the <b>center</b> (on a Mac press it twice), or tap the small round button in the iPod's bottom-left corner. Two looks: <b>Waveform</b>, the whole song as bars that fill in purple as it plays (tap or drag along it to jump), and <b>iTunes</b>, rainbow bars and a glowing wave moving with the music. Press the center to switch looks (or Settings › Visualizer), turn the wheel to move through the song, MENU to go back. The first time, a song takes a few seconds to read ("working…"); after that it opens straight away. YouTube and SoundCloud don't let Qarbon read their sound, so it only works with songs from your phone. It never touches the music itself, so your songs keep playing with the phone locked.</li>
         <li><b>Videos:</b> your YouTube and SoundCloud links (and <b>Add a Link…</b> at the end). YouTube plays right in the iPod's screen; SoundCloud's player is too wide for the small iPod, so it plays in the music panel under it (in full screen it fits in the screen).</li>
         <li><b>Add Music</b> (in the iPod): <b>Add a Link…</b> (paste or type a YouTube / SoundCloud link, then Play), <b>Add Files…</b> (songs from your phone) and <b>On This Phone</b> (your songs: choose one to play it or remove it from the phone; removing asks first).</li>
         <li><b>Full screen:</b> tap the small round button in the iPod's bottom corner and the iPod fills the whole screen, with everything for listening inside it. Tap it again, or hold MENU, to come back. The music keeps playing either way. On a Mac: F switches it, Esc on the main menu leaves.</li>
         <li><b>Now Playing</b> is always at the top of the iPod's menu.</li>
-        <li><b>Settings</b> (in the iPod): Shuffle, Repeat, Clicker (the tick sound), Color, Full Screen, Remove Music, and About (your songs, videos, the version, and a note on playing with the iPhone locked).</li>
+        <li><b>Settings</b> (in the iPod): Shuffle, Repeat, Clicker (the tick sound), Color, Full Screen, Visualizer (Waveform or iTunes), Remove Music, and About (your songs, videos, the version, and a note on playing with the iPhone locked).</li>
         <li><b>Under the iPod:</b> the <b>Color ▾</b> dropdown (White, Qarbon Fiber: a carbon "Qpod" with the Qarbon atom on its center button, Silver, Red, Blue, Green, U2, Neon, or Clear: fully see-through, so it melts into space), then the whole music panel (paste a link, add files, My music, Played this session, Remove music), then the timer dropdown (just the timer here).</li>
         <li>On a Mac: ↑ ↓ scroll, Enter chooses, Esc goes back, Space plays or pauses, ← → skip.</li>
       </ul>
@@ -498,6 +499,13 @@
                 <div class="playerslot"></div>
                 <p id="ip-vtitle"></p>
               </div>
+              <!-- the Visualizer (your own songs): drawn on the canvas by js/media.js. The box under it shows "working…" while a
+                   song is read for the first time, or a message (like "Your own songs only" for YouTube) -->
+              <div class="ip-viz" id="ip-viz" hidden>
+                <div class="ip-vhead"><b id="ip-vsong"></b><span id="ip-vartist"></span></div>
+                <canvas class="ip-vcanvas" id="ip-vcanvas"></canvas>
+                <div class="ip-vwait" id="ip-vwait" hidden><b id="ip-vwtitle"></b><div class="ip-bar" id="ip-vwbar"><i></i></div><p id="ip-vwnote"></p></div>
+              </div>
             </div>
           </div>
         </div>
@@ -509,6 +517,8 @@
           <button class="ip-play" data-ip="play" aria-label="Play or pause"><svg viewBox="0 0 20 10"><path d="M1 0v10l8-5zM12 0h2.6v10H12zM16.4 0H19v10h-2.6z"/></svg></button>
           <button class="ip-center" data-ip="center" aria-label="Select"></button>
         </div>
+        <!-- the Visualizer button in the other corner: opens the Visualizer (or goes back to Now Playing from it) -->
+        <button class="ip-vz" id="ip-vz" aria-label="Visualizer" title="Visualizer" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 9v2M6.5 6v8M10 3v14M13.5 7v6M17 9v2"/></svg></button>
         <!-- the full screen button in the corner: arrows out = fill the screen, arrows in = back (holding MENU works too) -->
         <button class="ip-fs" id="ip-fs" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 20 20" aria-hidden="true"><path class="ip-fs-in" d="M3 8V3h5M17 8V3h-5M3 12v5h5M17 12v5h-5"/><path class="ip-fs-out" d="M8 3v5H3M12 3v5h5M8 17v-5H3M12 17v-5h5"/></svg></button>
         <!-- Add Files… in the iPod's menus opens this (the same as "Choose music files" in the music panel) -->
@@ -672,22 +682,22 @@
   </main>
 
 <!-- the program, in order: packs (data) first, start.js last. Every file shares the same variables.
-     ?v=48 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
+     ?v=49 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
      (Book texts in js/books/ and the PDF viewer only load when you open a book.) -->
-<script src="js/packs.js?v=48"></script>
-<script src="js/basics.js?v=48"></script>
-<script src="js/stars.js?v=48"></script>
-<script src="js/look.js?v=48"></script>
-<script src="js/worlds.js?v=48"></script>
-<script src="js/data.js?v=48"></script>
-<script src="js/cards.js?v=48"></script>
-<script src="js/timer.js?v=48"></script>
-<script src="js/burn.js?v=48"></script>
-<script src="js/music.js?v=48"></script>
-<script src="js/media.js?v=48"></script>
-<script src="js/app.js?v=48"></script>
-<script src="js/reading.js?v=48"></script>
-<script src="js/account.js?v=48"></script>
-<script src="js/start.js?v=48"></script>
+<script src="js/packs.js?v=49"></script>
+<script src="js/basics.js?v=49"></script>
+<script src="js/stars.js?v=49"></script>
+<script src="js/look.js?v=49"></script>
+<script src="js/worlds.js?v=49"></script>
+<script src="js/data.js?v=49"></script>
+<script src="js/cards.js?v=49"></script>
+<script src="js/timer.js?v=49"></script>
+<script src="js/burn.js?v=49"></script>
+<script src="js/music.js?v=49"></script>
+<script src="js/media.js?v=49"></script>
+<script src="js/app.js?v=49"></script>
+<script src="js/reading.js?v=49"></script>
+<script src="js/account.js?v=49"></script>
+<script src="js/start.js?v=49"></script>
 </body>
 </html>

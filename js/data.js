@@ -86,6 +86,7 @@ function clean(data) {
   if (s.ipodSkin === "black") s.ipodSkin = "fiber";    // Black was replaced by Qarbon Fiber (build 43)
   s.ipodSkin = ["white", "fiber", "silver", "red", "blue", "green", "u2", "neon", "clear"].includes(s.ipodSkin) ? s.ipodSkin : "white";
   s.ipodClick = s.ipodClick !== false;
+  s.ipodViz = s.ipodViz === "itunes" ? "itunes" : "wave";   // the Visualizer's look: "wave" (the whole song) or "itunes" (bars and a glowing wave)
   // for syncing: things you deleted ("card:chat" → when), and when your settings last changed
   const del = s.deleted && typeof s.deleted === "object" ? s.deleted : {};
   s.deleted = Object.fromEntries(Object.entries(del).filter(([k, v]) => /^(card|deck|book):/.test(k) && Number(v) > 0).map(([k, v]) => [k, Number(v)]));
@@ -270,19 +271,23 @@ function mergeStates(a, b) {   // a = this device, b = online (both already clea
 }
 
 // ================= bigger files kept on this device only (IndexedDB) =================
-// IndexedDB is the browser's storage area for big things. Qarbon's database "qarbon-files" has three stores:
+// IndexedDB is the browser's storage area for big things. Qarbon's database "qarbon-files" has four stores:
 //   pdfs      the PDFs attached to books (js/reading.js)
 //   songs     your own music files, as raw bytes (js/music.js)
 //   songinfo  each song's name, artist, album and cover, kept apart so the list loads without reading every song
+//   songviz   each song's numbers for the iPod's Visualizer (js/media.js), worked out once, kept for next time
 // Nothing here is synced or put in backups: these files stay on the device they were added on.
 function fileStore(name, mode) {
   return new Promise((ok, fail) => {
-    const r = indexedDB.open("qarbon-files", 2);   // version 2 added the song stores
-    r.onupgradeneeded = () => ["pdfs", "songs", "songinfo"].forEach(n => {
+    const r = indexedDB.open("qarbon-files", 3);   // version 2 added the song stores, version 3 songviz
+    r.onupgradeneeded = () => ["pdfs", "songs", "songinfo", "songviz"].forEach(n => {
       if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n);
     });
     r.onerror = () => fail(r.error);
-    r.onsuccess = () => ok(r.result.transaction(name, mode).objectStore(name));
+    r.onsuccess = () => {
+      r.result.onversionchange = () => r.result.close();   // a newer Qarbon (in another tab) needs to add a store: let it
+      ok(r.result.transaction(name, mode).objectStore(name));
+    };
   });
 }
 // run one request on a store (like st => st.get(id)) and get its result

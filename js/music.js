@@ -479,6 +479,7 @@ async function removeSong(i) {
   try {
     await fileDo("songs", "readwrite", st => st.delete(s.id));
     await fileDo("songinfo", "readwrite", st => st.delete(s.id));
+    await fileDo("songviz", "readwrite", st => st.delete(s.id));   // its Visualizer numbers (js/media.js)
   } catch (e) {}
   mySongs.splice(i, 1);
   if (songIndex > i) songIndex--;

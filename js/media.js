@@ -11,6 +11,7 @@
 // A menu screen: { title, items: a function that returns the rows, sel: the chosen row, top: the first row showing }
 // Now Playing: { now: true, title: "Now Playing" }
 // Add a Link: a menu with form: true (the link box shows above its rows). A page of text (About): { title, info: () => html }
+// The Visualizer: { viz: true, title: "Visualizer" } (see "the Visualizer" below)
 // Each row: { label, go: what choosing it does, more: true if it opens another menu (shows ›), value: text on the right,
 //             dim: true for a line you can't choose (like "No songs yet"), playing: true for the song that's playing,
 //             pick: true for Add Files… (it opens the phone's file picker) }
@@ -187,6 +188,7 @@ function settingsMenu() {
     { label: "Color", value: SKINS[state.ipodSkin], go: () => {
         const k = Object.keys(SKINS); state.ipodSkin = k[(k.indexOf(state.ipodSkin) + 1) % k.length]; save(); renderMedia(); } },
     { label: "Full Screen", value: onOff(ipFull), go: () => setFull(!ipFull) },
+    { label: "Visualizer", value: VIZ_LOOKS[state.ipodViz], go: () => { state.ipodViz = state.ipodViz === "wave" ? "itunes" : "wave"; save(); renderMedia(); } },
     { label: "Remove Music", dim: !nowPlaying(), go: clearMusic },   // the same as the music panel's Remove music
     { label: "About", more: true, go: () => ipOpen(aboutScreen()) }
   ] };
@@ -198,7 +200,8 @@ function aboutScreen() {
     <dl><dt>Songs</dt><dd>${mySongs.length}</dd><dt>Videos</dt><dd>${videoLinks().length}</dd>
         <dt>Version</dt><dd>${esc(BUILD.replace("Qarbon ", ""))}</dd></dl>
     <p><b>On iPhone:</b> YouTube and SoundCloud pause when the screen locks or you switch apps. Your own files usually keep playing.</p>
-    <p><b>Full screen:</b> tap the corner button or hold MENU to leave it. On a Mac, F switches it on and off.</p>` };
+    <p><b>Full screen:</b> tap the corner button or hold MENU to leave it. On a Mac, F switches it on and off.</p>
+    <p><b>Visualizer:</b> press the center on Now Playing, or tap the bottom-left button. Your own songs only.</p>` };
 }
 
 // what's loaded now: "file", "YouTube", "SoundCloud", or "" for nothing
@@ -225,9 +228,9 @@ const rowsOf = s => s.form ? FORM_ROWS : IP_ROWS;   // how many rows show on thi
 // the wheel turned one step (+1 clockwise = down / forward / louder, -1 = up / back / quieter)
 function ipTurn(step) {
   const s = ipTop();
-  if (s.now) {
+  if (s.now || s.viz) {                           // (in the Visualizer the wheel always moves through the song)
     if (nowPlaying() !== "file") return;          // YouTube/SoundCloud: their own players handle the song
-    if (canVolume && !ipScrub) {                  // a Mac: the wheel is the volume
+    if (canVolume && !ipScrub && !s.viz) {        // a Mac: the wheel is the volume
       audio.volume = Math.min(1, Math.max(0, Math.round((audio.volume + step * .05) * 100) / 100));
       ipShowVol = Date.now();
     } else if (audio.duration) {                  // move through the song: 1/60th of it per step (at least 2 seconds)
@@ -235,7 +238,7 @@ function ipTurn(step) {
       ipShowScrub = Date.now();
     }
     ipClick();
-    renderNow();
+    if (s.viz) vizKick(); else renderNow();
     return;
   }
   if (s.info) {                                   // a page of text: scroll it by about a row per step
@@ -257,9 +260,18 @@ let ipPickWaiting = false;   // Add Files… was pressed on the wheel: the file 
 function ipSelect(fromWheel) {
   const s = ipTop();
   ipClick();
-  if (s.now) {                                    // Now Playing: switch the wheel between volume and moving through the song
-    if (nowPlaying() === "file") { ipScrub = canVolume ? !ipScrub : true; ipShowScrub = Date.now(); renderNow(); }
+  // Now Playing: on a Mac the first press switches the wheel from the volume to moving through the song, the next one
+  // opens the Visualizer. On an iPhone the wheel already moves through the song, so one press opens it.
+  if (s.now) {
+    if (canVolume && !ipScrub && nowPlaying() === "file") { ipScrub = true; ipShowScrub = Date.now(); renderNow(); }
+    else openViz();
     return;
+  }
+  if (s.viz) {                                    // the Visualizer: switch between its two looks
+    state.ipodViz = state.ipodViz === "wave" ? "itunes" : "wave";
+    save();
+    vizKey = "";
+    return vizKick();
   }
   if (s.info) return;                             // a page of text: nothing to choose
   const row = s.items()[s.sel];
@@ -321,13 +333,16 @@ function renderMedia() {
   $("ip-state").innerHTML = nowPlaying() ? (isPlaying() ? ICONS.play : ICONS.pause) : "";
   // YouTube plays in the screen; SoundCloud too in full screen (the screen is wide enough for its player there)
   const inScreen = nowPlaying() === "YouTube" || (ipFull && nowPlaying() === "SoundCloud");
-  $("ip-list").hidden = !!(s.now || s.info);
+  $("ip-list").hidden = !!(s.now || s.info || s.viz);
+  $("ip-viz").hidden = !s.viz;
+  $("ip-vz").setAttribute("aria-pressed", !!s.viz);
   $("ip-now").hidden = !s.now || inScreen;            // a song, SoundCloud under the iPod, or "Nothing playing"
   $("ip-video").hidden = !s.now || !inScreen;         // a video (or SoundCloud's player), in the screen
   $("ip-video").classList.toggle("ip-sc", nowPlaying() === "SoundCloud");
   $("ip-form").hidden = !s.form;
   $("ip-text").hidden = !s.info;
   if (s.now) return renderNow();
+  if (s.viz) return vizKick();
   if (s.info) {   // a page of text: only redrawn when it changes, so the wheel's scrolling isn't lost
     const html = s.info();
     if ($("ip-text").dataset.html !== html) { $("ip-text").dataset.html = html; $("ip-text").innerHTML = html; }
@@ -379,19 +394,23 @@ function renderNow() {
   $("ip-left").textContent = d ? "-" + clock(d - t) : "";
   box.querySelector(".ip-vol .ip-bar").style.setProperty("--p", audio.volume);
 }
-// tap or drag along the progress bar to jump to that spot in the song
+// tap or drag along the progress bar (or the Visualizer's waveform: el) to jump to that spot in the song
 const ipPos = document.querySelector("#ip-now .ip-pos");
-function seekTo(e) {
+function seekTo(e, el = ipPos) {
   if (nowPlaying() !== "file" || !audio.duration) return;
-  const r = ipPos.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
   audio.currentTime = Math.min(audio.duration - .5, Math.max(0, (e.clientX - r.left) / r.width * audio.duration));
   ipShowScrub = Date.now();
-  renderNow();
+  if (ipTop().viz) vizKick(); else renderNow();
 }
 ipPos.addEventListener("pointerdown", e => { ipPos.setPointerCapture(e.pointerId); seekTo(e); });
 ipPos.addEventListener("pointermove", e => { if (ipPos.hasPointerCapture(e.pointerId)) seekTo(e); });
-// hide the volume / scrub bar again 2 seconds after the wheel stops
-setInterval(() => { if (mode === "media" && ipTop() && ipTop().now && (ipShowVol || ipShowScrub)) renderNow(); }, 500);
+// hide the volume / scrub bar again 2 seconds after the wheel stops (in the Visualizer: its scrub line)
+setInterval(() => {
+  if (mode !== "media" || !ipTop() || !(ipShowVol || ipShowScrub)) return;
+  if (ipTop().now) renderNow();
+  if (ipTop().viz && Date.now() - ipShowScrub < 2600) vizKick();   // (only just after scrubbing: no redrawing a paused song)
+}, 500);
 
 // the battery: the real level where the browser tells us (Chrome on a Mac); iPhones don't, so it shows full
 if (navigator.getBattery) navigator.getBattery().then(b => {
@@ -399,6 +418,367 @@ if (navigator.getBattery) navigator.getBattery().then(b => {
   show();
   b.addEventListener("levelchange", show);
 }).catch(() => {});
+
+// ================= the Visualizer: pictures of your own songs =================
+// Opened from Now Playing with the center button (like the real iPod's Now Playing screens), or the button in the
+// iPod's bottom-left corner. Inside it the wheel moves through the song, the center switches the look, MENU goes back.
+// Two looks (state.ipodViz): "wave", the whole song as a SoundCloud-style waveform that fills in purple as it plays,
+// and "itunes", bars and a glowing wave moving with the music, like iTunes' visualizer in the 2000s.
+//
+// The safe way: the playing <audio> is NEVER connected to Web Audio. (An iPhone pauses Web Audio when the screen locks,
+// so your music would stop.) Instead the song's bytes, already stored on this device, are decoded once on the side into
+// plain numbers, "the analysis": how loud each slice of the song is, and how much bass, middle and treble each 30th of a
+// second has. Drawing only looks those numbers up for the spot the song is at (audio.currentTime).
+// The analysis is small (about 1.5 MB for a 10-minute song), so it's kept in IndexedDB ("songviz") for next time.
+const VIZ_RATE = 11025;   // samples per second to analyze (a quarter of CD quality: plenty for pictures, 4× less work)
+const VIZ_FPS = 30;       // analysis frames per second (the iTunes look moves at this speed)
+const VIZ_FFT = 512;      // samples per frame for splitting the sound into pitches (an "FFT", see makeFFT)
+const VIZ_BANDS = 20;     // bars in the iTunes look, from deep bass (left) to treble (right)
+const VIZ_COLS = 800;     // slices of the whole-song waveform
+const VIZ_PTS = 64;       // points along the glowing wave
+const VIZ_V = 1;          // the analysis' version: change it when the analysis changes, so saved ones are made again
+const VIZ_LOOKS = { wave: "Waveform", itunes: "iTunes" };
+// the waveform's played part: "gamma purple", an electric violet (top of the bars, bottom, and their reflection)
+const VIZ_PURPLE = { top: "#d08cff", base: "#7a2cff", under: "rgba(150,80,255,.36)" };
+const vizScreen = () => ({ viz: true, title: "Visualizer" });
+
+// An FFT ("fast Fourier transform") splits a short piece of sound into its pitches: how much of each it has.
+// makeFFT(N) prepares the tables once and returns a function that does it to re (the samples) and im (zeros), in place.
+function makeFFT(N) {
+  const bits = Math.log2(N), rev = new Uint16Array(N), cos = new Float32Array(N / 2), sin = new Float32Array(N / 2);
+  for (let i = 0; i < N; i++) { let r = 0; for (let b = 0; b < bits; b++) r |= (i >> b & 1) << (bits - 1 - b); rev[i] = r; }
+  for (let i = 0; i < N / 2; i++) { cos[i] = Math.cos(2 * Math.PI * i / N); sin[i] = -Math.sin(2 * Math.PI * i / N); }
+  return (re, im) => {
+    for (let i = 0; i < N; i++) {
+      const j = rev[i];
+      if (j > i) { let x = re[i]; re[i] = re[j]; re[j] = x; x = im[i]; im[i] = im[j]; im[j] = x; }
+    }
+    for (let size = 2; size <= N; size *= 2) {
+      const half = size / 2, step = N / size;
+      for (let i = 0; i < N; i += size) for (let k = 0; k < half; k++) {
+        const c = cos[k * step], s = sin[k * step], a = i + k, b = a + half;
+        const tr = re[b] * c - im[b] * s, ti = re[b] * s + im[b] * c;
+        re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+      }
+    }
+  };
+}
+
+// the 99th-percentile value of a list (the "nearly loudest", so one loud click doesn't make everything else look quiet)
+function nearTop(list) {
+  const some = [];
+  for (let i = 0; i < list.length; i += Math.max(1, Math.floor(list.length / 20000))) some.push(list[i]);
+  some.sort((a, b) => a - b);
+  return some[Math.floor(some.length * .99)] || 0;
+}
+
+// read, decode and analyze one song. note(phase, fraction) tells the screen how far along it is.
+async function analyzeSong(id, note) {
+  note("decode", 0);
+  const rec = await fileDo("songs", "readonly", st => st.get(id));
+  if (!rec) throw new Error("This song isn't on this device any more.");
+  const t0 = performance.now();
+  // decoding = turning the compressed file (MP3, M4A…) back into sound samples. An OfflineAudioContext does it on the side:
+  // it never plays anything, and has nothing to do with the <audio> that's playing your music.
+  const Off = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  let off;
+  try { off = new Off(1, VIZ_RATE, VIZ_RATE); } catch (e) { off = new Off(1, 44100, 44100); }   // older Safari: only normal rates
+  const buf = await new Promise((ok, fail) => off.decodeAudioData(rec.data, ok, fail));
+  const t1 = performance.now();
+  // mix the channels into one ("mono"), and if it came out at a higher rate, average groups of samples down to about VIZ_RATE
+  let s = buf.getChannelData(0), rate = buf.sampleRate;
+  for (let c = 1; c < buf.numberOfChannels; c++) { const d = buf.getChannelData(c); for (let i = 0; i < s.length; i++) s[i] += d[i]; }
+  const k = Math.max(1, Math.round(rate / VIZ_RATE));
+  if (k > 1) {
+    const m = new Float32Array(Math.floor(s.length / k));
+    for (let i = 0; i < m.length; i++) { let a = 0; for (let j = 0; j < k; j++) a += s[i * k + j]; m[i] = a / k; }
+    s = m; rate /= k;
+  }
+  const n = s.length, dur = n / rate;
+  // the whole-song waveform: how loud each of VIZ_COLS slices is (the "RMS", a kind of average loudness)
+  const cols = new Float32Array(VIZ_COLS);
+  for (let c = 0; c < VIZ_COLS; c++) {
+    const a = Math.floor(c * n / VIZ_COLS), b = Math.max(a + 1, Math.floor((c + 1) * n / VIZ_COLS));
+    let sum = 0;
+    for (let i = a; i < b && i < n; i++) sum += s[i] * s[i];
+    cols[c] = Math.sqrt(sum / (b - a));
+  }
+  // the frames: for each 30th of a second, how strong each band of pitches is, how loud it is, and the shape of the wave
+  const frames = Math.max(1, Math.floor(dur * VIZ_FPS));
+  const db = new Float32Array(frames * VIZ_BANDS), lv = new Float32Array(frames), wave = new Int8Array(frames * VIZ_PTS);
+  // where each band starts in the FFT's output, spaced evenly in octaves (like piano keys) from 40 Hz to near the top
+  const bin = rate / VIZ_FFT, edges = [];
+  for (let b = 0; b <= VIZ_BANDS; b++)
+    edges.push(Math.max(b ? edges[b - 1] + 1 : 1, Math.round(40 * Math.pow(rate * .45 / 40, b / VIZ_BANDS) / bin)));
+  const fft = makeFFT(VIZ_FFT), re = new Float32Array(VIZ_FFT), im = new Float32Array(VIZ_FFT);
+  const hann = Float32Array.from({ length: VIZ_FFT }, (_, i) => .5 - .5 * Math.cos(2 * Math.PI * i / VIZ_FFT));   // softens the edges of each piece
+  for (let f = 0; f < frames; f++) {
+    const mid = Math.floor(f * rate / VIZ_FPS), start = mid - VIZ_FFT / 2;
+    let sum = 0;
+    for (let i = 0; i < VIZ_FFT; i++) { const x = s[start + i] || 0; re[i] = x * hann[i]; im[i] = 0; sum += x * x; }
+    lv[f] = Math.sqrt(sum / VIZ_FFT);
+    fft(re, im);
+    for (let b = 0; b < VIZ_BANDS; b++) {
+      let p = 0;
+      for (let j = edges[b]; j < edges[b + 1]; j++) p += re[j] * re[j] + im[j] * im[j];
+      // in decibels (closer to how ears hear loudness), plus 3 dB per octave, so the treble isn't drowned out by the bass
+      db[f * VIZ_BANDS + b] = 10 * Math.log10(p / (edges[b + 1] - edges[b]) + 1e-12) + 3 * Math.log2(edges[b] * bin / 40);
+    }
+    // the wave's shape: 64 points from the middle of the frame, made as tall as fits (its height comes from the loudness)
+    let big = 1e-9;
+    for (let q = 0; q < VIZ_PTS; q++) big = Math.max(big, Math.abs(s[mid - VIZ_PTS + 2 * q] || 0));
+    for (let q = 0; q < VIZ_PTS; q++) wave[f * VIZ_PTS + q] = Math.round((s[mid - VIZ_PTS + 2 * q] || 0) / big * 127);
+    if (f % 500 === 499) { note("analyze", f / frames); await new Promise(r => setTimeout(r)); }   // let the page breathe
+  }
+  // scale everything to 0–255 (one byte each): the bands over the top 45 dB, loudness and the waveform up to their near-top
+  const topDb = nearTop(db), topLv = nearTop(lv) || 1, topCol = Math.max(...cols) || 1;
+  const bands = Uint8Array.from(db, v => Math.max(0, Math.min(255, (v - topDb + 45) / 45 * 255)));
+  const level = Uint8Array.from(lv, v => Math.min(255, Math.sqrt(v / topLv) * 255));   // the square root lifts the quiet parts
+  return { v: VIZ_V, dur, frames, cols: Uint8Array.from(cols, v => v / topCol * 255), bands, level, wave,
+           ms: { decode: Math.round(t1 - t0), analyze: Math.round(performance.now() - t1) } };
+}
+
+// the analyses: the last 3 songs in memory, the rest in IndexedDB, and the one being made (one at a time is plenty)
+const vizCache = new Map();   // song id → its analysis, or { failed: true }
+const vizJobs = new Map();    // song id → the promise of its analysis
+let vizWork = null;           // the one being made: { id, phase: "decode" or "analyze", p: how far, 0 to 1 }
+function vizFor(id) {
+  if (vizCache.has(id)) return Promise.resolve(vizCache.get(id));
+  if (!vizJobs.has(id)) vizJobs.set(id, (async () => {
+    let a = null;
+    try { a = await fileDo("songviz", "readonly", st => st.get(id)); } catch (e) {}
+    if (!a || a.v !== VIZ_V) {
+      try {
+        a = await analyzeSong(id, (phase, p) => { vizWork = { id, phase, p }; vizWaitShow(); });
+        fileDo("songviz", "readwrite", st => st.put(a, id)).catch(() => {});   // save it for next time (if there's room)
+      } catch (e) { a = { failed: true }; }
+    }
+    vizWork = null;
+    vizCache.set(id, a);
+    if (vizCache.size > 3) vizCache.delete(vizCache.keys().next().value);   // forget the oldest
+    vizJobs.delete(id);
+    drawViz();
+    return a;
+  })());
+  return vizJobs.get(id);
+}
+
+// ----- drawing -----
+const vizCv = $("ip-vcanvas"), vizG = vizCv.getContext("2d");
+let vizRAF = 0, vizLast = 0;   // the animation loop (iTunes look only) and when it last drew
+let vizKey = "";               // the waveform look only redraws when this changes (size, position, song)
+let vizTrail = [];             // the iTunes look: the glowing wave's last few shapes, drawn fainter and fainter (its trail)
+let vizSince = 0, vizSong = "", vizT = 0;   // when the song's name appeared (the iTunes look fades it), which song, the last time drawn
+const vizPeaks = new Float32Array(VIZ_BANDS);   // the little caps above the bars, which fall slowly
+const vizShowing = () => mode === "media" && !$("study").hidden && ipStack.length && ipTop().viz && !document.hidden;
+
+// a message instead of the picture (title, words, and a bar: p = 0 to 1, -1 = working but can't tell how far, null = no bar)
+function vizMessage(title, words, p) {
+  $("ip-vwait").hidden = false;
+  $("ip-vwtitle").textContent = title;
+  $("ip-vwnote").textContent = words;
+  const bar = $("ip-vwbar");
+  bar.hidden = p == null;
+  bar.classList.toggle("ip-busy", p === -1);
+  bar.style.setProperty("--p", p > 0 ? p : 0);
+}
+// while a song is being read: "Reading the song…" (no way to know how far), then "Drawing the waveform… 40%"
+function vizWaitShow() {
+  if (!vizShowing() || !vizWork || mySongs[songIndex] && mySongs[songIndex].id !== vizWork.id) return;
+  if (vizWork.phase === "decode") vizMessage("Reading the song…", "Only the first time: it's kept for next time.", -1);
+  else vizMessage((state.ipodViz === "wave" ? "Drawing the waveform… " : "Working… ") + Math.round(vizWork.p * 100) + "%",
+                  "Only the first time: it's kept for next time.", vizWork.p);
+}
+
+function drawViz() {
+  if (!vizShowing()) return;
+  const look = state.ipodViz, what = nowPlaying(), file = what === "file" ? mySongs[songIndex] : null;
+  $("ip-viz").classList.toggle("ip-it", look === "itunes");
+  if (!file) return vizMessage(what ? "Your own songs only" : "Nothing playing",
+    what ? what + " doesn't let Qarbon read its sound, so the Visualizer only works with songs from your phone."
+         : "Play one of your songs, then come back here.", null);
+  const a = vizCache.get(file.id);
+  if (!a) { vizFor(file.id); vizWork && vizWork.id === file.id ? vizWaitShow() : vizMessage("Reading the song…", "", -1); return; }
+  if (a.failed) return vizMessage("Can't draw this song", "Its sound couldn't be read here, but it still plays.", null);
+  $("ip-vwait").hidden = true;
+  if (vizSong !== file.id) { vizSong = file.id; vizSince = performance.now(); vizPeaks.fill(0); vizKey = ""; }
+  $("ip-vsong").textContent = songName(file);
+  $("ip-vartist").textContent = [file.artist || "Unknown Artist", file.album].filter(Boolean).join(" · ");
+  // the canvas is drawn at the screen's real pixels (2 or 3 per CSS pixel on an iPhone), so it's sharp
+  const dpr = Math.min(3, devicePixelRatio || 1), w = Math.round(vizCv.clientWidth * dpr), h = Math.round(vizCv.clientHeight * dpr);
+  if (!w || !h) return;
+  if (vizCv.width !== w || vizCv.height !== h) { vizCv.width = w; vizCv.height = h; vizKey = ""; }
+  if (look === "itunes") drawBars(a); else drawWave(a);
+}
+
+// SoundCloud style: one bar per 3 pixels, the part played in gamma purple, with a pale reflection under it
+function drawWave(a) {
+  const g = vizG, W = vizCv.width, H = vizCv.height, px = W / vizCv.clientWidth;
+  const d = audio.duration || a.dur, t = Math.min(audio.currentTime, d), split = Math.round(d ? t / d * W : 0);
+  const scrub = Date.now() - ipShowScrub < 2000;
+  const key = [W, H, split, scrub, Math.floor(t), vizSong].join();
+  if (key === vizKey) return;   // nothing moved a whole pixel: no need to draw
+  vizKey = key;
+  g.globalCompositeOperation = "source-over";
+  g.clearRect(0, 0, W, H);
+  const pitch = 3 * px, bw = 2 * px, n = Math.floor(W / pitch), x0 = (W - n * pitch + pitch - bw) / 2;
+  const base = Math.round(H * .7), up = H * .62, down = H * .25;   // the line the bars stand on, their most up and down
+  const bars = [];
+  for (let i = 0; i < n; i++) {
+    const c0 = Math.floor(i * VIZ_COLS / n), c1 = Math.max(c0 + 1, Math.floor((i + 1) * VIZ_COLS / n));
+    let m = 0;
+    for (let c = c0; c < c1; c++) m = Math.max(m, a.cols[c]);
+    bars.push(m / 255);
+  }
+  const paint = (top, under, x1, x2) => {
+    g.save();
+    g.beginPath(); g.rect(x1, 0, x2 - x1, H); g.clip();
+    g.fillStyle = top;
+    bars.forEach((v, i) => { const h = Math.max(px, v * up); g.fillRect(x0 + i * pitch, base - h, bw, h); });
+    g.fillStyle = under;
+    bars.forEach((v, i) => g.fillRect(x0 + i * pitch, base + px, bw, Math.max(px, v * down)));
+    g.restore();
+  };
+  const purple = g.createLinearGradient(0, base - up, 0, base);
+  purple.addColorStop(0, VIZ_PURPLE.top); purple.addColorStop(1, VIZ_PURPLE.base);
+  const grey = g.createLinearGradient(0, base - up, 0, base);
+  grey.addColorStop(0, "#b4b9c0"); grey.addColorStop(1, "#8b9199");
+  paint(purple, VIZ_PURPLE.under, 0, split);
+  paint(grey, "#dcdfe3", split, W);
+  // the times, in little black tags on the line like SoundCloud's: where you are, and the whole song
+  const fs = Math.round(W * .045);
+  g.font = `700 ${fs}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
+  g.textBaseline = "middle";
+  const tag = (text, x, right) => {
+    const w = g.measureText(text).width + fs * .7, h = fs * 1.35, left = right ? x - w : x;
+    g.fillStyle = "rgba(0,0,0,.82)"; g.fillRect(left, base - h, w, h);
+    g.fillStyle = "#fff"; g.fillText(text, left + fs * .35, base - h / 2 + px * .5);
+  };
+  // scrubbing with the wheel: a line marks the spot, and the time tag rides along with it
+  if (scrub) {
+    g.fillStyle = VIZ_PURPLE.base; g.fillRect(split - px, 0, 2 * px, base + down);
+    const text = clock(t), w = g.measureText(text).width + fs * .7;
+    tag(text, Math.min(W - w, Math.max(0, split - w / 2)), false);
+  } else {
+    tag(clock(t), 0, false);
+    tag(clock(d), W, true);
+  }
+}
+
+// iTunes style: a black screen, bars along the bottom with caps that fall slowly, and a glowing wave across the middle
+// that leaves a fading trail (its last few shapes, each fainter).
+function drawBars(a) {
+  const g = vizG, W = vizCv.width, H = vizCv.height, u = W / 100;
+  const t = Math.min(audio.currentTime, a.dur), fx = t * VIZ_FPS;
+  const f0 = Math.min(a.frames - 1, Math.floor(fx)), f1 = Math.min(a.frames - 1, f0 + 1), mix = fx - Math.floor(fx);
+  const at = (arr, i, per) => (arr[f0 * per + i] * (1 - mix) + arr[f1 * per + i] * mix);   // between two frames, for smoothness
+  if (Math.abs(t - vizT) > 1) { vizPeaks.fill(0); vizTrail = []; }   // jumped (the wheel, ⏮): start again
+  const moved = t !== vizT;
+  vizT = t;
+  const level = at(a.level, 0, 1) / 255, hue = (t * 10) % 360;   // the colors drift slowly round the rainbow as the song goes on
+  g.globalCompositeOperation = "source-over";
+  g.fillStyle = "#000";
+  g.fillRect(0, 0, W, H);
+  const mid = H * .4;
+  // a soft glow behind, swelling with the beat
+  const glow = g.createRadialGradient(W / 2, mid, 0, W / 2, mid, W * .6);
+  glow.addColorStop(0, `hsla(${hue},90%,55%,${.35 * level})`); glow.addColorStop(1, "hsla(0,0%,0%,0)");
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+  g.globalCompositeOperation = "lighter";   // light adds up like real light: where lines cross, they glow brighter
+  // the wave now (tapering off at both ends), added to its trail
+  const amp = H * .32 * (.15 + .85 * level), pts = new Float32Array(VIZ_PTS);
+  for (let q = 0; q < VIZ_PTS; q++) pts[q] = at(a.wave, q, VIZ_PTS) / 127 * amp * Math.sin(Math.PI * q / (VIZ_PTS - 1));
+  if (moved || !vizTrail.length) { vizTrail.push(pts); if (vizTrail.length > 6) vizTrail.shift(); }
+  const line = (p, sign) => {
+    g.beginPath();
+    let x0 = 0, y0 = mid;
+    g.moveTo(0, mid);
+    for (let q = 1; q < VIZ_PTS; q++) {
+      const x = q / (VIZ_PTS - 1) * W, y = mid + sign * p[q];
+      g.quadraticCurveTo(x0, y0, (x0 + x) / 2, (y0 + y) / 2);   // smooth curves between the points
+      x0 = x; y0 = y;
+    }
+    g.lineTo(W, mid);
+  };
+  g.lineJoin = g.lineCap = "round";
+  vizTrail.forEach((p, i) => {
+    const age = vizTrail.length - 1 - i, fade = Math.pow(.55, age);   // 0 = now, older ones fainter
+    // the wave and a mirrored one in another color; each drawn wide and faint, then thin and bright = a glow
+    [[1, hue, 1], [-1, hue + 150, .55]].forEach(([sign, hu, alpha]) => {
+      line(p, sign);
+      (age ? [[2.4, .5]] : [[7, .12], [3.2, .25], [1.1, .95]]).forEach(([wid, al]) => {
+        g.lineWidth = wid * u * .5; g.strokeStyle = `hsla(${hu},100%,${al > .4 ? 80 : 60}%,${al * alpha * fade})`; g.stroke();
+      });
+    });
+  });
+  // the bars: bass on the left, treble on the right, each a little further round the rainbow
+  const bw = W / VIZ_BANDS, floor = H - 2 * u, tall = H * .42;
+  for (let b = 0; b < VIZ_BANDS; b++) {
+    const v = Math.pow(at(a.bands, b, VIZ_BANDS) / 255, 1.6), hb = hue + b * 9;
+    vizPeaks[b] = v > vizPeaks[b] ? v : Math.max(v, vizPeaks[b] - .015);
+    const x = b * bw + bw * .17, w = bw * .66, h = Math.max(u * .4, v * tall);
+    const col = g.createLinearGradient(0, floor - tall, 0, floor);
+    col.addColorStop(0, `hsla(${hb},95%,62%,.95)`); col.addColorStop(1, `hsla(${hb},95%,45%,.3)`);
+    g.fillStyle = col; g.fillRect(x, floor - h, w, h);
+    g.fillStyle = `hsla(${hb},100%,85%,.9)`; g.fillRect(x, floor - vizPeaks[b] * tall - 1.6 * u, w, .9 * u);
+  }
+  g.globalCompositeOperation = "source-over";
+  // the song's name for the first few seconds, like iTunes showed it
+  const age = performance.now() - vizSince;
+  if (age < 5000) {
+    const file = mySongs[songIndex], fs = W * .05;
+    g.globalAlpha = Math.min(1, (5000 - age) / 1200);
+    g.fillStyle = "#fff"; g.textBaseline = "top";
+    g.font = `700 ${fs}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
+    g.fillText(songName(file), 3 * u, 3 * u, W - 6 * u);
+    g.font = `400 ${fs * .85}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
+    g.fillStyle = "rgba(255,255,255,.75)";
+    g.fillText(file.artist || "Unknown Artist", 3 * u, 3 * u + fs * 1.3, W - 6 * u);
+    g.globalAlpha = 1;
+  }
+  // scrubbing with the wheel: a thin progress line along the bottom, and the time
+  if (Date.now() - ipShowScrub < 2000) {
+    g.fillStyle = "rgba(255,255,255,.25)"; g.fillRect(0, H - .8 * u, W, .8 * u);
+    g.fillStyle = "#fff"; g.fillRect(0, H - .8 * u, t / a.dur * W, .8 * u);
+    const fs = W * .045;
+    g.font = `700 ${fs}px "Helvetica Neue", Helvetica, Arial, sans-serif`; g.textBaseline = "bottom"; g.textAlign = "right";
+    g.fillText(clock(t) + " / " + clock(a.dur), W - 2 * u, H - 2 * u);
+    g.textAlign = "left";
+  }
+}
+
+// the animation loop, only for the iTunes look while the song plays, on screen, and the page isn't hidden (saves battery).
+// The waveform look doesn't need one: it redraws when the song's time moves (timeupdate, about 4 times a second).
+function vizKick() {
+  if (!vizShowing()) return;
+  if (state.ipodViz !== "itunes" || audio.paused || musicKind !== "file") return drawViz();
+  if (!vizRAF) vizRAF = requestAnimationFrame(vizFrame);
+}
+function vizFrame(now) {
+  vizRAF = 0;
+  if (!vizShowing() || state.ipodViz !== "itunes" || audio.paused || musicKind !== "file") return drawViz();
+  if (now - vizLast > 1000 / VIZ_FPS - 4) { vizLast = now; drawViz(); }   // 30 pictures a second is plenty
+  vizRAF = requestAnimationFrame(vizFrame);
+}
+
+// opening it: from Now Playing it goes on top; from anywhere else Now Playing goes under it, so MENU goes back there
+function openViz() {
+  if (!ipTop().now) ipOpen(nowScreen());
+  ipOpen(vizScreen());
+}
+// the corner button: open it, or back to Now Playing if it's showing
+$("ip-vz").addEventListener("click", () => { ipClick(); unlockAudio(); if (ipTop().viz) ipBack(); else openViz(); });
+// tap or drag along the waveform to jump there (the waveform look; the iTunes look has nowhere to point at)
+vizCv.addEventListener("pointerdown", e => {
+  if (state.ipodViz !== "wave" || !$("ip-vwait").hidden) return;
+  vizCv.setPointerCapture(e.pointerId);
+  seekTo(e, vizCv);
+});
+vizCv.addEventListener("pointermove", e => { if (vizCv.hasPointerCapture(e.pointerId)) seekTo(e, vizCv); });
+// keep it in step: the song's time moving, playing, pausing, jumping, the page coming back, the window changing size
+["timeupdate", "play", "pause", "seeked"].forEach(ev => audio.addEventListener(ev, vizKick));
+document.addEventListener("visibilitychange", vizKick);
+addEventListener("resize", vizKick);
 
 // ================= the click wheel: turning and pressing =================
 // A "pointer" is a finger or a mouse. While it's down on the wheel we follow its angle around the center:

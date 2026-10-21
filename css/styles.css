@@ -799,6 +799,26 @@
 #media .ip-text p { margin:0 0 1.6cqw; }
 #media .ip-video p { margin:1cqw 2cqw 0; font-size:3.2cqw; font-weight:700; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
+/* ----- the Visualizer (js/media.js): a canvas, on the white screen (waveform) or black (the iTunes look) ----- */
+#media .ip-viz { position:absolute; inset:0; display:flex; flex-direction:column; background:#fff; }
+#media .ip-viz.ip-it { background:#000; }
+#media .ip-vhead { flex:none; display:flex; flex-direction:column; gap:.5cqw; padding:2.2cqw 3cqw 0; }
+#media .ip-vhead b, #media .ip-vhead span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#media .ip-vhead b { font-size:3.9cqw; }
+#media .ip-vhead span { font-size:3.3cqw; color:#333; }
+#media .ip-viz.ip-it .ip-vhead { display:none; }
+#media .ip-vcanvas { display:block; flex:1; min-height:0; width:100%; }
+/* "working…" and the polite messages: on the white screen like the iPod's own, with its progress bar */
+#media .ip-vwait { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; gap:2.2cqw;
+  padding:0 7cqw; background:#fff; text-align:center; }
+#media .ip-vwait b { font-size:4cqw; }
+#media .ip-vwait p { margin:0; font-size:3.2cqw; line-height:1.25; color:#444; }
+#media .ip-vwait p:empty { display:none; }
+/* reading the song (no way to know how far along): blue stripes slide along the bar */
+#media .ip-vwait .ip-bar.ip-busy i { width:100%; background:repeating-linear-gradient(-45deg, #5aa2ee 0 2cqw, #a6d2fb 2cqw 4cqw);
+  background-size:5.66cqw 100%; animation:ipbusy .8s linear infinite; }
+@keyframes ipbusy { to { background-position:5.66cqw 0; } }
+
 /* ----- the click wheel ----- */
 #media .ip-wheel { position:absolute; left:50%; top:70.9%; width:62cqw; height:62cqw; transform:translate(-50%, -50%);
   border-radius:50%; background:var(--ip-wheel); touch-action:none; cursor:grab;
@@ -822,12 +842,15 @@
 /* the full screen button: a small ring in the bottom corner of the front, beside the wheel. Arrows out = fill the screen,
    arrows in (in full screen) = back. --ip-ink is the color of things printed on the front (the wheel can be another color).
    The ::after is an invisible bigger area around it, so it's easy to hit with a thumb on the small iPod too */
-#media .ip-fs { all:unset; position:absolute; right:6cqw; bottom:5cqw; width:10cqw; height:10cqw; border-radius:50%;
+#media .ip-fs, #media .ip-vz { all:unset; position:absolute; right:6cqw; bottom:5cqw; width:10cqw; height:10cqw; border-radius:50%;
   box-sizing:border-box; display:grid; place-items:center; cursor:pointer; color:var(--ip-ink, var(--ip-label));
   border:.35cqw solid currentColor; opacity:.7; -webkit-tap-highlight-color:transparent; }
-#media .ip-fs::after { content:""; position:absolute; inset:-3cqw; border-radius:50%; }
-#media .ip-fs svg { width:5cqw; height:5cqw; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
-#media .ip-fs:hover, #media .ip-fs:focus-visible { opacity:1; }
+#media .ip-fs::after, #media .ip-vz::after { content:""; position:absolute; inset:-3cqw; border-radius:50%; }
+#media .ip-fs svg, #media .ip-vz svg { width:5cqw; height:5cqw; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+#media .ip-fs:hover, #media .ip-fs:focus-visible, #media .ip-vz:hover, #media .ip-vz:focus-visible { opacity:1; }
+/* the Visualizer button: the same ring in the bottom-left corner, with five little bars; filled in while the Visualizer shows */
+#media .ip-vz { right:auto; left:6cqw; }
+#media .ip-vz[aria-pressed="true"] { opacity:1; background:color-mix(in srgb, currentColor 18%, transparent); }
 #media .ip-fs .ip-fs-out, #media.ip-full .ip-fs .ip-fs-in { display:none; }
 #media.ip-full .ip-fs .ip-fs-out { display:inline; }
 /* the file picker for Add Files…: invisible but still there (some phones won't open a picker that's display:none) */
