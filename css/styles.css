@@ -659,7 +659,7 @@
 /* the three fronts */
 #media .ipod[data-skin="white"], #media .ip-mini[data-skin="white"] { --ip-ink:#8b8e93; --ip-front:linear-gradient(180deg, #ffffff 0%, #f6f6f4 45%, #e7e7e3 100%); --ip-rim:rgba(255,255,255,.9);
   --ip-gloss:.0; --ip-wheel:radial-gradient(circle at 50% 38%, #fafaf8 0%, #efefec 55%, #dededa 100%);
-  --ip-wheel-edge:rgba(0,0,0,.10); --ip-label:#7f8287; --ip-center:radial-gradient(circle at 50% 30%, #ffffff 0%, #f7f7f5 55%, #e4e4e0 100%);
+  --ip-wheel-edge:rgba(0,0,0,.10); --ip-label:#7f8287; --ip-center:radial-gradient(circle at 50% 28%, #3a3a3e 0%, #121214 60%, #050506 100%);
   --ip-bezel:#1a1a1c; }
 /* Qarbon Fiber (build 43, in place of Black): gloss carbon-fiber twill (img/carbon-twill.svg, a 2×2 weave drawn as an SVG)
    under a clear coat (a diagonal shine and darker edges), with a spun-aluminum wheel like a machined dial and a black center.
@@ -671,9 +671,9 @@
   --ip-wheel:conic-gradient(from 20deg, #e9ebee, #aeb3ba 12%, #f1f3f5 25%, #a3a9b0 38%, #e5e8eb 50%, #aeb3ba 62%, #f1f3f5 75%, #a3a9b0 88%, #e9ebee);
   --ip-wheel-edge:rgba(0,0,0,.45); --ip-label:#2f3237;
   --ip-center:radial-gradient(circle at 50% 28%, #3a3a3e 0%, #121214 60%, #050506 100%); }
-/* the Qarbon atom on its center button, its orbits turning slowly like the home logo (hidden on the other skins) */
-#media .ip-atom { display:none; }
-#media .ipod[data-skin="fiber"] .ip-atom { display:block; width:86%; height:86%; opacity:.9; }   /* nearly as big as the button */
+/* the Qarbon atom on the center button, its orbits turning slowly like the home logo. Every skin has Qarbon Fiber's
+   black center button with the atom (build 50); Clear (see-through) and Neon (glowing ring) keep their own button under it */
+#media .ip-atom { display:block; width:86%; height:86%; opacity:.9; }   /* nearly as big as the button */
 #media .ip-wheel .ip-atom svg { display:block; width:100%; height:100%; overflow:visible; }   /* (not the wheel icons' small size) */
 #media .ip-atom .orbits { transform-origin:50% 50%; animation:swirl 18s linear infinite; }
 #media .ip-atom .e { animation:blink 2.4s ease-in-out infinite alternate; }
@@ -808,6 +808,10 @@
 #media .ip-vhead span { font-size:3.3cqw; color:#333; }
 #media .ip-viz.ip-it .ip-vhead { display:none; }
 #media .ip-vcanvas { display:block; flex:1; min-height:0; width:100%; }
+/* the look's name, for a moment after switching (center button): a small dark pill at the bottom */
+#media .ip-vlabel { position:absolute; left:50%; bottom:3cqw; transform:translateX(-50%); padding:.8cqw 2.6cqw; border-radius:3cqw;
+  background:rgba(0,0,0,.72); color:#fff; font-size:3.3cqw; font-weight:700; white-space:nowrap; opacity:0; transition:opacity .4s; pointer-events:none; }
+#media .ip-vlabel.ip-show { opacity:1; }
 /* "working…" and the polite messages: on the white screen like the iPod's own, with its progress bar */
 #media .ip-vwait { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; gap:2.2cqw;
   padding:0 7cqw; background:#fff; text-align:center; }
@@ -907,21 +911,21 @@ body:has(#study:not([hidden]) > #media.ip-full:not([hidden])) #study > :not(#med
   --ip-front:repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 1px, rgba(0,0,0,.035) 1px 2px),   /* fine brushed lines */
              linear-gradient(180deg, #b4e09a 0%, #86c466 42%, #5f9e45 100%);
   --ip-wheel:radial-gradient(circle at 50% 38%, #fbfcfa 0%, #eceee9 58%, #dcdfd8 100%);
-  --ip-wheel-edge:rgba(30,60,20,.25); --ip-label:#3b7426; --ip-center:radial-gradient(circle at 50% 30%, #ffffff 0%, #f3f5f1 55%, #dfe2db 100%);
+  --ip-wheel-edge:rgba(30,60,20,.25); --ip-label:#3b7426; --ip-center:radial-gradient(circle at 50% 28%, #3a3a3e 0%, #121214 60%, #050506 100%);
   --ip-bezel:#16180f; }
 /* brushed silver like the 2007 iPod classic, red and blue anodized aluminum (build 41) */
 #media .ipod[data-skin="silver"], #media .ip-mini[data-skin="silver"] { --ip-ink:#5d6066; --ip-rim:rgba(255,255,255,.7); --ip-gloss:.25;
   --ip-front:repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 1px, rgba(0,0,0,.04) 1px 2px), linear-gradient(180deg, #f1f3f5 0%, #cfd3d8 50%, #aeb3ba 100%);
   --ip-wheel:radial-gradient(circle at 50% 38%, #fbfbfa 0%, #eeeeec 58%, #dcdcd9 100%); --ip-wheel-edge:rgba(0,0,0,.14); --ip-label:#6e7177;
-  --ip-center:radial-gradient(circle at 50% 30%, #d7dade 0%, #b9bec4 60%, #9aa0a7 100%); --ip-bezel:#111; }
+  --ip-center:radial-gradient(circle at 50% 28%, #3a3a3e 0%, #121214 60%, #050506 100%); --ip-bezel:#111; }
 #media .ipod[data-skin="red"], #media .ip-mini[data-skin="red"] { --ip-ink:rgba(255,255,255,.85); --ip-rim:rgba(255,255,255,.3); --ip-gloss:.22;
   --ip-front:repeating-linear-gradient(90deg, rgba(255,255,255,.045) 0 1px, rgba(0,0,0,.04) 1px 2px), linear-gradient(180deg, #ef4550 0%, #cf1f2b 45%, #a3121c 100%);
   --ip-wheel:radial-gradient(circle at 50% 38%, #fbfbfa 0%, #efefec 58%, #dededa 100%); --ip-wheel-edge:rgba(80,0,0,.25); --ip-label:#b3121d;
-  --ip-center:radial-gradient(circle at 50% 30%, #ffffff 0%, #f5f5f3 55%, #e2e2de 100%); --ip-bezel:#120607; }
+  --ip-center:radial-gradient(circle at 50% 28%, #3a3a3e 0%, #121214 60%, #050506 100%); --ip-bezel:#120607; }
 #media .ipod[data-skin="blue"], #media .ip-mini[data-skin="blue"] { --ip-ink:rgba(255,255,255,.9); --ip-rim:rgba(255,255,255,.35); --ip-gloss:.22;
   --ip-front:repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, rgba(0,0,0,.04) 1px 2px), linear-gradient(180deg, #8cc8f2 0%, #4b98d6 48%, #2a6fae 100%);
   --ip-wheel:radial-gradient(circle at 50% 38%, #fbfcfd 0%, #edf0f3 58%, #dbe0e6 100%); --ip-wheel-edge:rgba(0,30,70,.22); --ip-label:#25649e;
-  --ip-center:radial-gradient(circle at 50% 30%, #ffffff 0%, #f4f6f8 55%, #e0e5ea 100%); --ip-bezel:#0a1420; }
+  --ip-center:radial-gradient(circle at 50% 28%, #3a3a3e 0%, #121214 60%, #050506 100%); --ip-bezel:#0a1420; }
 /* neon: glowing purple wheel and screen edge, a cyan ring around the center button */
 #media .ipod[data-skin="neon"], #media .ip-mini[data-skin="neon"] { --ip-ink:#c9c2ff; --ip-rim:rgba(123,108,255,.35); --ip-gloss:.1; --ip-front:linear-gradient(180deg, #0d0c16, #050509);
   --ip-wheel:radial-gradient(circle at 50% 38%, #12111c 0%, #0b0a12 100%); --ip-wheel-edge:#7b6cff; --ip-label:#c9c2ff;

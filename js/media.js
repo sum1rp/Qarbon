@@ -48,7 +48,7 @@ const nowScreen = () => ({ now: true, title: "Now Playing" });
 const SKINS = { white: "White", fiber: "Qarbon Fiber", silver: "Silver", red: "Red", blue: "Blue", green: "Green", u2: "U2", neon: "Neon", clear: "Clear" };
 
 function mainMenu() {
-  return { title: "iPod", items: () => [
+  return { title: "Qpod", items: () => [
     { label: "Now Playing", more: true, go: () => ipOpen(nowScreen()) },   // always at the top
     { label: "Music", more: true, go: () => ipOpen(musicMenu()) },
     { label: "Videos", more: true, go: () => ipOpen(videosMenu()) },
@@ -188,7 +188,7 @@ function settingsMenu() {
     { label: "Color", value: SKINS[state.ipodSkin], go: () => {
         const k = Object.keys(SKINS); state.ipodSkin = k[(k.indexOf(state.ipodSkin) + 1) % k.length]; save(); renderMedia(); } },
     { label: "Full Screen", value: onOff(ipFull), go: () => setFull(!ipFull) },
-    { label: "Visualizer", value: VIZ_LOOKS[state.ipodViz], go: () => { state.ipodViz = state.ipodViz === "wave" ? "itunes" : "wave"; save(); renderMedia(); } },
+    { label: "Visualizer", value: VIZ_LOOKS[state.ipodViz], go: () => { nextLook(); renderMedia(); } },
     { label: "Remove Music", dim: !nowPlaying(), go: clearMusic },   // the same as the music panel's Remove music
     { label: "About", more: true, go: () => ipOpen(aboutScreen()) }
   ] };
@@ -196,7 +196,7 @@ function settingsMenu() {
 // About: like the real one (name, songs, videos, version), plus the iPhone note about playing in the background
 function aboutScreen() {
   return { title: "About", info: () => `
-    <b class="ip-aname">${state.ipodSkin === "fiber" ? "Qpod" : "iPod"}</b>
+    <b class="ip-aname">Qpod</b>
     <dl><dt>Songs</dt><dd>${mySongs.length}</dd><dt>Videos</dt><dd>${videoLinks().length}</dd>
         <dt>Version</dt><dd>${esc(BUILD.replace("Qarbon ", ""))}</dd></dl>
     <p><b>On iPhone:</b> YouTube and SoundCloud pause when the screen locks or you switch apps. Your own files usually keep playing.</p>
@@ -267,10 +267,8 @@ function ipSelect(fromWheel) {
     else openViz();
     return;
   }
-  if (s.viz) {                                    // the Visualizer: switch between its two looks
-    state.ipodViz = state.ipodViz === "wave" ? "itunes" : "wave";
-    save();
-    vizKey = "";
+  if (s.viz) {                                    // the Visualizer: the next look
+    nextLook();
     return vizKick();
   }
   if (s.info) return;                             // a page of text: nothing to choose
@@ -328,8 +326,7 @@ function renderMedia() {
   $("ip-colorname").textContent = SKINS[state.ipodSkin];
   $("ip-colorlist").querySelectorAll("button").forEach(b => b.setAttribute("aria-checked", b.dataset.pick === state.ipodSkin));
   const s = ipTop();
-  // the main menu's name: "Qpod" on the Qarbon Fiber iPod, "iPod" on the others
-  $("ip-title").textContent = s === ipStack[0] && state.ipodSkin === "fiber" ? "Qpod" : s.title;
+  $("ip-title").textContent = s.title;
   $("ip-state").innerHTML = nowPlaying() ? (isPlaying() ? ICONS.play : ICONS.pause) : "";
   // YouTube plays in the screen; SoundCloud too in full screen (the screen is wide enough for its player there)
   const inScreen = nowPlaying() === "YouTube" || (ipFull && nowPlaying() === "SoundCloud");
@@ -422,8 +419,9 @@ if (navigator.getBattery) navigator.getBattery().then(b => {
 // ================= the Visualizer: pictures of your own songs =================
 // Opened from Now Playing with the center button (like the real iPod's Now Playing screens), or the button in the
 // iPod's bottom-left corner. Inside it the wheel moves through the song, the center switches the look, MENU goes back.
-// Two looks (state.ipodViz): "wave", the whole song as a SoundCloud-style waveform that fills in purple as it plays,
-// and "itunes", bars and a glowing wave moving with the music, like iTunes' visualizer in the 2000s.
+// Looks (state.ipodViz): "wave", the whole song as a SoundCloud-style waveform that fills in purple as it plays;
+// "itunes", bars and a glowing wave moving with the music, like iTunes' visualizer in the 2000s; and "space", a slow flight
+// through stars and nebulas (see "space" below). The center button goes through them in that order.
 //
 // The safe way: the playing <audio> is NEVER connected to Web Audio. (An iPhone pauses Web Audio when the screen locks,
 // so your music would stop.) Instead the song's bytes, already stored on this device, are decoded once on the side into
@@ -437,7 +435,15 @@ const VIZ_BANDS = 20;     // bars in the iTunes look, from deep bass (left) to t
 const VIZ_COLS = 800;     // slices of the whole-song waveform
 const VIZ_PTS = 64;       // points along the glowing wave
 const VIZ_V = 1;          // the analysis' version: change it when the analysis changes, so saved ones are made again
-const VIZ_LOOKS = { wave: "Waveform", itunes: "iTunes" };
+const VIZ_LOOKS = { wave: "Waveform", itunes: "iTunes", space: "Space" };
+// the next look (the center button in the Visualizer, and Settings › Visualizer), with its name showing for a moment
+function nextLook() {
+  const k = Object.keys(VIZ_LOOKS);
+  state.ipodViz = k[(k.indexOf(state.ipodViz) + 1) % k.length];
+  save();
+  vizKey = "";
+  vizLabelAt = performance.now();
+}
 // the waveform's played part: "gamma purple", an electric violet (top of the bars, bottom, and their reflection)
 const VIZ_PURPLE = { top: "#d08cff", base: "#7a2cff", under: "rgba(150,80,255,.36)" };
 const vizScreen = () => ({ viz: true, title: "Visualizer" });
@@ -568,6 +574,8 @@ const vizCv = $("ip-vcanvas"), vizG = vizCv.getContext("2d");
 let vizRAF = 0, vizLast = 0;   // the animation loop (iTunes look only) and when it last drew
 let vizKey = "";               // the waveform look only redraws when this changes (size, position, song)
 let vizTrail = [];             // the iTunes look: the glowing wave's last few shapes, drawn fainter and fainter (its trail)
+let vizLabelAt = 0;             // when the look was last switched (its name shows for 1.5 seconds)
+let vizLabelTimer = 0;          // the timer that hides it again
 let vizSince = 0, vizSong = "", vizT = 0;   // when the song's name appeared (the iTunes look fades it), which song, the last time drawn
 const vizPeaks = new Float32Array(VIZ_BANDS);   // the little caps above the bars, which fall slowly
 const vizShowing = () => mode === "media" && !$("study").hidden && ipStack.length && ipTop().viz && !document.hidden;
@@ -593,7 +601,7 @@ function vizWaitShow() {
 function drawViz() {
   if (!vizShowing()) return;
   const look = state.ipodViz, what = nowPlaying(), file = what === "file" ? mySongs[songIndex] : null;
-  $("ip-viz").classList.toggle("ip-it", look === "itunes");
+  $("ip-viz").classList.toggle("ip-it", look !== "wave");   // every look but the waveform is on a black screen
   if (!file) return vizMessage(what ? "Your own songs only" : "Nothing playing",
     what ? what + " doesn't let Qarbon read its sound, so the Visualizer only works with songs from your phone."
          : "Play one of your songs, then come back here.", null);
@@ -608,7 +616,14 @@ function drawViz() {
   const dpr = Math.min(3, devicePixelRatio || 1), w = Math.round(vizCv.clientWidth * dpr), h = Math.round(vizCv.clientHeight * dpr);
   if (!w || !h) return;
   if (vizCv.width !== w || vizCv.height !== h) { vizCv.width = w; vizCv.height = h; vizKey = ""; }
-  if (look === "itunes") drawBars(a); else drawWave(a);
+  if (look === "wave") drawWave(a);
+  else { if (look === "itunes") drawBars(a); else drawSpace(a); vizOverlay(a); }
+  // the look's name, for a moment after switching
+  const label = $("ip-vlabel"), on = performance.now() - vizLabelAt < 1500;
+  label.textContent = VIZ_LOOKS[look];
+  label.classList.toggle("ip-show", on);
+  // once more afterwards, so a paused song's label fades too (one timer, not one per picture)
+  if (on && !vizLabelTimer) vizLabelTimer = setTimeout(() => { vizLabelTimer = 0; vizKick(); }, 1600 - (performance.now() - vizLabelAt));
 }
 
 // SoundCloud style: one bar per 3 pixels, the part played in gamma purple, with a pale reflection under it
@@ -723,7 +738,12 @@ function drawBars(a) {
     g.fillStyle = `hsla(${hb},100%,85%,.9)`; g.fillRect(x, floor - vizPeaks[b] * tall - 1.6 * u, w, .9 * u);
   }
   g.globalCompositeOperation = "source-over";
-  // the song's name for the first few seconds, like iTunes showed it
+}
+
+// on the black looks (iTunes and space): the song's name for the first few seconds, like iTunes showed it,
+// and while scrubbing with the wheel, a thin progress line along the bottom with the time
+function vizOverlay(a) {
+  const g = vizG, W = vizCv.width, H = vizCv.height, u = W / 100, t = Math.min(audio.currentTime, a.dur);
   const age = performance.now() - vizSince;
   if (age < 5000) {
     const file = mySongs[songIndex], fs = W * .05;
@@ -736,7 +756,6 @@ function drawBars(a) {
     g.fillText(file.artist || "Unknown Artist", 3 * u, 3 * u + fs * 1.3, W - 6 * u);
     g.globalAlpha = 1;
   }
-  // scrubbing with the wheel: a thin progress line along the bottom, and the time
   if (Date.now() - ipShowScrub < 2000) {
     g.fillStyle = "rgba(255,255,255,.25)"; g.fillRect(0, H - .8 * u, W, .8 * u);
     g.fillStyle = "#fff"; g.fillRect(0, H - .8 * u, t / a.dur * W, .8 * u);
@@ -747,16 +766,144 @@ function drawBars(a) {
   }
 }
 
-// the animation loop, only for the iTunes look while the song plays, on screen, and the page isn't hidden (saves battery).
+// ----- space: a slow flight through stars and nebulas -----
+// Near stars streak past, far ones twinkle, and real Hubble nebulas (the Crab and the Helix, from img/) float by among
+// painted clouds. The music only nudges it: a little faster when it's louder, the clouds glow with the bass, a soft
+// flash on big bass hits.
+// Stars are points in 3D: x, y and z (how far away). Each picture they come a little closer (z goes down), and are drawn at
+// x / z, y / z from the middle, so near ones spread out and speed up, like flying forward. Passed ones start again far away.
+const vizSpace = { stars: [], clouds: [], last: 0, sprites: null, photos: [] };
+// a painted nebula: many soft coloured blobs added together on a small canvas, made once
+function nebulaSprite(hue, seed) {
+  const c = document.createElement("canvas"), n = 256; c.width = c.height = n;
+  const g = c.getContext("2d");
+  let r = seed;
+  const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+  g.globalCompositeOperation = "lighter";
+  // the cloud: big faint blobs, then smaller brighter ones along a few curving "filaments"
+  const blob = (x, y, rad, h, l, al) => {
+    const gr = g.createRadialGradient(x, y, 0, x, y, rad);
+    gr.addColorStop(0, `hsla(${h},90%,${l}%,${al})`); gr.addColorStop(1, `hsla(${h},90%,${l - 15}%,0)`);
+    g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  };
+  for (let i = 0; i < 18; i++) blob(n / 2 + (rnd() - .5) * n * .4, n / 2 + (rnd() - .5) * n * .3, n * (.15 + rnd() * .15), hue + (rnd() - .5) * 50, 45, .07);
+  for (let f = 0; f < 5; f++) {
+    let x = n / 2 + (rnd() - .5) * n * .3, y = n / 2 + (rnd() - .5) * n * .25, a = rnd() * 7;
+    const h = hue + (rnd() - .5) * 90;
+    for (let i = 0; i < 26; i++) {
+      a += (rnd() - .5) * .8; x += Math.cos(a) * n * .018; y += Math.sin(a) * n * .014;
+      blob(x, y, n * (.02 + rnd() * .05), h, 60 + rnd() * 20, .10 + rnd() * .14);
+    }
+  }
+  // dark dust lanes: soft holes cut out of the glow
+  g.globalCompositeOperation = "destination-out";
+  for (let i = 0; i < 14; i++) {
+    const x = n / 2 + (rnd() - .5) * n * .5, y = n / 2 + (rnd() - .5) * n * .4, rad = n * (.03 + rnd() * .07);
+    const gr = g.createRadialGradient(x, y, 0, x, y, rad);
+    gr.addColorStop(0, "rgba(0,0,0,.55)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
+  // fade the square's edges, and a few stars inside the cloud
+  const edge = g.createRadialGradient(n / 2, n / 2, n * .2, n / 2, n / 2, n * .5);
+  edge.addColorStop(0, "rgba(0,0,0,0)"); edge.addColorStop(1, "rgba(0,0,0,1)");
+  g.fillStyle = edge; g.fillRect(0, 0, n, n);
+  g.globalCompositeOperation = "lighter";
+  for (let i = 0; i < 24; i++) { g.fillStyle = `rgba(255,255,255,${.4 + rnd() * .6})`; g.fillRect(n * .2 + rnd() * n * .6, n * .2 + rnd() * n * .6, 1.2, 1.2); }
+  return c;
+}
+// a Hubble photo with its square edges faded away, so only the nebula shows
+function photoSprite(src) {
+  const c = document.createElement("canvas"), n = 256; c.width = c.height = n;
+  const img = new Image();
+  img.onload = () => {
+    const g = c.getContext("2d");
+    g.drawImage(img, 0, 0, n, n);
+    g.globalCompositeOperation = "destination-in";
+    const gr = g.createRadialGradient(n / 2, n / 2, n * .25, n / 2, n / 2, n * .5);
+    gr.addColorStop(0, "#000"); gr.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = gr; g.fillRect(0, 0, n, n);
+  };
+  img.src = src;
+  return c;
+}
+function spaceInit() {
+  if (!vizSpace.sprites) vizSpace.sprites = [[275, 11], [200, 97], [320, 5], [20, 41], [180, 77]].map(([h, s]) => nebulaSprite(h, s));
+  if (!vizSpace.photos.length) vizSpace.photos = [photoSprite("img/crab-nebula.jpg"), photoSprite("img/helix-nebula.jpg")];
+  for (let i = 0; i < 260; i++) vizSpace.stars.push(newStar(Math.random()));
+  for (let i = 0; i < 4; i++) vizSpace.clouds.push(newCloud(.45 + i * .17));
+}
+const newStar = z => ({ x: (Math.random() - .5) * 2.4, y: (Math.random() - .5) * 2.4, z: z || 1, tw: Math.random() * 6 });
+function newCloud(z) {
+  const photo = Math.random() < .5;   // half the clouds are Hubble photos
+  return { x: (Math.random() - .5) * 1.4, y: (Math.random() - .5) * 1.0, z: z || 1, size: .6 + Math.random() * .7,
+           sprite: photo ? vizSpace.photos[Math.floor(Math.random() * 2)] : vizSpace.sprites[Math.floor(Math.random() * vizSpace.sprites.length)],
+           spin: (Math.random() - .5) * .2, rot: Math.random() * 6 };
+}
+
+function drawSpace(a) {
+  if (!vizSpace.stars.length) spaceInit();
+  const g = vizG, W = vizCv.width, H = vizCv.height, cx = W / 2, cy = H / 2, F = Math.min(W, H) * .9;
+  const now = performance.now(), dt = Math.min(.05, (now - (vizSpace.last || now)) / 1000); vizSpace.last = now;
+  const t = Math.min(audio.currentTime, a.dur), f = Math.min(a.frames - 1, Math.floor(t * VIZ_FPS));
+  const level = a.level[f] / 255;
+  let bass = 0; for (let b = 0; b < 4; b++) bass += a.bands[f * VIZ_BANDS + b] / 255 / 4;
+  // how fast we fly (in "depth" per second): never very fast
+  const speed = .07 + .12 * level * level, cloudSpeed = speed * .6;
+  g.globalCompositeOperation = "source-over";
+  g.fillStyle = "rgba(0,0,4,.65)";   // keeping a little of the last picture makes the streaks longer
+  g.fillRect(0, 0, W, H);
+  // nebulas, far ones first
+  g.globalCompositeOperation = "lighter";
+  vizSpace.clouds.sort((p, q) => q.z - p.z).forEach(c => {
+    c.z -= cloudSpeed * dt; c.rot += c.spin * dt;
+    if (c.z < .2) Object.assign(c, newCloud(1));
+    const s = c.size * F / c.z, x = cx + c.x * F / c.z, y = cy + c.y * F / c.z;
+    // fade in far away, out before it fills the screen; the bass makes them glow a little
+    const alpha = Math.min(1, (1 - c.z) * 2.5) * Math.min(1, (c.z - .2) * 4) * .85 * (.82 + .35 * bass);
+    g.globalAlpha = Math.max(0, Math.min(1, alpha));
+    g.save(); g.translate(x, y); g.rotate(c.rot); g.drawImage(c.sprite, -s / 2, -s / 2, s, s); g.restore();
+  });
+  g.globalAlpha = 1;
+  // stars
+  vizSpace.stars.forEach(s => {
+    const z0 = s.z;
+    s.z -= speed * dt;
+    if (s.z < .02) { Object.assign(s, newStar(1)); return; }
+    const x = cx + s.x * F / s.z, y = cy + s.y * F / s.z;
+    if (x < -20 || x > W + 20 || y < -20 || y > H + 20) { Object.assign(s, newStar(1)); return; }
+    const near = 1 - s.z, px = W / vizCv.clientWidth;
+    let bright = Math.min(1, near * 1.4);
+    bright = Math.min(1, .35 + bright) * (.6 + .4 * Math.sin(now / 500 + s.tw));   // twinkling
+    if (near > .3) {   // a near star: a streak from where it was to where it is
+      const x0 = cx + s.x * F / z0, y0 = cy + s.y * F / z0;
+      g.strokeStyle = `hsla(${210 + s.tw * 10},80%,${80 + 20 * level}%,${bright})`;
+      g.lineWidth = Math.max(px * .6, near * 2.2 * px);
+      g.beginPath(); g.moveTo(x0, y0); g.lineTo(x, y); g.stroke();
+    } else {
+      const r = Math.max(px * .5, near * near * 2.4 * px);
+      g.fillStyle = `rgba(235,240,255,${bright})`;
+      g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+    }
+  });
+  // a soft flash of light in the middle on big bass hits
+  if (bass > .55) {
+    const gr = g.createRadialGradient(cx, cy, 0, cx, cy, W * .5);
+    gr.addColorStop(0, `rgba(170,140,255,${(bass - .55) * .35})`); gr.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  }
+  g.globalCompositeOperation = "source-over";
+}
+
+// the animation loop, only for the moving looks (iTunes and space) while the song plays, on screen, and the page isn't hidden (saves battery).
 // The waveform look doesn't need one: it redraws when the song's time moves (timeupdate, about 4 times a second).
 function vizKick() {
   if (!vizShowing()) return;
-  if (state.ipodViz !== "itunes" || audio.paused || musicKind !== "file") return drawViz();
+  if (state.ipodViz === "wave" || audio.paused || musicKind !== "file") return drawViz();
   if (!vizRAF) vizRAF = requestAnimationFrame(vizFrame);
 }
 function vizFrame(now) {
   vizRAF = 0;
-  if (!vizShowing() || state.ipodViz !== "itunes" || audio.paused || musicKind !== "file") return drawViz();
+  if (!vizShowing() || state.ipodViz === "wave" || audio.paused || musicKind !== "file") return drawViz();
   if (now - vizLast > 1000 / VIZ_FPS - 4) { vizLast = now; drawViz(); }   // 30 pictures a second is plenty
   vizRAF = requestAnimationFrame(vizFrame);
 }
@@ -784,7 +931,7 @@ addEventListener("resize", vizKick);
 // A "pointer" is a finger or a mouse. While it's down on the wheel we follow its angle around the center:
 // every 18° (20 steps per turn) is one step. If it barely moved, it was a press: which button depends on where.
 const ipWheel = $("ip-wheel");
-// the Qarbon atom on the center button (the logo's atomSVG from js/look.js); the styles only show it on Qarbon Fiber
+// the Qarbon atom on the center button (the logo's atomSVG from js/look.js), on every color
 ipWheel.querySelector(".ip-center").innerHTML = `<span class="ip-atom">${atomSVG(5)}</span>`;
 const IP_STEP = Math.PI / 10;
 let ipDrag = null;   // { last angle, turned so far, start x/y, moved: turned enough to count as turning, zone: the button under it }

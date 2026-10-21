@@ -84,9 +84,11 @@ function clean(data) {
   // the 🎧 Media iPod (this device): its front ("white", "fiber", "u2", "silver", "red", "blue", "green", "neon" or "clear") and the wheel's tick sound
   if (s.ipodSkin === "galaxy") s.ipodSkin = "clear";   // "Galaxy" was renamed "Clear" (build 40)
   if (s.ipodSkin === "black") s.ipodSkin = "fiber";    // Black was replaced by Qarbon Fiber (build 43)
-  s.ipodSkin = ["white", "fiber", "silver", "red", "blue", "green", "u2", "neon", "clear"].includes(s.ipodSkin) ? s.ipodSkin : "white";
+  s.ipodSkin = ["white", "fiber", "silver", "red", "blue", "green", "u2", "neon", "clear"].includes(s.ipodSkin) ? s.ipodSkin : "fiber";
+  // the Qpod (Qarbon Fiber) is the default player: everyone is switched to it once (build 50), then can choose another color
+  if (!s.qpodDefault) { s.ipodSkin = "fiber"; s.qpodDefault = true; }
   s.ipodClick = s.ipodClick !== false;
-  s.ipodViz = s.ipodViz === "itunes" ? "itunes" : "wave";   // the Visualizer's look: "wave" (the whole song) or "itunes" (bars and a glowing wave)
+  s.ipodViz = ["wave", "itunes", "space"].includes(s.ipodViz) ? s.ipodViz : "wave";   // the Visualizer's look: the whole song, bars and a glowing wave, or a flight through space
   // for syncing: things you deleted ("card:chat" → when), and when your settings last changed
   const del = s.deleted && typeof s.deleted === "object" ? s.deleted : {};
   s.deleted = Object.fromEntries(Object.entries(del).filter(([k, v]) => /^(card|deck|book):/.test(k) && Number(v) > 0).map(([k, v]) => [k, Number(v)]));
