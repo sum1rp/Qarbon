@@ -313,6 +313,51 @@
   .homebtn { margin-top:4px; min-height:44px; border-radius:999px; }
   .homerow { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
 
+  /* ---------- 🌐 Translate ---------- */
+  #translate { width:100%; max-width:560px; display:flex; flex-direction:column; gap:12px; }
+  .tr-dir { display:flex; align-items:center; justify-content:center; gap:8px; }
+  .tr-dir span { min-width:96px; text-align:center; padding:8px 14px; border-radius:999px; background:var(--surface);
+                 border:1px solid var(--line); font-weight:600; }
+  #tr-swap { width:44px; height:44px; padding:0; border-radius:50%; font-size:1.1rem; flex:none; }
+  #tr-text { width:100%; box-sizing:border-box; min-height:84px; padding:12px 14px; font:inherit; font-size:1.15rem; resize:vertical;
+             border-radius:14px; border:1px solid var(--line); background:var(--surface); color:var(--text); }
+  #tr-msg { margin:0; color:var(--muted); font-size:.9rem; }
+  #tr-msg:empty { display:none; }
+  /* the card you'd get: a frame in the word type's color (the same colors as Review's cards) */
+  #tr-card { --type:#8b8ba0; border-radius:18px; padding:10px; box-shadow:0 6px 24px rgba(0,0,0,.5);
+             background:linear-gradient(145deg, transparent 40%, rgba(255,255,255,.35)), var(--type); }
+  #tr-card[data-type="noun"]      { --type:#2fbf9b; }
+  #tr-card[data-type="verb"]      { --type:#ff5d8f; }
+  #tr-card[data-type="adjective"] { --type:#ffb347; }
+  #tr-card[data-type="adverb"]    { --type:#a06bff; }
+  #tr-card[data-type="pronoun"]   { --type:#4aa3ff; }
+  #tr-card[hidden] { display:none; }
+  .tr-in { border-radius:11px; padding:12px 14px; background:var(--card, var(--surface)); display:flex; flex-direction:column; gap:4px; }
+  .tr-top { display:flex; justify-content:space-between; align-items:center; min-height:32px; }
+  .tr-pill { background:var(--type); color:#08080d; padding:3px 10px; border-radius:999px; font-weight:600; font-size:.8rem; text-transform:capitalize; }
+  #tr-say { width:40px; height:40px; padding:0; border-radius:50%; font-size:1rem; }
+  /* the French and English are text boxes that look like the card's text: tap one to change it */
+  .tr-front, .tr-back { width:100%; box-sizing:border-box; border:1px solid transparent; border-radius:8px; background:transparent;
+                        color:var(--text); padding:2px 6px; margin-left:-6px; font-family:inherit; }
+  .tr-front { font-size:1.6rem; font-weight:700; }
+  .tr-back { font-size:1.15rem; color:var(--muted); }
+  .tr-front:hover, .tr-back:hover, .tr-front:focus, .tr-back:focus { border-color:var(--line); background:rgba(255,255,255,.04); }
+  .tr-ex { margin:4px 0 0; font-size:.88rem; color:var(--muted); font-style:italic; }
+  .tr-ex:empty { display:none; }
+  .tr-addrow { display:flex; gap:8px; }
+  .tr-addrow[hidden] { display:none; }
+  #tr-deck { flex:1; min-width:0; min-height:44px; border-radius:12px; padding:0 12px; background:var(--surface); color:var(--text);
+             border:1px solid var(--line); font-size:1rem; }
+  .tr-addbtn { flex:none; min-height:44px; border-radius:12px; padding:0 16px; background:var(--accent-fill); color:#fff;
+               border-color:transparent; font-weight:600; }
+  .tr-addbtn:disabled { background:var(--surface); color:var(--muted); border-color:var(--line); }
+  .tr-note { margin:0; color:var(--muted); font-size:.85rem; }
+  .tr-note:empty { display:none; }
+  .tr-alts { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .tr-alt { min-height:36px; padding:4px 12px; border-radius:999px; font-size:.88rem; max-width:100%; overflow-wrap:anywhere; text-align:left; }
+  .tr-credit { margin:8px 0 0; color:var(--muted); font-size:.75rem; text-align:center; }
+  .tr-credit a { color:#6fc3ff; }
+
   /* ---------- Reading tracker ---------- */
   #reading { width:100%; max-width:560px; display:flex; flex-direction:column; gap:12px; }
   #addbook { align-self:center; }

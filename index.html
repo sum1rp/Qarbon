@@ -315,6 +315,7 @@
     <select id="modeselect">
       <option value="daily">🃏 Review</option>
       <option value="deck">🗂 Decks</option>
+      <option value="translate">🌐 Translate</option>
       <option value="practice">🔁 Practice</option>
       <option value="burn">🔥 B.A.R. Exam</option>
       <option value="focus">⏱ Focus</option>
@@ -462,6 +463,41 @@
         <button id="bf-delete">Delete book</button>
       </div>
     </div>
+  </section>
+
+  <!-- ===== 🌐 Translate: a word or short phrase, French ⇄ English, shown as the card you'd get (js/translate.js) ===== -->
+  <section id="translate" hidden>
+    <div class="tr-dir">
+      <span id="tr-from">Français</span>
+      <button id="tr-swap" aria-label="Swap languages" title="Swap languages">⇄</button>
+      <span id="tr-to">English</span>
+    </div>
+    <textarea id="tr-text" rows="2" maxlength="200" placeholder="Type a French word or phrase" autocomplete="off"
+              autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-label="Word or phrase to translate"></textarea>
+    <p id="tr-msg" aria-live="polite"></p>
+    <!-- the card you'd get: tap the French or the English to change it before adding -->
+    <div id="tr-card" hidden>
+      <div class="tr-in">
+        <div class="tr-top">
+          <span id="tr-pill" class="tr-pill"></span>
+          <button id="tr-say" aria-label="Say it" title="Say it">🔊</button>
+        </div>
+        <input id="tr-front" class="tr-front" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="French (front of the card)">
+        <input id="tr-back" class="tr-back" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="English (back of the card)">
+        <p id="tr-ex" class="tr-ex"></p>
+      </div>
+    </div>
+    <div id="tr-addrow" class="tr-addrow" hidden>
+      <select id="tr-deck" aria-label="Deck to add the card to"></select>
+      <button id="tr-add" class="tr-addbtn">+ Add card</button>
+    </div>
+    <p id="tr-note" class="tr-note"></p>
+    <div id="tr-altbox" hidden>
+      <div class="shelf">Other meanings</div>
+      <div id="tr-alts" class="tr-alts"></div>
+    </div>
+    <p class="tr-credit">Translations from <a href="https://en.wiktionary.org" target="_blank" rel="noopener">Wiktionary</a>
+      and <a href="https://mymemory.translated.net" target="_blank" rel="noopener">MyMemory</a> (free, no account). Words from your decks work offline.</p>
   </section>
 
   <!-- ===== 🎧 Media mode: a 2005 iPod Video (js/media.js). It plays through the same ONE player as the music panels. ===== -->
@@ -709,6 +745,7 @@
 <script src="js/media.js?v=52"></script>
 <script src="js/app.js?v=52"></script>
 <script src="js/reading.js?v=52"></script>
+<script src="js/translate.js?v=52"></script>
 <script src="js/account.js?v=52"></script>
 <script src="js/start.js?v=52"></script>
 </body>

@@ -82,6 +82,9 @@ function clean(data) {
     });
   if (!s.books.some(b => b.id === s.readingBook)) s.readingBook = "";
   s.stackId = typeof s.stackId === "string" ? s.stackId : "";   // the deck you used last
+  // 🌐 Translate (this device): the direction ("fr" = French → English, "en" = English → French) and the deck new cards go to
+  s.trDir = s.trDir === "en" ? "en" : "fr";
+  s.trDeck = typeof s.trDeck === "string" ? s.trDeck : "";
   s.readerSize = Number(s.readerSize) >= 14 && Number(s.readerSize) <= 28 ? Number(s.readerSize) : 18;   // the reader's text size (this device)
   // the 🎧 Media iPod (this device): its front ("white", "fiber", "u2", "silver", "red", "blue", "green", "neon" or "clear") and the wheel's tick sound
   if (s.ipodSkin === "galaxy") s.ipodSkin = "clear";   // "Galaxy" was renamed "Clear" (build 40)

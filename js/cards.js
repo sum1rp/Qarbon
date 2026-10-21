@@ -52,7 +52,7 @@ function dailyList() {
 
 function setMode(m, list) {
   mode = m;
-  if (m === "deck" || m === "focus" || m === "reading" || m === "media") { render(); return; }
+  if (m === "deck" || m === "focus" || m === "reading" || m === "media" || m === "translate") { render(); return; }
   if (m === "daily") queue = dailyList();
   if (m === "practice") {
     queue = shuffle(list.flatMap(c => dirsOf(stack).map(dir => ({ c, dir }))));
@@ -98,6 +98,7 @@ function render() {
   $("focus").hidden = mode !== "focus";
   $("reading").hidden = mode !== "reading";
   $("media").hidden = mode !== "media";
+  $("translate").hidden = mode !== "translate";
   $("timer").hidden = mode === "focus";   // in ⏱ Focus the big clock replaces the small timer dropdown
   // in 🎧 Media the timer dropdown is only the timer: the music panel is under the iPod (see "#study.inmedia" in the styles)
   $("study").classList.toggle("inmedia", mode === "media");
@@ -108,6 +109,7 @@ function render() {
   if (mode === "deck") { renderDeck(); return; }
   if (mode === "reading") { renderBooks(); return; }
   if (mode === "media") { renderMedia(); return; }
+  if (mode === "translate") { renderTranslate(); return; }
   if (mode === "burn" || mode === "focus") return;   // these draw their own screens
 
   const left = queue.length + (current ? 1 : 0);
