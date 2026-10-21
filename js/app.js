@@ -133,7 +133,8 @@ $("file").addEventListener("change", async e => {
 // so they work offline and when index.html is opened straight from the Mac.
 const BUILT_IN = [
   { id: "beginner150", name: "Beginner 150", blurb: "The 150 most useful words to start with" },
-  { id: "level2",      name: "Level 2",      blurb: "The next 150 useful words" }
+  { id: "level2",      name: "Level 2",      blurb: "The next 150 useful words" },
+  { id: "level3",      name: "Level 3",      blurb: "300 words for everyday life (A2–B1)" }
 ];
 let stack = null;   // the stack you're studying (null = all cards)
 

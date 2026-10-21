@@ -263,7 +263,7 @@ $("modeselect").onchange = e => {
 let editing = null;   // the card being edited, or null when adding a new card
 
 // words from the built-in packs: these can be suspended but not deleted
-// (opening Beginner 150 or Level 2 would just add them back)
+// (opening Beginner 150, Level 2 or Level 3 would just add them back)
 const builtInWords = () => new Set(allStacks().filter(s => s.text).flatMap(s => [...s.words]));
 
 function openEditor(c) {
