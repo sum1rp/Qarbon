@@ -75,7 +75,7 @@
   /* tapping a world: it rushes toward you while everything else fades */
   .slide.go .body { transform:scale(5); opacity:0; transition:transform .7s cubic-bezier(.5,0,.75,0), opacity .6s; }
   #home.launching .welcome, #home.launching .sub, #home.launching .slide.go .wname, #home.launching .slide.go .wsub,
-  #home.launching .arrow, #home.launching .dots, #home.launching .hint, #home.launching .linkbtn { opacity:0; transition:opacity .4s; }
+  #home.launching .arrow, #home.launching .dots, #home.launching .hint, #home.launching .linkbtn, #home.launching .homebuild { opacity:0; transition:opacity .4s; }
 
   /* the worlds: real things (js/worlds.js). Photos are NASA / Event Horizon Telescope images on black;
      "screen" blending drops their black, so only the light shows over the star sky */
@@ -187,6 +187,8 @@
   .howsec li { margin-top:4px; }
   .howsec b { color:var(--text); font-weight:600; }
   .linkbtn { background:none; border:none; color:var(--muted); text-decoration:underline; min-height:44px; font-size:.9rem; }
+  /* the version line at the bottom of the home screen: small and quiet */
+  .homebuild { margin:2px 0 0; color:var(--muted); font-size:.75rem; font-variant-numeric:tabular-nums; }
   #howback2 { display:block; margin:12px auto 0; text-decoration:none; }
   /* opacity only: a transform here would unpin the fixed answer buttons from the bottom of the screen */
   .fadein { animation:fadein .5s ease; }

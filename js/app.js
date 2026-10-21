@@ -334,6 +334,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowRight") { e.preventDefault(); goWorld(world + 1, 1); }
 });
 if (matchMedia("(hover: hover)").matches) $("homehint").textContent = "‹ › or arrow keys to explore · click to enter";
+$("homebuild").textContent = BUILD;   // the version, at the bottom of the home screen
 
 // swiping: the world follows your finger a little, and moves on if you swiped more than 45px.
 // A "pointer" is a finger, a mouse or a pen; these events work the same for all of them.

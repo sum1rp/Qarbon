@@ -13,7 +13,7 @@ window.addEventListener("error", e => showError((e.message || "unknown error") +
 window.addEventListener("unhandledrejection", e => showError(String((e.reason && e.reason.message) || e.reason)));
 
 // ================= basics =================
-const BUILD = "Qarbon 2.5.1 (build 47)";   // bump together with ?v= in index.html
+const BUILD = "Qarbon 2.5.2 (build 48)";   // bump together with ?v= in index.html
 const KEY = "flashcards-v1";   // same key as before, so existing progress carries over
 const $ = id => document.getElementById(id);
 const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");

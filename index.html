@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qarbon</title>
-<link rel="stylesheet" href="css/styles.css?v=47">
+<link rel="stylesheet" href="css/styles.css?v=48">
 <!-- the atom icons: the little one in the browser tab, and the one iPhones use for "Add to Home Screen" -->
-<link rel="icon" type="image/svg+xml" href="favicon.svg?v=47">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=47">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=48">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=48">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -78,6 +78,8 @@
     <div class="dots" id="worlddots"></div>   <!-- one dot per world, made by the script -->
     <p class="hint" id="homehint">Swipe to explore · tap to enter</p>
     <button id="howtolink" class="linkbtn">How to use Qarbon</button>
+    <!-- which version is loaded (filled in from BUILD in js/basics.js), so you can check a new one arrived -->
+    <p class="homebuild" id="homebuild"></p>
   </section>
 
 
@@ -670,22 +672,22 @@
   </main>
 
 <!-- the program, in order: packs (data) first, start.js last. Every file shares the same variables.
-     ?v=47 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
+     ?v=48 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
      (Book texts in js/books/ and the PDF viewer only load when you open a book.) -->
-<script src="js/packs.js?v=47"></script>
-<script src="js/basics.js?v=47"></script>
-<script src="js/stars.js?v=47"></script>
-<script src="js/look.js?v=47"></script>
-<script src="js/worlds.js?v=47"></script>
-<script src="js/data.js?v=47"></script>
-<script src="js/cards.js?v=47"></script>
-<script src="js/timer.js?v=47"></script>
-<script src="js/burn.js?v=47"></script>
-<script src="js/music.js?v=47"></script>
-<script src="js/media.js?v=47"></script>
-<script src="js/app.js?v=47"></script>
-<script src="js/reading.js?v=47"></script>
-<script src="js/account.js?v=47"></script>
-<script src="js/start.js?v=47"></script>
+<script src="js/packs.js?v=48"></script>
+<script src="js/basics.js?v=48"></script>
+<script src="js/stars.js?v=48"></script>
+<script src="js/look.js?v=48"></script>
+<script src="js/worlds.js?v=48"></script>
+<script src="js/data.js?v=48"></script>
+<script src="js/cards.js?v=48"></script>
+<script src="js/timer.js?v=48"></script>
+<script src="js/burn.js?v=48"></script>
+<script src="js/music.js?v=48"></script>
+<script src="js/media.js?v=48"></script>
+<script src="js/app.js?v=48"></script>
+<script src="js/reading.js?v=48"></script>
+<script src="js/account.js?v=48"></script>
+<script src="js/start.js?v=48"></script>
 </body>
 </html>
