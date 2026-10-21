@@ -200,6 +200,7 @@ function aboutScreen() {
     <dl><dt>Songs</dt><dd>${mySongs.length}</dd><dt>Videos</dt><dd>${videoLinks().length}</dd>
         <dt>Version</dt><dd>${esc(BUILD.replace("Qarbon ", ""))}</dd></dl>
     <p><b>On iPhone:</b> YouTube and SoundCloud pause when the screen locks or you switch apps. Your own files usually keep playing.</p>
+    <p><b>YouTube tip:</b> play the video full screen (its ⛶ button), lock the phone, then press ▶ on the lock screen. It keeps playing, and the screen being off saves battery.</p>
     <p><b>Full screen:</b> tap the corner button or hold MENU to leave it. On a Mac, F switches it on and off.</p>
     <p><b>Visualizer:</b> press the center on Now Playing, or tap the bottom-left button. Your own songs only.</p>` };
 }

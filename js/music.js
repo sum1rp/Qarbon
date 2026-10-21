@@ -115,7 +115,8 @@ function musicPanelHTML() {
     </div>
     <label class="filebtn">📁 Choose music files
       <input type="file" class="musicfile" accept="audio/*,.mp3,.m4a,.aac,.wav" multiple></label>
-    <p class="iphone">iPhone: YouTube and SoundCloud pause when the screen locks or you switch apps. Your own files usually keep going.</p>
+    <p class="iphone">iPhone: YouTube and SoundCloud pause when the screen locks or you switch apps. Your own files usually keep going.
+      Tip: play a YouTube video full screen (its ⛶ button), lock the phone, then press ▶ on the lock screen: it keeps playing.</p>
     <details class="mymusic" hidden><summary></summary><ol></ol></details>
     <div class="musicmsg"></div>
     <details class="played" hidden><summary></summary><ol></ol></details>
