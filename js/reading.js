@@ -1,26 +1,74 @@
 // Qarbon · js/reading.js: the book library, book search, and the reading tracker.
 // The script files run in the order index.html lists them, and share one set of variables.
 
-// ================= book library: ready-made books you can add with one tap =================
-// Chapter lists are copied from the books themselves. Siddhartha: the contents page of Project Gutenberg
-// ebook #2500 (public domain, free to read); year, work id and cover from Open Library.
+// ================= book library: ready-made books you can read inside Qarbon =================
+// Every book here has its full text in js/books/<textId>.js (loaded only when you open it).
+// Chapter lists are copied from the books themselves (Siddhartha: the contents page of Project Gutenberg
+// ebook #2500); year, work id, cover and page count from Open Library. All are public domain in the US.
 const BOOK_LIBRARY = [
   { title: "Siddhartha", author: "Hermann Hesse",
     chapters: ["The Son of the Brahman", "With the Samanas", "Gotama", "Awakening",                 // First Part
                "Kamala", "With the Childlike People", "Sansara", "By the River", "The Ferryman",    // Second Part
                "The Son", "Om", "Govinda"],
     meta: { year: 1922, gutenberg: 2500, openLibrary: "/works/OL872932W", cover: 6562535, textId: "siddhartha",
-            parts: "First Part: chapters 1–4 · Second Part: chapters 5–12" } }
+            parts: "First Part: chapters 1–4 · Second Part: chapters 5–12" } },
+  // the "Read in Qarbon" shelf (build 53): short, philosophical public-domain novels, texts from Project Gutenberg
+  { title: "Demian", author: "Hermann Hesse",
+    chapters: ["Two Worlds", "Cain", "The Thief on the Cross", "Beatrice", "The Bird Fights Its Way Out of the Egg", "Jacob Wrestles with God", "Mother Eve", "Beginning of the End"],
+    meta: { year: 1919, gutenberg: 74222, openLibrary: "/works/OL30457295W", cover: 12569297, pages: 184, textId: "demian" } },
+  { title: "Steppenwolf", author: "Hermann Hesse",
+    chapters: ["Preface", "For Madmen Only", "Treatise on the Steppenwolf", "The Black Eagle", "Hermine", "Pablo", "Maria", "The Fancy Dress Ball", "The Magic Theatre", "Harry’s Execution"],
+    meta: { year: 1927, gutenberg: 75756, openLibrary: "/works/OL872773W", cover: 14911616, pages: 224, textId: "steppenwolf" } },
+  { title: "The Metamorphosis", author: "Franz Kafka",
+    chapters: ["Part I", "Part II", "Part III"],
+    meta: { year: 1915, gutenberg: 5200, openLibrary: "/works/OL498556W", cover: 12820198, pages: 88, textId: "metamorphosis" } },
+  { title: "Notes from Underground", author: "Fyodor Dostoevsky",
+    chapters: ["Underground 1", "Underground 2", "Underground 3", "Underground 4", "Underground 5", "Underground 6", "Underground 7", "Underground 8", "Underground 9", "Underground 10", "Underground 11", "Apropos of the Wet Snow 1", "Apropos of the Wet Snow 2", "Apropos of the Wet Snow 3", "Apropos of the Wet Snow 4", "Apropos of the Wet Snow 5", "Apropos of the Wet Snow 6", "Apropos of the Wet Snow 7", "Apropos of the Wet Snow 8", "Apropos of the Wet Snow 9", "Apropos of the Wet Snow 10"],
+    meta: { year: 1864, gutenberg: 600, openLibrary: "/works/OL21025633W", cover: 10445973, pages: 132, textId: "underground",
+            parts: "Part I: Underground, chapters 1–11 · Part II: Apropos of the Wet Snow, chapters 12–21" } },
+  { title: "Candide", author: "Voltaire",
+    chapters: ["How Candide Was Brought Up in a Magnificent Castle, and How He Was Expelled Thence", "What Became of Candide Among the Bulgarians", "How Candide Made His Escape from the Bulgarians, and What Afterwards Became of Him", "How Candide Found His Old Master Pangloss, and What Happened to Them", "Tempest, Shipwreck, Earthquake, and What Became of Doctor Pangloss, Candide, and James the Anabaptist", "How the Portuguese Made a Beautiful Auto-da-fé, to Prevent Any Further Earthquakes; and How Candide Was Publicly Whipped", "How the Old Woman Took Care of Candide, and How He Found the Object He Loved", "The History of Cunegonde", "What Became of Cunegonde, Candide, the Grand Inquisitor, and the Jew", "In What Distress Candide, Cunegonde, and the Old Woman Arrived at Cadiz; and of Their Embarkation", "History of the Old Woman", "The Adventures of the Old Woman Continued", "How Candide Was Forced Away from His Fair Cunegonde and the Old Woman", "How Candide and Cacambo Were Received by the Jesuits of Paraguay", "How Candide Killed the Brother of His Dear Cunegonde", "Adventures of the Two Travellers, with Two Girls, Two Monkeys, and the Savages Called Oreillons", "Arrival of Candide and His Valet at El Dorado, and What They Saw There", "What They Saw in the Country of El Dorado", "What Happened to Them at Surinam, and How Candide Got Acquainted with Martin", "What Happened at Sea to Candide and Martin", "Candide and Martin, Reasoning, Draw Near the Coast of France", "What Happened in France to Candide and Martin", "Candide and Martin Touched upon the Coast of England, and What They Saw There", "Of Paquette and Friar Giroflée", "The Visit to Lord Pococurante, a Noble Venetian", "Of a Supper Which Candide and Martin Took with Six Strangers, and Who They Were", "Candide’s Voyage to Constantinople", "What Happened to Candide, Cunegonde, Pangloss, Martin, etc.", "How Candide Found Cunegonde and the Old Woman Again", "The Conclusion"],
+    meta: { year: 1759, gutenberg: 19942, openLibrary: "/works/OL100672W", cover: 14923781, pages: 152, textId: "candide" } },
+  { title: "The Prophet", author: "Kahlil Gibran",
+    chapters: ["The Coming of the Ship", "On Love", "On Marriage", "On Children", "On Giving", "On Eating and Drinking", "On Work", "On Joy and Sorrow", "On Houses", "On Clothes", "On Buying and Selling", "On Crime and Punishment", "On Laws", "On Freedom", "On Reason and Passion", "On Pain", "On Self-Knowledge", "On Teaching", "On Friendship", "On Talking", "On Time", "On Good and Evil", "On Prayer", "On Pleasure", "On Beauty", "On Religion", "On Death", "The Farewell"],
+    meta: { year: 1923, gutenberg: 58585, openLibrary: "/works/OL318900W", cover: 418324, pages: 112, textId: "prophet" } },
+  { title: "Flatland", author: "Edwin A. Abbott",
+    chapters: ["Of the Nature of Flatland", "Of the Climate and Houses in Flatland", "Concerning the Inhabitants of Flatland", "Concerning the Women", "Of our Methods of Recognizing one another", "Of Recognition by Sight", "Concerning Irregular Figures", "Of the Ancient Practice of Painting", "Of the Universal Colour Bill", "Of the Suppression of the Chromatic Sedition", "Concerning our Priests", "Of the Doctrine of our Priests", "How I had a Vision of Lineland", "How I vainly tried to explain the nature of Flatland", "Concerning a Stranger from Spaceland", "How the Stranger vainly endeavoured to reveal to me in words the", "How the Sphere, having in vain tried words, resorted to deeds", "How I came to Spaceland, and what I saw there", "How, though the Sphere shewed me other mysteries of Spaceland, I", "How the Sphere encouraged me in a Vision.", "How I tried to teach the Theory of Three Dimensions to my", "How I then tried to diffuse the Theory of Three Dimensions by"],
+    meta: { year: 1884, gutenberg: 97, openLibrary: "/works/OL118388W", cover: 10069547, pages: 110, textId: "flatland",
+            parts: "Part I: This World, chapters 1–12 · Part II: Other Worlds, chapters 13–22" } },
+  { title: "Heart of Darkness", author: "Joseph Conrad",
+    chapters: ["Part I", "Part II", "Part III"],
+    meta: { year: 1899, gutenberg: 219, openLibrary: "/works/OL38663W", cover: 12307847, pages: 136, textId: "heartofdarkness" } },
+  { title: "Bartleby, the Scrivener", author: "Herman Melville",
+    chapters: ["Part One", "Part Two", "Part Three", "Part Four"],
+    meta: { year: 1853, gutenberg: 11231, openLibrary: "/works/OL102732W", cover: 10521439, pages: 70, textId: "bartleby" } },
+  { title: "Strange Case of Dr Jekyll and Mr Hyde", author: "Robert Louis Stevenson",
+    chapters: ["Story of the Door", "Search for Mr. Hyde", "Dr. Jekyll Was Quite at Ease", "The Carew Murder Case", "Incident of the Letter", "Incident of Dr. Lanyon", "Incident at the Window", "The Last Night", "Dr. Lanyon’s Narrative", "Henry Jekyll’s Full Statement of the Case"],
+    meta: { year: 1886, gutenberg: 43, openLibrary: "/works/OL24156W", cover: 295773, pages: 131, textId: "jekyll" } },
+  { title: "The Time Machine", author: "H. G. Wells",
+    chapters: ["Introduction", "The Machine", "The Time Traveller Returns", "Time Travelling", "In the Golden Age", "The Sunset of Mankind", "A Sudden Shock", "Explanation", "The Morlocks", "When Night Came", "The Palace of Green Porcelain", "In the Darkness", "The Trap of the White Sphinx", "The Further Vision", "The Time Traveller’s Return", "After the Story", "Epilogue"],
+    meta: { year: 1895, gutenberg: 35, openLibrary: "/works/OL52267W", cover: 9009316, pages: 120, textId: "timemachine" } },
+  { title: "The Sorrows of Young Werther", author: "Johann Wolfgang von Goethe",
+    chapters: ["May", "June", "July", "August", "September", "October to March", "April to August", "September and October", "November and December", "The Editor to the Reader"],
+    meta: { year: 1774, gutenberg: 2527, openLibrary: "/works/OL52556W", cover: 11316960, pages: 177, textId: "werther",
+            parts: "Book One: chapters 1–5 · Book Two: chapters 6–10 (letters, grouped by month)" } }
 ];
 
-// ================= book search (Open Library) =================
-// Searches Open Library's free catalog. Picking a result fills in the add-book form (title, author) and
-// keeps its year, cover and page count. It also looks through the book's editions for a table of contents,
-// so the chapter names can fill in too. (Most books don't have one; then you type the number of chapters.)
+// ================= book search (Open Library + Google Books) =================
+// Searches two free catalogs at once, with no account or key: Open Library (openlibrary.org) and Google Books.
+// Results come while you type (after a short pause, once there are 3+ letters); a late answer to an older
+// search is ignored. The same book from both catalogs shows once. Books you can read inside Qarbon come
+// first. 20 results at a time: scrolling to the end of the list loads 20 more.
+// Picking a result fills in the add-book form (title, author) and keeps its year, cover and page count.
+// It also looks through the book's editions for a table of contents, so the chapter names can fill in too.
 const OL = "https://openlibrary.org";
+const GB = "https://www.googleapis.com/books/v1/volumes";
 const coverUrl = (id, size) => "https://covers.openlibrary.org/b/id/" + Number(id) + "-" + size + ".jpg";
-let pendingMeta = null;   // details from the search result you picked, saved with the book when you press Save
+const PAGE = 20;           // results asked from each catalog at a time
+let pendingMeta = null;    // details from the search result you picked, saved with the book when you press Save
 let searchRun = 0, pickRun = 0;   // which search / pick is the newest (late answers to older ones are ignored)
+let search = null;         // the search on screen: { q, run, olPage, gbStart, olDone, gbDone, loading, found: Map }
+let typingTimer = null;
 
 // fetch with a time limit, so a slow server can't leave you waiting forever
 function fetchWithin(url, seconds, options = {}) {
@@ -29,64 +77,166 @@ function fetchWithin(url, seconds, options = {}) {
   return fetch(url, { ...options, signal: stop.signal }).finally(() => clearTimeout(timer));
 }
 
-async function searchBooks() {
-  const q = $("bs-q").value.trim(), run = ++searchRun, box = $("bs-results");
-  box.innerHTML = "";
-  if (q.length < 2) { $("bs-msg").textContent = "Type a title or author first."; return; }
-  $("bs-msg").textContent = "Searching…";
-  let docs;
-  try {
-    const res = await fetchWithin(OL + "/search.json?limit=8&fields=key,title,author_name,first_publish_year,cover_i," +
-                                  "number_of_pages_median,id_project_gutenberg&q=" + encodeURIComponent(q), 15);
-    if (!res.ok) throw new Error(res.status);
-    docs = (await res.json()).docs || [];
-  } catch (e) {
-    if (run === searchRun) $("bs-msg").textContent = e.name === "AbortError"
-      ? "Open Library is slow right now. Try again in a moment."
-      : "Couldn't reach Open Library. Check your internet connection and try again.";
-    return;
-  }
-  if (run !== searchRun) return;   // you've searched again since
-  $("bs-msg").textContent = docs.length ? "Tap a book to add it:" : "No books found. Try other words, or add it by hand below.";
-  docs.forEach(d => {
-    const b = document.createElement("button"); b.className = "bsres";
-    if (d.cover_i) {
-      const img = document.createElement("img"); img.alt = ""; img.loading = "lazy"; img.src = coverUrl(d.cover_i, "S");
-      img.onerror = () => { img.className = "nocover"; img.removeAttribute("src"); };
-      b.appendChild(img);
-    } else { const none = document.createElement("span"); none.className = "nocover"; b.appendChild(none); }
-    const text = document.createElement("span");
-    const t = document.createElement("b"); t.textContent = d.title || "Untitled";
-    const by = document.createElement("small");
-    by.textContent = [(d.author_name || []).slice(0, 2).join(", "), d.first_publish_year].filter(Boolean).join(" · ");
-    text.append(t, by);
-    b.appendChild(text);
-    b.onclick = () => pickResult(d);
-    box.appendChild(b);
+// two results are the same book when their titles (without "The", accents or a subtitle) and the author's last name match
+const plainText = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+  .split(/[:(]/)[0].replace(/^(the|a|an) /, "").replace(/[^a-z0-9]+/g, " ").trim();
+const sameBookKey = (title, authors) => plainText(title) + "|" + plainText(((authors || [])[0] || "").split(" ").pop());
+// the library book (readable in Qarbon) that a result is, if any: same Open Library work (which also catches
+// titles in the original language, like "Der Steppenwolf"), or the same title and author
+const libraryMatch = r => BOOK_LIBRARY.find(lb => (r.olKey && r.olKey === lb.meta.openLibrary) || sameBookKey(lb.title, [lb.author]) === r.key);
+
+// a Google Books cover: only their own image addresses, always https
+const googleCover = u => /^https?:\/\/books\.google(usercontent)?\.com\//.test(u || "") ? u.replace(/^http:/, "https:") : "";
+
+// one page of Open Library results, as plain result objects
+async function olResults(q, page) {
+  const res = await fetchWithin(OL + "/search.json?limit=" + PAGE + "&page=" + page + "&fields=key,title,author_name," +
+    "first_publish_year,cover_i,number_of_pages_median,id_project_gutenberg&q=" + encodeURIComponent(q), 15);
+  if (!res.ok) throw new Error(res.status);
+  return ((await res.json()).docs || []).map(d => ({
+    title: d.title || "Untitled", authors: (d.author_name || []).slice(0, 2), year: d.first_publish_year,
+    cover: d.cover_i, pages: d.number_of_pages_median, olKey: d.key, gutenberg: (d.id_project_gutenberg || [])[0], from: ["Open Library"] }));
+}
+
+// one page of Google Books results (Google allows a little use without a key; when it says "too many", we skip it)
+async function gbResults(q, start) {
+  const res = await fetchWithin(GB + "?printType=books&maxResults=" + PAGE + "&startIndex=" + start +
+    "&fields=items(volumeInfo(title,authors,publishedDate,pageCount,imageLinks/thumbnail))&q=" + encodeURIComponent(q), 15);
+  if (!res.ok) throw new Error(res.status);
+  return ((await res.json()).items || []).map(it => it.volumeInfo || {}).filter(v => v.title).map(v => ({
+    title: v.title, authors: (v.authors || []).slice(0, 2), year: parseInt(v.publishedDate) || undefined,
+    coverUrl: googleCover(v.imageLinks && v.imageLinks.thumbnail), pages: v.pageCount, from: ["Google Books"] }));
+}
+
+// add results to the search, folding the same book from both catalogs into one (keeping the best details of each)
+function addResults(list) {
+  list.forEach(r => {
+    r.key = sameBookKey(r.title, r.authors);
+    const had = search.found.get(r.key);
+    if (!had) { search.found.set(r.key, r); return; }
+    for (const f of ["year", "cover", "coverUrl", "pages", "olKey", "gutenberg"]) if (!had[f] && r[f]) had[f] = r[f];
+    if (r.year && had.year && r.year < had.year) had.year = r.year;   // the first edition's year
+    r.from.forEach(f => { if (!had.from.includes(f)) had.from.push(f); });
   });
 }
 
+// typing: wait for a short pause, then search
+function searchTyped() {
+  clearTimeout(typingTimer);
+  const q = $("bs-q").value.trim();
+  if (q.length < 3) { ++searchRun; search = null; showResults(); $("bs-msg").textContent = q ? "Keep typing…" : ""; return; }
+  typingTimer = setTimeout(() => startSearch(q), 450);
+}
+
+function startSearch(q) {
+  clearTimeout(typingTimer);
+  if (search && search.q === q) return;   // already showing this one
+  search = { q, run: ++searchRun, olPage: 1, gbStart: 0, olDone: false, gbDone: false, loading: false, found: new Map() };
+  showResults();
+  loadMore();
+}
+
+// ask both catalogs for their next 20 (at the same time); a catalog that fails or runs out is left out after that
+async function loadMore() {
+  const s = search;
+  if (!s || s.loading || (s.olDone && s.gbDone)) return;
+  if (!navigator.onLine) { s.olDone = s.gbDone = true; s.offline = true; showResults(); return; }
+  s.loading = true; showResults();
+  const [ol, gb] = await Promise.allSettled([
+    s.olDone ? Promise.resolve([]) : olResults(s.q, s.olPage),
+    s.gbDone ? Promise.resolve([]) : gbResults(s.q, s.gbStart)]);
+  if (s.run !== searchRun) return;   // you've searched for something else since
+  s.loading = false;
+  const olList = ol.status === "fulfilled" ? ol.value : [], gbList = gb.status === "fulfilled" ? gb.value : [];
+  if (ol.status === "rejected") { s.olDone = true; s.olFailed = true; }
+  if (gb.status === "rejected") { s.gbDone = true; s.gbFailed = true; }
+  if (!s.olDone) { s.olPage++; if (olList.length < PAGE) s.olDone = true; }
+  if (!s.gbDone) { s.gbStart += PAGE; if (gbList.length < PAGE) s.gbDone = true; }
+  // take turns (Open Library's 1st, Google's 1st, …), so the best matches of both come first
+  const mixed = [];
+  for (let n = 0; n < Math.max(olList.length, gbList.length); n++) { if (olList[n]) mixed.push(olList[n]); if (gbList[n]) mixed.push(gbList[n]); }
+  addResults(mixed);
+  showResults();
+}
+
+// draw the results: "Read in Qarbon" (library books matching what you typed, or found by the catalogs) then "More books"
+function showResults() {
+  const box = $("bs-results"), msg = $("bs-msg"), more = $("bs-more");
+  box.innerHTML = "";
+  more.hidden = true;
+  if (!search) return;
+  const words = plainText(search.q).split(" ").filter(Boolean);
+  const readable = BOOK_LIBRARY.filter(lb => { const t = plainText(lb.title + " " + lb.author); return words.every(w => t.includes(w)); });
+  const others = [];
+  for (const r of search.found.values()) {
+    const lb = libraryMatch(r);
+    if (lb) { if (!readable.includes(lb)) readable.push(lb); } else others.push(r);
+  }
+  const section = (label, rows) => {
+    if (!rows.length) return;
+    const h = document.createElement("div"); h.className = "shelf"; h.textContent = label;
+    box.appendChild(h);
+    rows.forEach(row => box.appendChild(row));
+  };
+  section("Read in Qarbon", readable.map(lb => resultRow({ title: lb.title, authors: [lb.author], year: lb.meta.year, cover: lb.meta.cover },
+                                                          () => readLibraryBook(lb), true)));
+  section(readable.length ? "More books" : "Books", others.map(r => resultRow(r, () => pickResult(r))));
+  const s = search, none = !readable.length && !others.length;
+  msg.textContent = s.offline ? "You're offline. Books you can read in Qarbon still show; connect to search everything."
+    : s.loading && none ? "Searching…"
+    : s.olFailed && s.gbFailed && none ? "Couldn't reach the book catalogs. Check your internet connection and try again."
+    : none && s.olDone && s.gbDone ? "No books found. Try other words, or add it by hand below."
+    : "Tap a book to " + (others.length ? "add it" : "read it") + ":";
+  // the "more" row at the end: scrolling it into view loads the next 20 (you can tap it too)
+  if (!(s.olDone && s.gbDone) || s.loading) {
+    more.hidden = false;
+    more.textContent = s.loading ? "Loading…" : "More results";
+    more.disabled = s.loading;
+  }
+}
+
+// one result: cover, title, "author · year", and a badge when you can read it here
+function resultRow(r, onPick, readable) {
+  const b = document.createElement("button"); b.className = "bsres";
+  const src = r.cover ? coverUrl(r.cover, "S") : r.coverUrl;
+  if (src) {
+    const img = document.createElement("img"); img.alt = ""; img.loading = "lazy"; img.src = src;
+    img.onerror = () => { img.className = "nocover"; img.removeAttribute("src"); };
+    b.appendChild(img);
+  } else { const none = document.createElement("span"); none.className = "nocover"; b.appendChild(none); }
+  const text = document.createElement("span");
+  const t = document.createElement("b"); t.textContent = r.title;
+  const by = document.createElement("small");
+  by.textContent = [r.authors.join(", "), r.year].filter(Boolean).join(" · ");
+  text.append(t, by);
+  if (readable) { const badge = document.createElement("span"); badge.className = "badge"; badge.textContent = "📖 Read in Qarbon"; text.appendChild(badge); }
+  else if (r.from) { const f = document.createElement("small"); f.className = "src"; f.textContent = r.from.join(" + "); text.appendChild(f); }
+  b.appendChild(text);
+  b.onclick = onPick;
+  return b;
+}
+
+function clearSearch() {
+  clearTimeout(typingTimer); ++searchRun; search = null;
+  $("bs-q").value = ""; $("bs-msg").textContent = ""; showResults();
+}
+
 // fill in the add-book form from a search result, then look for chapter names
-async function pickResult(d) {
+async function pickResult(r) {
   const run = ++pickRun;
   openBookForm(null);
-  $("bf-title").value = d.title || "";
-  $("bf-author").value = (d.author_name || []).slice(0, 2).join(", ");
-  pendingMeta = cleanMeta({ year: d.first_publish_year, openLibrary: d.key, cover: d.cover_i,
-                            pages: d.number_of_pages_median, gutenberg: (d.id_project_gutenberg || [])[0] });
-  // a book that's also in Qarbon's own library already has its chapter list (and extra details like the parts)
-  const lib = BOOK_LIBRARY.find(lb => lb.title.toLowerCase() === String(d.title || "").toLowerCase() &&
-                                     (d.author_name || []).some(a => a.toLowerCase() === lb.author.toLowerCase()));
-  if (lib) pendingMeta = cleanMeta({ ...lib.meta, ...pendingMeta });
+  $("bf-title").value = r.title;
+  $("bf-author").value = r.authors.join(", ");
+  pendingMeta = cleanMeta({ year: r.year, openLibrary: r.olKey, cover: r.cover, coverUrl: r.coverUrl, pages: r.pages, gutenberg: r.gutenberg });
   $("bf-msg").textContent = "Looking for a chapter list…";
-  const chapters = lib ? lib.chapters.slice() : await findChapters(d.key);
+  const chapters = await findChapters(r.olKey);
   if (run !== pickRun || $("bookform").hidden || editingBook) return;   // you've moved on since
   if (chapters.length) {
     $("bf-chapters").value = chapters.join("\n");
     $("bf-count").value = chapters.length;
     $("bf-msg").textContent = "Found " + chapters.length + " chapters. Check them, then press Save.";
   } else {
-    $("bf-msg").textContent = "Open Library has no chapter list for this book. Enter the number of chapters (or their names), then press Save.";
+    $("bf-msg").textContent = "No chapter list found for this book. Enter the number of chapters (or their names), then press Save.";
   }
 }
 
@@ -107,8 +257,14 @@ async function findChapters(workKey) {
   return [];
 }
 
-$("bs-go").onclick = searchBooks;
-$("bs-q").addEventListener("keydown", e => { if (e.key === "Enter") searchBooks(); });
+$("bs-q").addEventListener("input", searchTyped);
+$("bs-q").addEventListener("keydown", e => {
+  if (e.key === "Enter") { const q = $("bs-q").value.trim(); if (q.length >= 2) startSearch(q); }
+});
+$("bs-more").onclick = loadMore;
+// scrolling the "More results" row into view loads the next 20 (an IntersectionObserver watches when it shows up)
+if ("IntersectionObserver" in window)
+  new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) loadMore(); }, { rootMargin: "300px" }).observe($("bs-more"));
 
 // ================= Reading tracker =================
 // Your books, each with a list of chapters and how many you've finished (book.done).
@@ -147,10 +303,10 @@ function renderBooks() {
 // the top of a book card: its cover (when we know it), title, and "by author · year · pages"
 function bookHead(b, extra) {
   const head = document.createElement("div"); head.className = "bookhead";
-  if (b.meta && b.meta.cover) {
+  if (b.meta && (b.meta.cover || b.meta.coverUrl)) {
     const img = document.createElement("img");
     img.className = "cover"; img.alt = ""; img.loading = "lazy";
-    img.src = coverUrl(b.meta.cover, "M");
+    img.src = b.meta.cover ? coverUrl(b.meta.cover, "M") : b.meta.coverUrl;
     img.onerror = () => img.remove();   // offline, or no cover: just leave it out
     head.appendChild(img);
   }
@@ -164,32 +320,58 @@ function bookHead(b, extra) {
   return head;
 }
 
-// library books you haven't added yet, each with a "+ Add" button
+// ================= the "Read in Qarbon" shelf =================
+// Every library book as a cover in a grid (3 across). Tapping one adds it to your books (if it isn't there
+// yet) and opens it in the reader. The first 6 show; "Show all" opens the rest.
+let shelfAll = false;   // true after you tap "Show all"
+
+// the book in your list that is this library book (same id on every device, or the same title)
+const libraryBookOf = lb => state.books.find(x => x.id === "lib-" + lb.meta.textId || x.title.toLowerCase() === lb.title.toLowerCase());
+
+function addLibraryBook(lb) {
+  let b = libraryBookOf(lb);
+  if (b) return b;
+  // library books get the same id on every device (like "lib-siddhartha"), so syncing sees they're one book
+  b = { id: "lib-" + lb.meta.textId, title: lb.title, author: lb.author, chapters: lb.chapters.slice(), open: false,
+        done: 0, minutes: 0, sessions: 0, added: today(), finished: "", log: [], meta: { ...lb.meta } };
+  state.books.push(b);
+  save();
+  return b;
+}
+const readLibraryBook = lb => openReader(addLibraryBook(lb));
+
+// a cover button: the photo from Open Library on top of a plain title card (which shows when you're offline)
+function shelfCover(lb) {
+  const btn = document.createElement("button"); btn.className = "shelfbook";
+  btn.setAttribute("aria-label", "Read " + lb.title + " by " + lb.author);
+  const cv = document.createElement("span"); cv.className = "cv";
+  const plain = document.createElement("span"); plain.className = "plain"; plain.textContent = lb.title;
+  cv.appendChild(plain);
+  const img = document.createElement("img"); img.alt = ""; img.loading = "lazy"; img.src = coverUrl(lb.meta.cover, "M");
+  img.onerror = () => img.remove();
+  cv.appendChild(img);
+  const t = document.createElement("span"); t.className = "st"; t.textContent = lb.title;
+  btn.append(cv, t);
+  if (libraryBookOf(lb)) { const mine = document.createElement("span"); mine.className = "mine"; mine.textContent = "✓ In my books"; btn.appendChild(mine); }
+  btn.onclick = () => readLibraryBook(lb);
+  return btn;
+}
+
 function renderLibrary() {
   const box = $("library");
   box.innerHTML = "";
-  const have = b => state.books.some(x => x.title.toLowerCase() === b.title.toLowerCase());
-  const left = BOOK_LIBRARY.filter(b => !have(b));
-  if (!left.length) return;
-  const h = document.createElement("div"); h.className = "shelf"; h.textContent = "From the library";
-  box.appendChild(h);
-  left.forEach(lb => {
-    const card = document.createElement("div"); card.className = "book";
-    const head = bookHead(lb, lb.chapters.length + " chapters");
-    const btns = document.createElement("div"); btns.className = "bookbtns";
-    const add = document.createElement("button"); add.className = "read"; add.textContent = "+ Add to my books";
-    add.onclick = () => {
-      // library books get the same id on every device (like "lib-siddhartha"), so syncing sees they're one book
-      const id = lb.meta.textId ? "lib-" + lb.meta.textId : "book-" + Date.now();
-      state.books.push({ id, title: lb.title, author: lb.author, chapters: lb.chapters.slice(), open: false,
-                         done: 0, minutes: 0, sessions: 0, added: today(), finished: "", log: [], meta: { ...lb.meta } });
-      save();
-      renderBooks();
-    };
-    btns.appendChild(add);
-    card.append(head, btns);
-    box.appendChild(card);
-  });
+  const h = document.createElement("div"); h.className = "shelf";
+  h.textContent = "Read in Qarbon · " + BOOK_LIBRARY.length + " free books";
+  const grid = document.createElement("div"); grid.className = "shelfgrid";
+  (shelfAll ? BOOK_LIBRARY : BOOK_LIBRARY.slice(0, 6)).forEach(lb => grid.appendChild(shelfCover(lb)));
+  box.append(h, grid);
+  if (BOOK_LIBRARY.length > 6) {
+    const more = document.createElement("button"); more.className = "shelfmore";
+    more.textContent = shelfAll ? "Show fewer ▴" : "Show all " + BOOK_LIBRARY.length + " ▾";
+    more.setAttribute("aria-expanded", shelfAll);
+    more.onclick = () => { shelfAll = !shelfAll; renderLibrary(); };
+    box.appendChild(more);
+  }
 }
 
 function bookCard(b) {
@@ -323,7 +505,7 @@ $("bf-save").onclick = () => {
     state.books.push({ id, title, author: $("bf-author").value.trim(), chapters, done: 0, open,
                        minutes: 0, sessions: 0, added: today(), finished: "", log: [], meta: pendingMeta || {} });
     if (pendingMeta) {   // added from a search: clear the search away
-      $("bs-q").value = ""; $("bs-msg").textContent = ""; $("bs-results").innerHTML = "";
+      clearSearch();
     }
   }
   save();
@@ -434,7 +616,8 @@ $("logo").onclick = () => show("home");   // tapping the Qarbon logo also takes 
 // Two kinds: a book's built-in text (like Siddhartha), chapter by chapter, or a PDF you attached to a book.
 // Where you stopped is kept in book.place (so it syncs). Reading time counts while the reader is open and
 // you're actually reading (it pauses after 3 minutes without scrolling or tapping).
-const BOOK_TEXT_FILES = { siddhartha: "js/books/siddhartha.js" };   // book texts that come with Qarbon
+// book texts that come with Qarbon: one file per library book, like js/books/siddhartha.js
+const BOOK_TEXT_FILES = Object.fromEntries(BOOK_LIBRARY.map(b => [b.meta.textId, "js/books/" + b.meta.textId + ".js"]));
 const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";   // Mozilla's PDF viewer (loaded only when needed)
 const VERSION = (BUILD.match(/build (\d+)/) || [])[1] || "1";
 let reader = null;   // the open book: { b, kind: "text" | "pdf", text, ch, pdf, page, pages, zoom, from, minutes }
@@ -539,7 +722,11 @@ function showChapter(i, y = 0) {
   if (c.part) add("p", "rd-part", c.part);
   if (c.dedication) add("p", "rd-ded", c.dedication);
   add("h2", "", c.title);
-  c.paragraphs.forEach(p => add("p", "", p));
+  // a paragraph can also be a small heading ("## May 4", the date of a letter), a scene break ("* * *"),
+  // or a poem (its lines are kept: they're separated by line breaks, "\n")
+  c.paragraphs.forEach(p => p.startsWith("## ") ? add("h3", "", p.slice(3))
+                          : p === "* * *" ? add("p", "rd-break", "* * *")
+                          : add("p", p.includes("\n") ? "rd-verse" : "", p));
   if (i === t.chapters.length - 1 && t.note) add("p", "rd-note", t.note);
   $("rd-where").textContent = "Chapter " + (i + 1) + " of " + t.chapters.length;
   $("rd-prev").disabled = i === 0; $("rd-prev").setAttribute("aria-label", "Previous chapter");

@@ -426,14 +426,15 @@
         <button id="rd-next" aria-label="Next">▶</button>
       </div>
     </div>
-    <!-- search Open Library and fill in a book's details -->
+    <!-- search Open Library + Google Books as you type, and fill in a book's details -->
     <div id="booksearch">
       <div class="searchrow">
-        <input type="search" id="bs-q" placeholder="Search books by title or author" autocomplete="off" enterkeyhint="search">
-        <button id="bs-go">Search</button>
+        <input type="search" id="bs-q" placeholder="Search any book by title or author" autocomplete="off" enterkeyhint="search"
+               aria-label="Search books">
       </div>
-      <p id="bs-msg"></p>
+      <p id="bs-msg" aria-live="polite"></p>
       <div id="bs-results"></div>
+      <button id="bs-more" hidden>More results</button>
     </div>
     <p id="readingmsg"></p>
     <div id="booklist"></div>

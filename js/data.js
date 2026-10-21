@@ -25,6 +25,8 @@ function cleanMeta(m) {
   if (Number(m.gutenberg)) out.gutenberg = Number(m.gutenberg);
   if (typeof m.openLibrary === "string" && /^\/works\/OL\d+W$/.test(m.openLibrary)) out.openLibrary = m.openLibrary;
   if (Number(m.cover)) out.cover = Number(m.cover);
+  // a cover from Google Books (only their own image addresses)
+  if (typeof m.coverUrl === "string" && /^https:\/\/books\.google(usercontent)?\.com\/[^\s"'<>]{1,400}$/.test(m.coverUrl)) out.coverUrl = m.coverUrl;
   if (typeof m.parts === "string") out.parts = m.parts.slice(0, 200);
   if (Number(m.pages)) out.pages = Math.round(Number(m.pages));
   if (typeof m.textId === "string" && /^[a-z0-9-]+$/.test(m.textId)) out.textId = m.textId;   // a built-in text to read in Qarbon

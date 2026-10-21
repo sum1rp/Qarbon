@@ -332,10 +332,29 @@
   .bsres img, .bsres .nocover { width:36px; height:54px; object-fit:cover; border-radius:4px; flex:none; }
   .bsres .nocover { background:rgba(255,255,255,.06); }
   .bsres b { display:block; font-weight:600; }
-  .bsres small { color:var(--muted); }
+  .bsres small { color:var(--muted); display:block; }
+  .bsres .src { font-size:.72rem; opacity:.8; }
+  .bsres .badge { display:inline-block; margin-top:4px; padding:2px 9px; border-radius:999px; background:var(--accent-fill);
+                  color:#fff; font-size:.74rem; font-weight:600; }
+  #bs-results .shelf { margin:6px 0 -2px; }
+  #bs-more { align-self:center; min-height:44px; border-radius:999px; padding:0 18px; }
   .book .by, .book small { color:var(--muted); font-size:.85rem; }
   .book a { color:#6fc3ff; font-size:.85rem; }
   #library { display:flex; flex-direction:column; gap:12px; }
+  /* the "Read in Qarbon" shelf: covers in a grid, 3 across */
+  .shelfgrid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px 10px; margin-top:4px; }
+  .shelfbook { display:flex; flex-direction:column; gap:5px; padding:0; border:none; background:none; border-radius:8px;
+               text-align:left; font-size:.78rem; line-height:1.25; color:var(--text); min-height:0; }
+  .shelfbook .cv { position:relative; display:block; aspect-ratio:2/3; border-radius:6px; overflow:hidden;
+                   background:linear-gradient(160deg, var(--raised), var(--surface)); box-shadow:0 2px 10px rgba(0,0,0,.55);
+                   border:1px solid var(--line); transition:transform .15s; }
+  .shelfbook:hover .cv { transform:translateY(-2px); }
+  .shelfbook .cv img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  /* the plain title card under the photo (seen when the photo can't load) */
+  .shelfbook .plain { position:absolute; inset:10% 10%; display:flex; align-items:center; justify-content:center; text-align:center;
+                      font:italic 600 .9rem Georgia, serif; color:var(--muted); }
+  .shelfbook .mine { color:#2fbf9b; font-size:.72rem; font-weight:600; }
+  .shelfmore { align-self:center; min-height:44px; border-radius:999px; padding:0 18px; }
   #library:empty { display:none; }
   /* the progress bar: a track with a colored fill whose width is the percent of chapters done */
   .bar { height:10px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; }
@@ -619,6 +638,9 @@
 #rd-text p { margin:0 0 1em; hyphens:auto; -webkit-hyphens:auto; }
 #rd-text .rd-part { margin:0; text-align:center; font:600 .7em system-ui, sans-serif; letter-spacing:.22em; text-transform:uppercase; color:var(--muted); }
 #rd-text .rd-ded { margin:.4em 0 1.8em; text-align:center; font-style:italic; color:var(--muted); }
+#rd-text h3 { margin:1.6em 0 .6em; font:600 .8em system-ui, sans-serif; letter-spacing:.08em; color:var(--muted); }
+#rd-text .rd-break { text-align:center; color:var(--muted); letter-spacing:.5em; margin:1.4em 0; }
+#rd-text .rd-verse { white-space:pre-line; padding-left:1.2em; font-style:italic; hyphens:manual; -webkit-hyphens:manual; }
 #rd-text .rd-note { margin-top:2em; font:.75em system-ui, sans-serif; color:var(--muted); text-align:center; }
 #rd-pdf { overflow:auto; background:var(--surface); border:1px solid var(--line); border-radius:14px; -webkit-overflow-scrolling:touch; }
 #rd-pdf[hidden] { display:none; }
