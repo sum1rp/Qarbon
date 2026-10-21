@@ -52,7 +52,7 @@ function dailyList() {
 
 function setMode(m, list) {
   mode = m;
-  if (m === "deck" || m === "focus" || m === "reading") { render(); return; }
+  if (m === "deck" || m === "focus" || m === "reading" || m === "media") { render(); return; }
   if (m === "daily") queue = dailyList();
   if (m === "practice") {
     queue = shuffle(list.flatMap(c => dirsOf(stack).map(dir => ({ c, dir }))));
@@ -97,12 +97,14 @@ function render() {
   $("deckview").hidden = mode !== "deck";
   $("focus").hidden = mode !== "focus";
   $("reading").hidden = mode !== "reading";
+  $("media").hidden = mode !== "media";
   $("timer").hidden = mode === "focus";   // in ⏱ Focus the big clock replaces the small timer dropdown
   $("burnview").hidden = mode !== "burn";
   $("modeselect").value = mode;           // the Mode menu always shows where you are
   updateDiag();
   if (mode === "deck") { renderDeck(); return; }
   if (mode === "reading") { renderBooks(); return; }
+  if (mode === "media") { renderMedia(); return; }
   if (mode === "burn" || mode === "focus") return;   // these draw their own screens
 
   const left = queue.length + (current ? 1 : 0);

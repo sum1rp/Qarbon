@@ -48,6 +48,12 @@ let played = [];
 let playedPos = -1;       // which entry of played is the one playing now (-1: none)
 let mySongs = [];         // your own music files on this device: { id, name, title, artist, album, cover, added }
 let songIndex = -1;       // which of mySongs is loaded in the <audio> (-1: none)
+// the list you're playing from (song numbers in mySongs: an album, an artist... chosen on the 🎧 Media iPod).
+// ⏮ ⏭ and "3 of 12" stay inside it. null = all your songs, in the order you added them.
+let songList = null;
+let linkPlaying = false;  // is the YouTube/SoundCloud player playing right now? (the players tell us, see the messages below)
+// other parts of the app that want to know when the music changes (the iPod in js/media.js): renderMusic calls each one
+const musicWatchers = [];
 let shuffleOn = false, repeatMode = "off";   // repeat: "off", "all" (start the list again) or "one" (this song again)
 const audio = $("songaudio");
 
@@ -118,7 +124,7 @@ function musicPanelHTML() {
 const musicPanels = () => [...document.querySelectorAll(".musicpanel")];
 musicPanels().forEach(p => { p.querySelector(".musicbody").innerHTML = musicPanelHTML(); });
 const fitIfStudying = () => { if (!$("study").hidden && cardShowing()) fitCard(); };
-const musicMsg = text => musicPanels().forEach(p => { p.querySelector(".musicmsg").textContent = text; });
+const musicMsg = text => document.querySelectorAll(".musicmsg").forEach(m => { m.textContent = text; });   // the panels and the iPod's
 
 // ================= showing everything in both panels =================
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -137,7 +143,8 @@ function renderMusic() {
       p.querySelector(".cover").innerHTML = coverURL ? `<img alt="" src="${coverURL}">` : "♪";
       p.querySelector(".ftitle").textContent = songName(file);
       p.querySelector(".fartist").textContent = [file.artist, file.album].filter(Boolean).join(" · ");
-      p.querySelector(".fcount").textContent = (songIndex + 1) + " of " + mySongs.length;
+      const list = playingList();
+      p.querySelector(".fcount").textContent = (list.indexOf(songIndex) + 1) + " of " + list.length;
     }
     p.querySelector(".musicnav").hidden = !hasNav && !file;
     p.querySelector(".musicprev").textContent = file ? "⏮" : "⏮ Previous";
@@ -175,6 +182,7 @@ function renderMusic() {
   $("focusnow").textContent = now || "Add music";
   $("focusnow").classList.toggle("empty", !now);
   updateProgress();
+  musicWatchers.forEach(f => f());
 }
 
 // the progress bar and times of your own song (about 4 times a second while it plays)
@@ -199,6 +207,7 @@ function showMusic(autoplay) {
   const src = m ? m.src + (autoplay ? (m.kind === "YouTube" ? "&autoplay=1" : "&auto_play=true") : "") : "";
   if (!autoplay && m && host.dataset.src === m.src) { renderMusic(); return; }
   emptyPlayer();
+  linkPlaying = !!(m && autoplay);   // until the player tells us otherwise
   host.dataset.src = m ? m.src : "";
   if (m) {
     const f = document.createElement("iframe");
@@ -267,6 +276,12 @@ addEventListener("message", e => {
   try { d = typeof e.data === "string" ? JSON.parse(e.data) : e.data; } catch (err) { return; }
   if (!d) return;
   const m = musicEmbed(state.music);
+  // playing or paused? YouTube: playerState 1 = playing. SoundCloud: its play / pause / finish events.
+  const was = linkPlaying;
+  if (e.origin === YT_ORIGIN && d.info && typeof d.info.playerState === "number") linkPlaying = d.info.playerState === 1;
+  if (e.origin === YT_ORIGIN && d.event === "onStateChange" && typeof d.info === "number") linkPlaying = d.info === 1;
+  if (e.origin === SC_ORIGIN && ["play", "pause", "finish"].includes(d.method)) linkPlaying = d.method === "play";
+  if (linkPlaying !== was) renderMusic();
   if (e.origin === YT_ORIGIN && d.info && d.info.videoData && d.info.videoData.video_id && d.info.videoData.title) {
     const v = d.info.videoData;
     notePlayed({ key: "yt:" + v.video_id, kind: "YouTube", title: v.title,
@@ -274,7 +289,10 @@ addEventListener("message", e => {
   }
   if (e.origin === SC_ORIGIN) {
     const say = msg => f.contentWindow.postMessage(JSON.stringify(msg), SC_ORIGIN);
-    if (d.method === "ready") { say({ method: "addEventListener", value: "play" }); say({ method: "getCurrentSound" }); }
+    if (d.method === "ready") {
+      ["play", "pause", "finish"].forEach(value => say({ method: "addEventListener", value }));
+      say({ method: "getCurrentSound" });
+    }
     if (d.method === "play") say({ method: "getCurrentSound" });
     if (d.method === "getCurrentSound" && d.value && d.value.permalink_url) {
       const u = new URL(d.value.permalink_url);
@@ -290,6 +308,20 @@ function musicCommand(which) {
   if (m.kind === "YouTube")
     f.contentWindow.postMessage(JSON.stringify({ event: "command", func: which === "next" ? "nextVideo" : "previousVideo", args: [] }), YT_ORIGIN);
   else f.contentWindow.postMessage(JSON.stringify({ method: which }), SC_ORIGIN);
+}
+
+// ▶❚❚ for whatever is loaded: your song, or the YouTube/SoundCloud player (asked with each site's official message)
+function musicToggle() {
+  if (musicKind === "file") {
+    if (songIndex < 0) return;
+    if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+    return;
+  }
+  const f = $("playerhost").querySelector("iframe"), m = state.music && musicEmbed(state.music);
+  if (!f || !m) return;
+  if (m.kind === "YouTube")
+    f.contentWindow.postMessage(JSON.stringify({ event: "command", func: linkPlaying ? "pauseVideo" : "playVideo", args: [] }), YT_ORIGIN);
+  else f.contentWindow.postMessage(JSON.stringify({ method: "toggle" }), SC_ORIGIN);
 }
 
 // play a YouTube/SoundCloud link (pasted, or chosen again from the Played list)
@@ -427,6 +459,7 @@ async function addSongs(files) {
     }
   }
   if (!added.length) return;
+  songList = null;   // play through all your songs
   // ask the browser to keep these files even when space runs low (Safari may otherwise clear them after a while)
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   renderMusic();
@@ -448,6 +481,9 @@ async function removeSong(i) {
   } catch (e) {}
   mySongs.splice(i, 1);
   if (songIndex > i) songIndex--;
+  // the list being played: take this song out, and the songs after it move up one number
+  if (songList) songList = songList.filter(n => n !== i).map(n => n > i ? n - 1 : n);
+  if (songList && !songList.length) songList = null;
   played = played.filter(p => p.fileId !== s.id);
   renderMusic();
 }
@@ -484,16 +520,25 @@ function stopFile() {
   musicKind = "link";
   if ("mediaSession" in navigator) navigator.mediaSession.metadata = null;
 }
-// the next / previous of your songs (shuffle: any other one)
+// the list being played (see songList): song numbers in mySongs
+const playingList = () => songList || mySongs.map((s, i) => i);
+// play the song at place pos of a list (an album, an artist...), and keep ⏮ ⏭ inside that list
+function playFrom(list, pos) {
+  songList = list;
+  playSong(list[pos]);
+}
+// the next / previous song in the list (shuffle: any other one in it)
 function stepSong(dir) {
-  if (!mySongs.length) return;
-  if (shuffleOn && mySongs.length > 1) { let n; do n = Math.floor(Math.random() * mySongs.length); while (n === songIndex); return playSong(n); }
-  playSong((songIndex + dir + mySongs.length) % mySongs.length);
+  const list = playingList();
+  if (!list.length) return;
+  if (shuffleOn && list.length > 1) { let n; do n = list[Math.floor(Math.random() * list.length)]; while (n === songIndex); return playSong(n); }
+  const pos = list.indexOf(songIndex);   // -1 if the song isn't in the list: then ⏭ starts at its beginning
+  playSong(list[(pos + dir + list.length) % list.length]);
 }
 audio.addEventListener("ended", () => {
   if (musicKind !== "file") return;
   if (repeatMode === "one") { audio.currentTime = 0; audio.play().catch(() => {}); }
-  else if (shuffleOn || repeatMode === "all" || songIndex < mySongs.length - 1) stepSong(1);
+  else if (shuffleOn || repeatMode === "all" || playingList().indexOf(songIndex) < playingList().length - 1) stepSong(1);
   else renderMusic();   // the end of the list: stop
 });
 audio.addEventListener("play", renderMusic);
@@ -514,7 +559,7 @@ if ("mediaSession" in navigator) {
 function playPlayed(i) {
   const s = played[i];
   if (!s) return;
-  if (s.kind === "File") { const n = mySongs.findIndex(x => x.id === s.fileId); if (n >= 0) playSong(n); }
+  if (s.kind === "File") { const n = mySongs.findIndex(x => x.id === s.fileId); if (n >= 0) { if (songList && !songList.includes(n)) songList = null; playSong(n); } }
   else playLink(s.link, false);
   playedPos = i;
   renderMusic();
@@ -543,7 +588,7 @@ musicPanels().forEach(p => {
     const b = e.target.closest("[data-song], [data-del], [data-played]");
     if (!b) return;
     unlockAudio();
-    if (b.dataset.song) playSong(+b.dataset.song);
+    if (b.dataset.song) { songList = null; playSong(+b.dataset.song); }   // from the panel's list: through all your songs
     else if (b.dataset.del) removeSong(+b.dataset.del);
     else playPlayed(+b.dataset.played);
   });

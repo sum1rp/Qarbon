@@ -632,3 +632,156 @@
 /* a book you can open in the reader: "📖 Open book" is the main button, the timer session becomes a plain one */
 .bookbtns .openbook { flex:1; background:linear-gradient(135deg,var(--accent-fill),var(--accent-fill-2)); color:#fff; border:none; font-weight:600; }
 .bookbtns .openbook ~ .read { flex:none; background:var(--btn-bg, var(--surface)); color:var(--text); border:1px solid var(--line); font-weight:400; }
+
+/* ---------- 🎧 Media: the iPod (js/media.js) ---------- */
+/* Everything here starts with #media and its class names with "ip-", so nothing clashes with the rest of the app.
+   Sizes inside the iPod are in "cqw": 1cqw = 1% of the iPod's width (it's a "container"), so the whole iPod
+   shrinks and grows as one piece, like a photo. The real iPod Video is 61.8 x 103.5 mm: 1 : 1.675. */
+#media { width:100%; display:flex; flex-direction:column; align-items:center; gap:12px; }
+#media .ipod { --ip-w:min(300px, calc(100vw - 40px), calc((100svh - 196px) / 1.675));
+  position:relative; width:max(236px, var(--ip-w)); aspect-ratio:61.8 / 103.5; box-sizing:border-box; flex:none;
+  container-type:inline-size; padding:.9%; border-radius:13% / 7.8%;
+  /* the polished steel back, showing as a thin edge around the front */
+  background:linear-gradient(135deg, #f4f6f8 0%, #9aa1a9 22%, #eef1f4 45%, #7b828a 70%, #dfe3e7 100%);
+  box-shadow:0 2px 3px rgba(0,0,0,.5), 0 22px 50px rgba(0,0,0,.65); user-select:none; -webkit-user-select:none;
+  -webkit-touch-callout:none; }
+/* the front: glossy plastic, white or black, with a soft shine across the top */
+#media .ip-face { position:relative; width:100%; height:100%; border-radius:12.4% / 7.4%; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center;
+  background:var(--ip-front); box-shadow:inset 0 0 0 .35cqw var(--ip-rim), inset 0 -2cqw 5cqw rgba(0,0,0,.08); }
+#media .ip-face::after { content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
+  background:linear-gradient(118deg, rgba(255,255,255,var(--ip-gloss)) 0%, rgba(255,255,255,0) 38%),
+             radial-gradient(120% 40% at 50% 0%, rgba(255,255,255,calc(var(--ip-gloss) * .6)), transparent 70%); }
+
+/* the three fronts */
+#media .ipod[data-skin="white"] { --ip-front:linear-gradient(180deg, #ffffff 0%, #f6f6f4 45%, #e7e7e3 100%); --ip-rim:rgba(255,255,255,.9);
+  --ip-gloss:.0; --ip-wheel:radial-gradient(circle at 50% 38%, #fafaf8 0%, #efefec 55%, #dededa 100%);
+  --ip-wheel-edge:rgba(0,0,0,.10); --ip-label:#7f8287; --ip-center:radial-gradient(circle at 50% 30%, #ffffff 0%, #f7f7f5 55%, #e4e4e0 100%);
+  --ip-bezel:#1a1a1c; }
+#media .ipod[data-skin="black"] { --ip-front:linear-gradient(180deg, #2a2a2e 0%, #0e0e10 40%, #050506 100%); --ip-rim:rgba(255,255,255,.12);
+  --ip-gloss:.16; --ip-wheel:radial-gradient(circle at 50% 38%, #313134 0%, #222225 60%, #18181a 100%);
+  --ip-wheel-edge:rgba(0,0,0,.6); --ip-label:#d6d6da; --ip-center:radial-gradient(circle at 50% 28%, #3a3a3e 0%, #121214 60%, #050506 100%);
+  --ip-bezel:#000; }
+#media .ipod[data-skin="u2"] { --ip-front:linear-gradient(180deg, #2a2a2e 0%, #0e0e10 40%, #050506 100%); --ip-rim:rgba(255,255,255,.12);
+  --ip-gloss:.16; --ip-wheel:radial-gradient(circle at 50% 38%, #e0262f 0%, #c3141d 58%, #a10e16 100%);
+  --ip-wheel-edge:rgba(0,0,0,.55); --ip-label:#111; --ip-center:radial-gradient(circle at 50% 28%, #3a3a3e 0%, #121214 60%, #050506 100%);
+  --ip-bezel:#000; }
+
+/* ----- the screen: a backlit 320 x 240 LCD (4:3) behind a dark window ----- */
+#media .ip-screen { position:relative; margin-top:7cqw; padding:1.8cqw; border-radius:2.2cqw; background:var(--ip-bezel);
+  box-shadow:inset 0 .4cqw 1cqw rgba(0,0,0,.8), 0 0 0 .3cqw rgba(0,0,0,.18); }
+#media .ip-lcd { position:relative; width:80cqw; height:60cqw; overflow:hidden; background:#fff; color:#000;
+  font-family:"Helvetica Neue", "Myriad Pro", Helvetica, Arial, system-ui, sans-serif; text-align:left;
+  display:flex; flex-direction:column; }
+/* the reflection on the plastic over the screen */
+#media .ip-screen::after { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(155deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,.06) 42%, rgba(255,255,255,0) 43%); }
+
+/* the title bar: ▶ (or ❚❚) on the left, the title in the middle, the battery on the right */
+#media .ip-head { flex:none; height:7.8cqw; display:grid; grid-template-columns:9cqw 1fr 9cqw; align-items:center;
+  padding:0 1.8cqw; background:linear-gradient(180deg, #fdfdfd 0%, #eef0f2 45%, #d4d9df 100%);
+  border-bottom:.3cqw solid #8b97a4; }
+#media .ip-title { text-align:center; font-weight:700; font-size:4.1cqw; letter-spacing:-.01em; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; }
+#media .ip-state { width:3.4cqw; height:3.4cqw; color:#2c6bd6; }
+#media .ip-state svg { display:block; width:100%; height:100%; }
+#media .ip-batt { justify-self:end; position:relative; width:6.4cqw; height:3.2cqw; box-sizing:border-box;
+  border:.35cqw solid #5f6670; border-radius:.6cqw; background:#fff; }
+#media .ip-batt::after { content:""; position:absolute; right:-1.1cqw; top:.7cqw; width:.7cqw; height:1.1cqw; background:#5f6670;
+  border-radius:0 .3cqw .3cqw 0; }
+#media .ip-batt i { position:absolute; left:.25cqw; top:.25cqw; bottom:.25cqw; width:calc(var(--lvl, 1) * (100% - .5cqw));
+  border-radius:.2cqw; background:linear-gradient(180deg, #b6f08a 0%, #5cc22b 50%, #3c9a14 100%); }
+#media .ip-batt.low i { background:linear-gradient(180deg, #ffb3a8 0%, #e5432f 55%, #b8261a 100%); }
+
+/* ----- menus: 7 rows; the chosen one is the iPod's blue, with › for "more inside" ----- */
+#media .ip-body { position:relative; flex:1; min-height:0; }
+#media .ip-list { position:absolute; inset:0; }
+#media .ip-row { height:calc(52.2cqw / 7); display:flex; align-items:center; gap:1.5cqw; padding:0 2.6cqw 0 2.2cqw;
+  font-size:4cqw; font-weight:700; white-space:nowrap; cursor:pointer; }
+#media .ip-row .ip-l { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+#media .ip-row .ip-v { flex:none; font-weight:400; color:#333; }
+#media .ip-row .ip-more { flex:none; width:2cqw; height:3cqw; }
+#media .ip-row.ip-dim { color:#7a7f86; font-weight:400; cursor:default; }
+#media .ip-row.ip-on { color:#fff; background:linear-gradient(180deg, #6eb0f5 0%, #3b8be6 48%, #1f6fd6 52%, #2e7fe0 100%); }
+#media .ip-row.ip-on .ip-v { color:#fff; }
+#media .ip-row.ip-playing .ip-l::after { content:" ♪"; font-weight:400; }
+/* the scroll bar on the right, only when the list is longer than the screen */
+#media .ip-scroll { position:absolute; top:0; right:0; bottom:0; width:2cqw; background:linear-gradient(90deg, #e6e9ed, #fbfcfd);
+  border-left:.25cqw solid #b9c0c8; }
+#media .ip-scroll i { position:absolute; left:.3cqw; right:.3cqw; border-radius:1cqw;
+  background:linear-gradient(90deg, #7fb6f0, #3f86d9); }
+#media .ip-list.ip-scrolls .ip-row { padding-right:4.6cqw; }
+
+/* ----- Now Playing ----- */
+#media .ip-now { position:absolute; inset:0; padding:2cqw 3cqw 2.4cqw; box-sizing:border-box; display:flex; flex-direction:column; }
+#media .ip-count { font-size:3.2cqw; font-weight:700; color:#222; }
+#media .ip-mid { flex:1; min-height:0; display:flex; gap:3.4cqw; align-items:flex-start; padding-top:1.6cqw; }
+#media .ip-art { flex:none; position:relative; width:26cqw; height:26cqw; }
+#media .ip-art img, #media .ip-art .ip-noart { display:block; width:100%; height:100%; object-fit:cover;
+  box-shadow:0 0 0 .2cqw rgba(0,0,0,.25); }
+#media .ip-noart { display:grid; place-items:center; font-size:12cqw; color:#c9ced5;
+  background:linear-gradient(160deg, #f3f5f7, #cfd5dc); }
+/* the picture's reflection, fading out, like the iPod's Cover Flow look */
+#media .ip-art .ip-refl { position:absolute; left:0; top:100%; width:100%; height:9cqw; overflow:hidden; margin-top:.5cqw;
+  -webkit-mask-image:linear-gradient(180deg, rgba(0,0,0,.35), transparent 90%); mask-image:linear-gradient(180deg, rgba(0,0,0,.35), transparent 90%); }
+#media .ip-art .ip-refl > * { transform:scaleY(-1); transform-origin:50% 50%; height:26cqw; }
+#media .ip-info { flex:1; min-width:0; display:flex; flex-direction:column; gap:1cqw; padding-top:1.4cqw; }
+#media .ip-info b, #media .ip-info span { display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; }
+#media .ip-info b { font-size:3.9cqw; -webkit-line-clamp:2; line-height:1.15; }
+#media .ip-info span { font-size:3.4cqw; -webkit-line-clamp:1; color:#333; }
+/* the progress bar: blue fill, time played on the left, time left on the right */
+#media .ip-bar { flex:none; position:relative; height:2.8cqw; margin:0 .4cqw; border:.3cqw solid #8a97a6; border-radius:.5cqw;
+  background:linear-gradient(180deg, #eef1f5, #fff); box-sizing:border-box; overflow:visible; }
+#media .ip-bar i { position:absolute; left:0; top:0; bottom:0; width:calc(var(--p, 0) * 100%);
+  background:linear-gradient(180deg, #a6d2fb 0%, #5aa2ee 45%, #2f7fdc 55%, #4f97e8 100%); }
+/* scrubbing: a diamond marks where you are */
+#media .ip-bar b { display:none; position:absolute; top:50%; left:calc(var(--p, 0) * 100%); width:3.4cqw; height:3.4cqw;
+  transform:translate(-50%, -50%) rotate(45deg); background:linear-gradient(135deg, #fff, #9fb1c4); border:.3cqw solid #3d5a7a; box-sizing:border-box; }
+#media .ip-now.ip-scrub .ip-bar b { display:block; }
+#media .ip-now.ip-scrub .ip-bar i { background:linear-gradient(180deg, #d8dde3, #aab4bf); }
+#media .ip-times { flex:none; display:flex; justify-content:space-between; font-size:3.1cqw; font-weight:700; margin-top:1cqw; }
+/* the volume bar (on a Mac): speakers at both ends */
+#media .ip-vol { display:none; flex:none; align-items:center; gap:1.6cqw; height:4.1cqw; }
+#media .ip-vol svg { width:3.4cqw; height:3.4cqw; flex:none; }
+#media .ip-vol .ip-bar { flex:1; }
+#media .ip-now.ip-volume .ip-vol { display:flex; }
+#media .ip-now.ip-volume .ip-bar.ip-pos, #media .ip-now.ip-volume .ip-times { display:none; }
+
+/* a YouTube video plays right in the screen; the player is laid over this black box (placePlayer in js/music.js) */
+#media .ip-video { position:absolute; inset:0; background:#000; color:#fff; display:flex; flex-direction:column; justify-content:center; }
+#media .ip-video .playerslot { display:block; width:100%; aspect-ratio:16 / 9; height:auto; }
+#media .ip-video p { margin:1cqw 2cqw 0; font-size:3.2cqw; font-weight:700; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* ----- the click wheel ----- */
+#media .ip-wheel { position:absolute; left:50%; top:70.9%; width:62cqw; height:62cqw; transform:translate(-50%, -50%);
+  border-radius:50%; background:var(--ip-wheel); touch-action:none; cursor:grab;
+  box-shadow:inset 0 .4cqw .8cqw rgba(255,255,255,.18), inset 0 -.5cqw 1cqw var(--ip-wheel-edge), 0 0 0 .25cqw var(--ip-wheel-edge); }
+#media .ip-wheel button { all:unset; position:absolute; display:grid; place-items:center; color:var(--ip-label); pointer-events:none;
+  font:700 4.3cqw/1 "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing:.06em; }
+#media .ip-wheel button:focus-visible { outline:.6cqw solid var(--accent); outline-offset:.6cqw; border-radius:1cqw; }
+#media .ip-wheel svg { display:block; height:4.3cqw; width:auto; fill:currentColor; }
+#media .ip-wheel .ip-menu { top:6.5%; left:50%; transform:translateX(-50%); }
+#media .ip-wheel .ip-prev { left:6.5%; top:50%; transform:translateY(-50%); }
+#media .ip-wheel .ip-next { right:6.5%; top:50%; transform:translateY(-50%); }
+#media .ip-wheel .ip-play { bottom:6.5%; left:50%; transform:translateX(-50%); }
+/* the center button: a separate, slightly domed button with a hairline gap around it */
+#media .ip-wheel .ip-center { left:50%; top:50%; width:38%; height:38%; transform:translate(-50%, -50%); border-radius:50%;
+  background:var(--ip-center); box-shadow:0 0 0 .3cqw var(--ip-wheel-edge), 0 .3cqw .6cqw rgba(0,0,0,.18), inset 0 -.4cqw .8cqw rgba(0,0,0,.08); }
+/* pressing: the part under your thumb dips a little */
+#media .ip-wheel.ip-press-c .ip-center { filter:brightness(.93); }
+#media .ip-wheel.ip-turning { cursor:grabbing; }
+
+/* ----- under the iPod: add music, and SoundCloud (too wide for the screen) ----- */
+#media .ip-add { width:100%; max-width:340px; display:flex; flex-direction:column; gap:8px; }
+#media .ip-add .filebtn { align-self:stretch; }
+#media .ip-sc { width:100%; max-width:340px; }
+#media .ip-sc .playerslot { display:block; height:166px; }
+#media .ip-hint { margin:0; color:var(--muted); font-size:.8rem; text-align:center; }
+/* the color switch under the iPod: three little swatches */
+#media .ip-skins { display:flex; gap:8px; }
+#media .ip-skins button { display:flex; align-items:center; gap:8px; min-height:44px; padding:6px 14px; font-size:.9rem; border-radius:999px; }
+#media .ip-skins button[aria-checked="true"] { border-color:var(--accent); color:var(--text); box-shadow:0 0 0 1px var(--accent); }
+#media .ip-skins i { width:16px; height:16px; border-radius:50%; flex:none; box-shadow:inset 0 0 0 1px rgba(255,255,255,.35); }
+#media .ip-skins [data-skin="white"] i { background:linear-gradient(180deg, #fff, #dcdcd8); }
+#media .ip-skins [data-skin="black"] i { background:linear-gradient(180deg, #3a3a3e, #050506); }
+#media .ip-skins [data-skin="u2"] i { background:radial-gradient(circle, #d81e27 0 45%, #0a0a0b 50%); }
