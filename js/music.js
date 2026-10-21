@@ -115,8 +115,8 @@ function musicPanelHTML() {
     </div>
     <label class="filebtn">📁 Choose music files
       <input type="file" class="musicfile" accept="audio/*,.mp3,.m4a,.aac,.wav" multiple></label>
-    <details class="mymusic" hidden><summary></summary><ol></ol></details>
     <p class="iphone">iPhone: YouTube and SoundCloud pause when the screen locks or you switch apps. Your own files usually keep going.</p>
+    <details class="mymusic" hidden><summary></summary><ol></ol></details>
     <div class="musicmsg"></div>
     <details class="played" hidden><summary></summary><ol></ol></details>
     <button class="musicclear" hidden>Remove music</button>`;
@@ -593,12 +593,14 @@ musicPanels().forEach(p => {
     else if (b.dataset.del) removeSong(+b.dataset.del);
     else playPlayed(+b.dataset.played);
   });
-  p.querySelector(".musicclear").onclick = () => {
-    if (musicKind === "file") { stopFile(); audio.removeAttribute("src"); audio.load(); }
-    else { state.music = ""; save(); }
-    showMusic(false);
-    fitIfStudying();
-  };
+  p.querySelector(".musicclear").onclick = clearMusic;
 });
+// Remove music: unload your song, or forget the YouTube/SoundCloud link (also Settings › Remove Music on the iPod)
+function clearMusic() {
+  if (musicKind === "file") { stopFile(); audio.removeAttribute("src"); audio.load(); }
+  else { state.music = ""; save(); }
+  showMusic(false);
+  fitIfStudying();
+}
 showMusic(false);
 loadMySongs();

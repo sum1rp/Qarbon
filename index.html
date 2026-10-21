@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qarbon</title>
-<link rel="stylesheet" href="css/styles.css?v=43">
+<link rel="stylesheet" href="css/styles.css?v=46">
 <!-- the atom icons: the little one in the browser tab, and the one iPhones use for "Add to Home Screen" -->
-<link rel="icon" type="image/svg+xml" href="favicon.svg?v=43">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=43">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=46">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=46">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -181,10 +181,12 @@
         <li><b>Click wheel:</b> circle your thumb around it to scroll; press the <b>center</b> to choose, <b>MENU</b> to go back, <b>⏮ ⏭</b> for the song before / after (⏮ first starts the song over), <b>▶❚❚</b> to play or pause. You can also tap a line on the screen.</li>
         <li><b>Music</b> sorts your songs into Playlists (Recently Added, Played This Session), Artists, Albums and Songs, using the names inside the files. Playing from an album or artist keeps ⏮ ⏭ in it ("3 of 12"). <b>Shuffle Songs</b> plays everything in a random order.</li>
         <li><b>Now Playing:</b> on iPhone, turning the wheel moves through the song (web pages can't change an iPhone's volume). On a Mac it changes the volume; press the center to move through the song instead.</li>
-        <li><b>Videos:</b> your YouTube and SoundCloud links. YouTube plays right in the iPod's screen; SoundCloud's player is too wide, so it plays in the music panel under the iPod.</li>
+        <li><b>Videos:</b> your YouTube and SoundCloud links (and <b>Add a Link…</b> at the end). YouTube plays right in the iPod's screen; SoundCloud's player is too wide for the small iPod, so it plays in the music panel under it (in full screen it fits in the screen).</li>
+        <li><b>Add Music</b> (in the iPod): <b>Add a Link…</b> (paste or type a YouTube / SoundCloud link, then Play), <b>Add Files…</b> (songs from your phone) and <b>On This Phone</b> (your songs: choose one to play it or remove it from the phone; removing asks first).</li>
+        <li><b>Full screen:</b> tap the small round button in the iPod's bottom corner and the iPod fills the whole screen, with everything for listening inside it. Tap it again, or hold MENU, to come back. The music keeps playing either way. On a Mac: F switches it, Esc on the main menu leaves.</li>
         <li><b>Now Playing</b> is always at the top of the iPod's menu.</li>
-        <li><b>Settings</b> (in the iPod): Shuffle, Repeat, Clicker (the tick sound) and Color.</li>
-        <li><b>Under the iPod:</b> the <b>Color ▾</b> dropdown (White, Qarbon Fiber, Silver, Red, Blue, Green, U2, Neon, or Clear: fully see-through, so it melts into space), then the whole music panel (paste a link, add files, My music, Played this session, Remove music), then the timer dropdown (just the timer here).</li>
+        <li><b>Settings</b> (in the iPod): Shuffle, Repeat, Clicker (the tick sound), Color, Full Screen, Remove Music, and About (your songs, videos, the version, and a note on playing with the iPhone locked).</li>
+        <li><b>Under the iPod:</b> the <b>Color ▾</b> dropdown (White, Qarbon Fiber: a carbon "Qpod" with the Qarbon atom on its center button, Silver, Red, Blue, Green, U2, Neon, or Clear: fully see-through, so it melts into space), then the whole music panel (paste a link, add files, My music, Played this session, Remove music), then the timer dropdown (just the timer here).</li>
         <li>On a Mac: ↑ ↓ scroll, Enter chooses, Esc goes back, Space plays or pauses, ← → skip.</li>
       </ul>
     </div>
@@ -469,7 +471,15 @@
               <span class="ip-batt" id="ip-batt" aria-label="Battery"><i></i></span>
             </div>
             <div class="ip-body" aria-live="polite">
+              <!-- the Add a Link screen: a box to paste or type a YouTube / SoundCloud link (its Paste and Play rows are in the list below it) -->
+              <div class="ip-form" id="ip-form" hidden>
+                <label class="ip-flabel" for="ip-link">YouTube or SoundCloud link</label>
+                <input class="ip-input" id="ip-link" type="url" inputmode="url" enterkeyhint="go" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://">
+                <p class="ip-fmsg" id="ip-fmsg"></p>
+              </div>
               <div class="ip-list" id="ip-list"></div>
+              <!-- a page of text, like About (the wheel scrolls it) -->
+              <div class="ip-text" id="ip-text" hidden></div>
               <div class="ip-now" id="ip-now" hidden>
                 <div class="ip-count" id="ip-count"></div>
                 <div class="ip-mid">
@@ -481,7 +491,7 @@
                 <!-- the volume bar (on a Mac), with a quiet and a loud speaker -->
                 <div class="ip-vol"><svg viewBox="0 0 10 10"><path d="M1 3.5h2l3-2.5v8l-3-2.5H1z"/></svg><div class="ip-bar"><i></i></div><svg viewBox="0 0 12 10"><path d="M1 3.5h2l3-2.5v8l-3-2.5H1z"/><path d="M7.5 3a3 3 0 010 4M9 1.5a5 5 0 010 7" fill="none" stroke="#000" stroke-width="1"/></svg></div>
               </div>
-              <!-- a YouTube video plays here: the one player is laid over this slot (placePlayer in js/music.js) -->
+              <!-- a YouTube video plays here (and SoundCloud too in full screen): the one player is laid over this slot (placePlayer in js/music.js) -->
               <div class="ip-video" id="ip-video" hidden>
                 <div class="playerslot"></div>
                 <p id="ip-vtitle"></p>
@@ -497,6 +507,10 @@
           <button class="ip-play" data-ip="play" aria-label="Play or pause"><svg viewBox="0 0 20 10"><path d="M1 0v10l8-5zM12 0h2.6v10H12zM16.4 0H19v10h-2.6z"/></svg></button>
           <button class="ip-center" data-ip="center" aria-label="Select"></button>
         </div>
+        <!-- the full screen button in the corner: arrows out = fill the screen, arrows in = back (holding MENU works too) -->
+        <button class="ip-fs" id="ip-fs" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 20 20" aria-hidden="true"><path class="ip-fs-in" d="M3 8V3h5M17 8V3h-5M3 12v5h5M17 12v5h-5"/><path class="ip-fs-out" d="M8 3v5H3M12 3v5h5M8 17v-5H3M12 17v-5h5"/></svg></button>
+        <!-- Add Files… in the iPod's menus opens this (the same as "Choose music files" in the music panel) -->
+        <input type="file" class="ip-file" id="ip-file" accept="audio/*,.mp3,.m4a,.aac,.wav" multiple tabindex="-1" aria-hidden="true">
       </div>
     </div>
     <!-- the iPod's color: a dropdown like the Mode menu, with a mini iPod of each color (also in the iPod's Settings › Color).
@@ -656,22 +670,22 @@
   </main>
 
 <!-- the program, in order: packs (data) first, start.js last. Every file shares the same variables.
-     ?v=43 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
+     ?v=46 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
      (Book texts in js/books/ and the PDF viewer only load when you open a book.) -->
-<script src="js/packs.js?v=43"></script>
-<script src="js/basics.js?v=43"></script>
-<script src="js/stars.js?v=43"></script>
-<script src="js/look.js?v=43"></script>
-<script src="js/worlds.js?v=43"></script>
-<script src="js/data.js?v=43"></script>
-<script src="js/cards.js?v=43"></script>
-<script src="js/timer.js?v=43"></script>
-<script src="js/burn.js?v=43"></script>
-<script src="js/music.js?v=43"></script>
-<script src="js/media.js?v=43"></script>
-<script src="js/app.js?v=43"></script>
-<script src="js/reading.js?v=43"></script>
-<script src="js/account.js?v=43"></script>
-<script src="js/start.js?v=43"></script>
+<script src="js/packs.js?v=46"></script>
+<script src="js/basics.js?v=46"></script>
+<script src="js/stars.js?v=46"></script>
+<script src="js/look.js?v=46"></script>
+<script src="js/worlds.js?v=46"></script>
+<script src="js/data.js?v=46"></script>
+<script src="js/cards.js?v=46"></script>
+<script src="js/timer.js?v=46"></script>
+<script src="js/burn.js?v=46"></script>
+<script src="js/music.js?v=46"></script>
+<script src="js/media.js?v=46"></script>
+<script src="js/app.js?v=46"></script>
+<script src="js/reading.js?v=46"></script>
+<script src="js/account.js?v=46"></script>
+<script src="js/start.js?v=46"></script>
 </body>
 </html>
