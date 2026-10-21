@@ -964,6 +964,7 @@ body:has(#study:not([hidden]) > #media.ip-full:not([hidden])) #study > :not(#med
 /* Space on the whole screen: a canvas over everything (Safari's own bars stay: only videos may truly go full screen) */
 .spacefull { position:fixed; inset:0; z-index:15; width:100vw; height:100vh; height:100dvh; background:#000; touch-action:manipulation; }
 html.spacefull-on { overflow:hidden; }
+html.spacefull-on .ipod { visibility:hidden; }   /* (it's under the stars anyway; this keeps it from being tapped through) */
 /* Space on the Qpod's screen: no title bar, the stars fill the whole screen */
 #media .ipod.ip-nohead .ip-head { display:none; }
 #media .ip-viz.ip-it .ip-vcanvas { cursor:pointer; }

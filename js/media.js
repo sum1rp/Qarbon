@@ -1106,10 +1106,14 @@ $("spacefull").addEventListener("click", () => { ipClick(); setSpaceFull(false);
 // The mini Qpod: a small see-through (Clear) Qpod with the Qarbon atom on its screen, floating at the side of the screen.
 // It shows in the other modes while music is loaded. Tap it to go back to the Qpod;
 // drag it up or down, or to the other side: it snaps to the nearest side and stays there (state.qpodPos, this device).
+// Swipe it off the side (or press Delete / Esc on it) to put it away: the music keeps playing, and the music panel of
+// the mode you're in still pauses or stops it. It comes back when you open the Qpod, or after the music is removed.
 const qmini = $("qpodmini");
 $("qpodmini-skin").insertAdjacentHTML("beforeend", `<span class="qm-atom">${atomSVG(8)}</span>`);
+let miniAway = false;   // swiped away (until you open the Qpod again, or nothing is loaded any more)
 function miniQpod() {
-  const show = !$("study").hidden && mode !== "media" && !!nowPlaying();
+  if (mode === "media" || !nowPlaying()) miniAway = false;
+  const show = !$("study").hidden && mode !== "media" && !!nowPlaying() && !miniAway;
   qmini.hidden = !show;
   if (!show) return;
   qmini.classList.toggle("qm-playing", isPlaying());   // its atom turns while music plays
@@ -1121,10 +1125,12 @@ function placeMini() {
   qmini.style.left = (p.side === "left" ? MINI_GAP : innerWidth - w - MINI_GAP) + "px";
   qmini.style.top = Math.round(MINI_GAP + p.y * Math.max(0, innerHeight - h - 2 * MINI_GAP)) + "px";
 }
-let miniDrag = null;   // { pointer's start x/y, the widget's start left/top, moved: dragged far enough to not be a tap }
+// { pointer's start x/y, the widget's start left/top, moved: dragged far enough to not be a tap,
+//   vx: how fast it's going sideways (pixels per millisecond), lastX / lastT: the last move }
+let miniDrag = null;
 qmini.addEventListener("pointerdown", e => {
   qmini.setPointerCapture(e.pointerId);
-  miniDrag = { x: e.clientX, y: e.clientY, left: qmini.offsetLeft, top: qmini.offsetTop, moved: false };
+  miniDrag = { x: e.clientX, y: e.clientY, left: qmini.offsetLeft, top: qmini.offsetTop, moved: false, vx: 0, lastX: e.clientX, lastT: e.timeStamp };
 });
 qmini.addEventListener("pointermove", e => {
   if (!miniDrag) return;
@@ -1132,7 +1138,10 @@ qmini.addEventListener("pointermove", e => {
   if (!miniDrag.moved && Math.hypot(dx, dy) < 8) return;
   miniDrag.moved = true;
   qmini.classList.add("qm-drag");
-  qmini.style.left = Math.min(innerWidth - qmini.offsetWidth, Math.max(0, miniDrag.left + dx)) + "px";
+  if (e.timeStamp > miniDrag.lastT) miniDrag.vx = (e.clientX - miniDrag.lastX) / (e.timeStamp - miniDrag.lastT);
+  miniDrag.lastX = e.clientX; miniDrag.lastT = e.timeStamp;
+  // sideways it can go past the edges (to swipe it away); up and down it stays on the screen
+  qmini.style.left = Math.min(innerWidth, Math.max(-qmini.offsetWidth, miniDrag.left + dx)) + "px";
   qmini.style.top = Math.min(innerHeight - qmini.offsetHeight, Math.max(0, miniDrag.top + dy)) + "px";
 });
 function miniUp(e) {
@@ -1140,14 +1149,29 @@ function miniUp(e) {
   const drag = miniDrag;
   miniDrag = null;
   qmini.classList.remove("qm-drag");
-  if (drag.moved) {   // let go: snap to the nearest side, and remember where
+  if (!drag.moved) { if (e.type === "pointerup") miniTap(); return; }
+  // let go mostly past an edge, or flicked fast toward one: put it away. (Only a finger still moving when it lets go is a
+  // flick: one that stopped first was just moving it.)
+  if (e.timeStamp - drag.lastT > 80) drag.vx = 0;
+  const w = qmini.offsetWidth, left = qmini.offsetLeft;
+  if (left < -w * .3 || left > innerWidth - w * .7 || Math.abs(drag.vx) > .8) return miniPutAway(drag.vx ? drag.vx > 0 : left > innerWidth / 2);
+  {   // otherwise snap to the nearest side, and remember where
     const h = qmini.offsetHeight;
     state.qpodPos = { side: qmini.offsetLeft + qmini.offsetWidth / 2 < innerWidth / 2 ? "left" : "right",
                       y: Math.min(1, Math.max(0, (qmini.offsetTop - MINI_GAP) / Math.max(1, innerHeight - h - 2 * MINI_GAP))) };
     save();
     placeMini();
-  } else if (e.type === "pointerup") miniTap();
+  }
 }
+// put it away: it slides off that side (right = true) and hides; the music goes on
+function miniPutAway(right) {
+  miniAway = true;
+  qmini.style.left = (right ? innerWidth + 20 : -qmini.offsetWidth - 20) + "px";
+  setTimeout(() => { if (miniAway) qmini.hidden = true; }, 260);
+}
+qmini.addEventListener("keydown", e => {   // on the keyboard: Delete, Backspace or Esc puts it away
+  if (["Delete", "Backspace", "Escape"].includes(e.key)) { e.preventDefault(); qmini.blur(); miniPutAway(state.qpodPos.side === "right"); }
+});
 qmini.addEventListener("pointerup", miniUp);
 qmini.addEventListener("pointercancel", miniUp);
 qmini.addEventListener("click", e => { if (!e.detail) miniTap(); });   // Enter or Space on the keyboard (a real click was the pointer)

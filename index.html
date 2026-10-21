@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qarbon</title>
-<link rel="stylesheet" href="css/styles.css?v=51">
+<link rel="stylesheet" href="css/styles.css?v=52">
 <!-- the atom icons: the little one in the browser tab, and the one iPhones use for "Add to Home Screen" -->
-<link rel="icon" type="image/svg+xml" href="favicon.svg?v=51">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=51">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=52">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=52">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -188,7 +188,7 @@
         <li><b>Add Music</b> (in the Qpod): <b>Add a Link…</b> (paste or type a YouTube / SoundCloud link, then Play), <b>Add Files…</b> (songs from your phone) and <b>On This Phone</b> (your songs: choose one to play it or remove it from the phone; removing asks first).</li>
         <li><b>Full screen:</b> tap the small round button in the Qpod's bottom corner and the Qpod fills the whole screen, with everything for listening inside it. Tap it again, or hold MENU, to come back. The music keeps playing either way. On a Mac: F switches it, Esc on the main menu leaves.</li>
         <li><b>Now Playing</b> is always at the top of the Qpod's menu.</li>
-        <li><b>Mini Qpod:</b> while music is loaded, a small see-through Qpod floats at the side of the screen in the other modes (Review, Reading…). Tap it to go back to the Qpod; drag it up or down, or to the other side, and it stays there.
+        <li><b>Mini Qpod:</b> while music is loaded, a small see-through Qpod floats at the side of the screen in the other modes (Review, Reading…). Tap it to go back to the Qpod; drag it up or down, or to the other side, and it stays there. Swipe it off the side to put it away: the music keeps playing (pause or stop it from the timer's music panel), and it comes back next time you open the Qpod.
         <li><b>Settings</b> (in the Qpod): Shuffle, Repeat, Clicker (the tick sound), Color, Full Screen, Visualizer (Waveform, iTunes or Space), Remove Music, and About (your songs, videos, the version, and a note on playing with the iPhone locked).</li>
         <li><b>Under the Qpod:</b> the <b>Color ▾</b> dropdown (Qarbon Fiber, the default: carbon with a machined wheel, White, Silver, Red, Blue, Green, U2, Neon, or Clear: fully see-through, so it melts into space), then the whole music panel (paste a link, add files, My music, Played this session, Remove music), then the timer dropdown (just the timer here).</li>
         <li>On a Mac: ↑ ↓ scroll, Enter chooses, Esc goes back, Space plays or pauses, ← → skip.</li>
@@ -462,12 +462,6 @@
     </div>
   </section>
 
-  <!-- the mini Qpod (js/media.js): tap to go back to the Qpod, drag to move it. It shows in the other modes while music is
-       loaded: always the see-through Clear one, so it hides as little as possible. Its screen shows the Qarbon atom -->
-  <button class="qpodmini" id="qpodmini" hidden aria-label="Back to the Qpod" title="Back to the Qpod"><span class="ip-mini" id="qpodmini-skin" data-skin="clear" aria-hidden="true"><i></i></span></button>
-  <!-- the Visualizer's Space look on the whole screen (tap Space on the Qpod's screen; tap again to come back) -->
-  <canvas class="spacefull" id="spacefull" hidden></canvas>
-
   <!-- ===== 🎧 Media mode: a 2005 iPod Video (js/media.js). It plays through the same ONE player as the music panels. ===== -->
   <section id="media" hidden>
     <div class="ipod" id="ipod" data-skin="white">
@@ -689,23 +683,31 @@
   <div id="diag"></div>
   </main>
 
+<!-- the mini Qpod (js/media.js): tap to go back to the Qpod, drag to move it, swipe it off the side to put it away.
+     It shows in the other modes while music is loaded: always the see-through Clear one, so it hides as little as possible. Its screen shows the Qarbon atom -->
+<button class="qpodmini" id="qpodmini" hidden aria-label="Back to the Qpod" title="Back to the Qpod"><span class="ip-mini" id="qpodmini-skin" data-skin="clear" aria-hidden="true"><i></i></span></button>
+<!-- the Visualizer's Space look on the whole screen (tap Space on the Qpod's screen; tap again to come back).
+     Both are outside #study on purpose: the Qpod's own full screen hides everything else inside #study -->
+<canvas class="spacefull" id="spacefull" hidden></canvas>
+
+
 <!-- the program, in order: packs (data) first, start.js last. Every file shares the same variables.
-     ?v=51 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
+     ?v=52 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
      (Book texts in js/books/ and the PDF viewer only load when you open a book.) -->
-<script src="js/packs.js?v=51"></script>
-<script src="js/basics.js?v=51"></script>
-<script src="js/stars.js?v=51"></script>
-<script src="js/look.js?v=51"></script>
-<script src="js/worlds.js?v=51"></script>
-<script src="js/data.js?v=51"></script>
-<script src="js/cards.js?v=51"></script>
-<script src="js/timer.js?v=51"></script>
-<script src="js/burn.js?v=51"></script>
-<script src="js/music.js?v=51"></script>
-<script src="js/media.js?v=51"></script>
-<script src="js/app.js?v=51"></script>
-<script src="js/reading.js?v=51"></script>
-<script src="js/account.js?v=51"></script>
-<script src="js/start.js?v=51"></script>
+<script src="js/packs.js?v=52"></script>
+<script src="js/basics.js?v=52"></script>
+<script src="js/stars.js?v=52"></script>
+<script src="js/look.js?v=52"></script>
+<script src="js/worlds.js?v=52"></script>
+<script src="js/data.js?v=52"></script>
+<script src="js/cards.js?v=52"></script>
+<script src="js/timer.js?v=52"></script>
+<script src="js/burn.js?v=52"></script>
+<script src="js/music.js?v=52"></script>
+<script src="js/media.js?v=52"></script>
+<script src="js/app.js?v=52"></script>
+<script src="js/reading.js?v=52"></script>
+<script src="js/account.js?v=52"></script>
+<script src="js/start.js?v=52"></script>
 </body>
 </html>
