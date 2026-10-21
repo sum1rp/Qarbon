@@ -158,6 +158,7 @@ function allStacks() {
 function show(screen) {
   ["home", "study", "howto", "focus", "reading"].forEach(s => { $(s).hidden = s !== screen; });
   if (screen === "home") { worldInfo(); resetWorlds(); }
+  miniQpod();   // only on the study screen (js/media.js)
   const el = $(screen);
   el.classList.remove("fadein"); void el.offsetWidth; el.classList.add("fadein");
   scrollTo(0, 0);

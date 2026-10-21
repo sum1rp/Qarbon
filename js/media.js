@@ -338,6 +338,7 @@ function renderMedia() {
   $("ip-video").classList.toggle("ip-sc", nowPlaying() === "SoundCloud");
   $("ip-form").hidden = !s.form;
   $("ip-text").hidden = !s.info;
+  if (!s.viz) ipod.classList.remove("ip-nohead");
   if (s.now) return renderNow();
   if (s.viz) return vizKick();
   if (s.info) {   // a page of text: only redrawn when it changes, so the wheel's scrolling isn't lost
@@ -570,7 +571,8 @@ function vizFor(id) {
 }
 
 // ----- drawing -----
-const vizCv = $("ip-vcanvas"), vizG = vizCv.getContext("2d");
+// where the pictures are drawn: the canvas in the Qpod's screen, or (Space full screen) the one covering the whole screen
+let vizCv = $("ip-vcanvas"), vizG = vizCv.getContext("2d");
 let vizRAF = 0, vizLast = 0;   // the animation loop (iTunes look only) and when it last drew
 let vizKey = "";               // the waveform look only redraws when this changes (size, position, song)
 let vizTrail = [];             // the iTunes look: the glowing wave's last few shapes, drawn fainter and fainter (its trail)
@@ -601,7 +603,9 @@ function vizWaitShow() {
 function drawViz() {
   if (!vizShowing()) return;
   const look = state.ipodViz, what = nowPlaying(), file = what === "file" ? mySongs[songIndex] : null;
+  if (spaceFull && (look !== "space" || !file)) return setSpaceFull(false);   // another look, or not your song: back to the Qpod
   $("ip-viz").classList.toggle("ip-it", look !== "wave");   // every look but the waveform is on a black screen
+  ipod.classList.toggle("ip-nohead", look === "space");      // Space fills the whole screen: no title bar
   if (!file) return vizMessage(what ? "Your own songs only" : "Nothing playing",
     what ? what + " doesn't let Qarbon read its sound, so the Visualizer only works with songs from your phone."
          : "Play one of your songs, then come back here.", null);
@@ -612,8 +616,9 @@ function drawViz() {
   if (vizSong !== file.id) { vizSong = file.id; vizSince = performance.now(); vizPeaks.fill(0); vizKey = ""; }
   $("ip-vsong").textContent = songName(file);
   $("ip-vartist").textContent = [file.artist || "Unknown Artist", file.album].filter(Boolean).join(" · ");
-  // the canvas is drawn at the screen's real pixels (2 or 3 per CSS pixel on an iPhone), so it's sharp
-  const dpr = Math.min(3, devicePixelRatio || 1), w = Math.round(vizCv.clientWidth * dpr), h = Math.round(vizCv.clientHeight * dpr);
+  // the canvas is drawn at the screen's real pixels (2 or 3 per CSS pixel on an iPhone), so it's sharp.
+  // On the whole screen at most 2 (stars don't need more, and it's less work for the battery)
+  const dpr = Math.min(spaceFull ? 2 : 3, devicePixelRatio || 1), w = Math.round(vizCv.clientWidth * dpr), h = Math.round(vizCv.clientHeight * dpr);
   if (!w || !h) return;
   if (vizCv.width !== w || vizCv.height !== h) { vizCv.width = w; vizCv.height = h; vizKey = ""; }
   if (look === "wave") drawWave(a);
@@ -754,6 +759,12 @@ function vizOverlay(a) {
     g.font = `400 ${fs * .85}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
     g.fillStyle = "rgba(255,255,255,.75)";
     g.fillText(file.artist || "Unknown Artist", 3 * u, 3 * u + fs * 1.3, W - 6 * u);
+    // Space: how to fill the whole screen, and how to come back from it
+    if (state.ipodViz === "space") {
+      g.font = `700 ${fs * .8}px "Helvetica Neue", Helvetica, Arial, sans-serif`; g.textAlign = "center"; g.textBaseline = "bottom";
+      g.fillStyle = "rgba(255,255,255,.8)"; g.fillText(spaceFull ? "Tap to go back to the Qpod" : "Tap to fill the screen", W / 2, H - 3 * u);
+      g.textAlign = "left";
+    }
     g.globalAlpha = 1;
   }
   if (Date.now() - ipShowScrub < 2000) {
@@ -1020,7 +1031,7 @@ document.addEventListener("keydown", e => {
   if (["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)) return;   // typing in a box (like the link box)
   // not while using another button (a wheel button already does Enter / Space itself)
   if (e.target !== document.body && (!e.target.closest("#ipod") || ["Enter", " "].includes(e.key))) return;
-  const back = () => ipFull && ipStack.length === 1 ? setFull(false) : ipButton("menu");
+  const back = () => spaceFull ? setSpaceFull(false) : ipFull && ipStack.length === 1 ? setFull(false) : ipButton("menu");
   const k = { ArrowUp: () => ipTurn(-1), ArrowDown: () => ipTurn(1), Enter: () => ipSelect(), Escape: back,
               Backspace: back, " ": () => ipButton("play"), ArrowLeft: () => ipButton("prev"), ArrowRight: () => ipButton("next"),
               f: () => setFull(!ipFull), F: () => setFull(!ipFull) }[e.key];
@@ -1071,9 +1082,80 @@ $("ip-music").addEventListener("change", e => { if (e.target.matches(".musicfile
 
 // after choosing 🎧 Media in the Mode menu, let go of the menu, so the arrow keys scroll the iPod (not change the mode).
 // Another mode: full screen ends (it belongs to Media)
-$("modeselect").addEventListener("change", () => { if (mode === "media") $("modeselect").blur(); else setFull(false); });
+$("modeselect").addEventListener("change", () => { if (mode === "media") $("modeselect").blur(); else { setFull(false); setSpaceFull(false); } });
+
+// ================= Space full screen, and the mini Qpod =================
+// Space full screen: tapping the Space look on the Qpod's screen draws it on a canvas covering the whole screen (#spacefull).
+// Tapping it again (or Esc on a Mac) goes back to the Qpod. Only drawing moves: the music is the same, so it never restarts.
+let spaceFull = false;
+function setSpaceFull(on) {
+  if (on === spaceFull) return;
+  spaceFull = on;
+  $("spacefull").hidden = !on;
+  document.documentElement.classList.toggle("spacefull-on", on);   // no scrolling the page under it
+  vizCv = on ? $("spacefull") : $("ip-vcanvas");
+  vizG = vizCv.getContext("2d");
+  vizSince = performance.now();   // the song's name (and how to come back) shows again
+  vizKick();
+}
+$("ip-vcanvas").addEventListener("click", () => {
+  if (state.ipodViz === "space" && $("ip-vwait").hidden && nowPlaying() === "file") { ipClick(); setSpaceFull(true); }
+});
+$("spacefull").addEventListener("click", () => { ipClick(); setSpaceFull(false); });
+
+// The mini Qpod: a small see-through (Clear) Qpod with the Qarbon atom on its screen, floating at the side of the screen.
+// It shows in the other modes while music is loaded. Tap it to go back to the Qpod;
+// drag it up or down, or to the other side: it snaps to the nearest side and stays there (state.qpodPos, this device).
+const qmini = $("qpodmini");
+$("qpodmini-skin").insertAdjacentHTML("beforeend", `<span class="qm-atom">${atomSVG(8)}</span>`);
+function miniQpod() {
+  const show = !$("study").hidden && mode !== "media" && !!nowPlaying();
+  qmini.hidden = !show;
+  if (!show) return;
+  qmini.classList.toggle("qm-playing", isPlaying());   // its atom turns while music plays
+  if (!qmini.classList.contains("qm-drag")) placeMini();
+}
+const MINI_GAP = 12;   // pixels from the screen's edge
+function placeMini() {
+  const p = state.qpodPos, w = qmini.offsetWidth, h = qmini.offsetHeight;
+  qmini.style.left = (p.side === "left" ? MINI_GAP : innerWidth - w - MINI_GAP) + "px";
+  qmini.style.top = Math.round(MINI_GAP + p.y * Math.max(0, innerHeight - h - 2 * MINI_GAP)) + "px";
+}
+let miniDrag = null;   // { pointer's start x/y, the widget's start left/top, moved: dragged far enough to not be a tap }
+qmini.addEventListener("pointerdown", e => {
+  qmini.setPointerCapture(e.pointerId);
+  miniDrag = { x: e.clientX, y: e.clientY, left: qmini.offsetLeft, top: qmini.offsetTop, moved: false };
+});
+qmini.addEventListener("pointermove", e => {
+  if (!miniDrag) return;
+  const dx = e.clientX - miniDrag.x, dy = e.clientY - miniDrag.y;
+  if (!miniDrag.moved && Math.hypot(dx, dy) < 8) return;
+  miniDrag.moved = true;
+  qmini.classList.add("qm-drag");
+  qmini.style.left = Math.min(innerWidth - qmini.offsetWidth, Math.max(0, miniDrag.left + dx)) + "px";
+  qmini.style.top = Math.min(innerHeight - qmini.offsetHeight, Math.max(0, miniDrag.top + dy)) + "px";
+});
+function miniUp(e) {
+  if (!miniDrag) return;
+  const drag = miniDrag;
+  miniDrag = null;
+  qmini.classList.remove("qm-drag");
+  if (drag.moved) {   // let go: snap to the nearest side, and remember where
+    const h = qmini.offsetHeight;
+    state.qpodPos = { side: qmini.offsetLeft + qmini.offsetWidth / 2 < innerWidth / 2 ? "left" : "right",
+                      y: Math.min(1, Math.max(0, (qmini.offsetTop - MINI_GAP) / Math.max(1, innerHeight - h - 2 * MINI_GAP))) };
+    save();
+    placeMini();
+  } else if (e.type === "pointerup") miniTap();
+}
+qmini.addEventListener("pointerup", miniUp);
+qmini.addEventListener("pointercancel", miniUp);
+qmini.addEventListener("click", e => { if (!e.detail) miniTap(); });   // Enter or Space on the keyboard (a real click was the pointer)
+// tap: back to the Qpod in 🎧 Media
+function miniTap() { setMode("media"); }
+addEventListener("resize", () => { if (!qmini.hidden) placeMini(); });
 
 // keep the iPod in step with the music: renderMusic (js/music.js) calls these after every change
-musicWatchers.push(renderMedia);
+musicWatchers.push(renderMedia, miniQpod);
 audio.addEventListener("timeupdate", renderNow);
 audio.addEventListener("volumechange", renderNow);

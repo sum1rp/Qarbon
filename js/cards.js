@@ -103,6 +103,7 @@ function render() {
   $("study").classList.toggle("inmedia", mode === "media");
   $("burnview").hidden = mode !== "burn";
   $("modeselect").value = mode;           // the Mode menu always shows where you are
+  if (typeof miniQpod === "function") miniQpod();   // the mini Qpod (js/media.js) shows in the other modes while music is loaded
   updateDiag();
   if (mode === "deck") { renderDeck(); return; }
   if (mode === "reading") { renderBooks(); return; }

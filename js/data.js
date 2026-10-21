@@ -88,6 +88,9 @@ function clean(data) {
   // the Qpod (Qarbon Fiber) is the default player: everyone is switched to it once (build 50), then can choose another color
   if (!s.qpodDefault) { s.ipodSkin = "fiber"; s.qpodDefault = true; }
   s.ipodClick = s.ipodClick !== false;
+  // where the mini Qpod sits: on the "left" or "right" side, y = how far down (0 top, 1 bottom)
+  const qp = s.qpodPos || {};
+  s.qpodPos = { side: qp.side === "left" ? "left" : "right", y: Number(qp.y) >= 0 && Number(qp.y) <= 1 ? Number(qp.y) : .62 };
   s.ipodViz = ["wave", "itunes", "space"].includes(s.ipodViz) ? s.ipodViz : "wave";   // the Visualizer's look: the whole song, bars and a glowing wave, or a flight through space
   // for syncing: things you deleted ("card:chat" → when), and when your settings last changed
   const del = s.deleted && typeof s.deleted === "object" ? s.deleted : {};
