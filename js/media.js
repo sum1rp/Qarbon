@@ -14,7 +14,7 @@
 // The Visualizer: { viz: true, title: "Visualizer" } (see "the Visualizer" below)
 // Each row: { label, go: what choosing it does, more: true if it opens another menu (shows ›), value: text on the right,
 //             dim: true for a line you can't choose (like "No songs yet"), playing: true for the song that's playing,
-//             pick: true for Add Files… (it opens the phone's file picker) }
+//             pick: true for Add Files… and Album Art's rows (they open the phone's file or photo picker) }
 const IP_ROWS = 7;                 // rows that fit on the screen under the title bar
 const FORM_ROWS = 3;               // rows under the link box on the Add a Link screen
 let ipStack = [];
@@ -166,8 +166,23 @@ const songAt = id => mySongs.findIndex(s => s.id === id);
 function songMenu(id) {
   return { title: songName(mySongs[songAt(id)]), items: () => songAt(id) < 0 ? [{ label: "Removed", dim: true }] : [
     { label: "Play", go: () => { songList = null; playSong(songAt(id)); ipOpen(nowScreen()); } },
+    { label: "Album Art", more: true, go: () => ipOpen(artMenu(id)) },
     { label: "Remove from Phone", more: true, go: () => ipOpen(removeMenu(id)) }
   ] };
+}
+// a picture for the song (or its whole album), or back to the cover from the file's tags (see "album art" in js/music.js)
+function artMenu(id) {
+  return { title: "Album Art", items: () => {
+    const s = mySongs[songAt(id)];
+    if (!s) return [{ label: "Removed", dim: true }];
+    const album = albumSongs(s), ids = album.map(x => x.id), rows = [];
+    if (album.length > 1) rows.push({ label: "This Song…", pick: true, go: () => pickArt([id]) },
+                                    { label: "Whole Album…", value: String(album.length), pick: true, go: () => pickArt(ids) });
+    else rows.push({ label: "Choose Picture…", pick: true, go: () => pickArt([id]) });
+    if (s.art) rows.push({ label: s.cover ? "Original Art" : "Remove Picture", go: () => setSongArt([id], null) });
+    if (album.length > 1 && album.some(x => x !== s && x.art)) rows.push({ label: "Original for Album", go: () => setSongArt(ids, null) });
+    return rows;
+  } };
 }
 // are you sure? (like the real iPod's "Reset All Settings": Cancel first, so a quick double press is safe)
 function removeMenu(id) {
@@ -257,7 +272,7 @@ function ipTurn(step) {
   renderMedia();
 }
 // the center button. fromWheel: pressed with a finger or mouse on the wheel (not a key or a tap on the screen)
-let ipPickWaiting = false;   // Add Files… was pressed on the wheel: the file picker opens on the "click" that follows
+let ipPickWaiting = false;   // a row that opens a picker was pressed on the wheel: its go() runs on the "click" that follows
 function ipSelect(fromWheel) {
   const s = ipTop();
   ipClick();
@@ -276,7 +291,7 @@ function ipSelect(fromWheel) {
   const row = s.items()[s.sel];
   if (!row || row.dim || !row.go) return;
   // browsers only open a file picker from a "click" (or a key), so the wheel's press waits for its click (see below)
-  if (row.pick && fromWheel) { ipPickWaiting = true; return; }
+  if (row.pick && fromWheel) { ipPickWaiting = row.go; return; }
   unlockAudio();
   row.go();
   renderMedia();
@@ -1003,7 +1018,7 @@ function wheelUp(e) {
 ipWheel.addEventListener("pointerup", wheelUp);
 ipWheel.addEventListener("pointercancel", wheelUp);
 // Add Files… chosen with the center button: the click that follows the press opens the file picker
-ipWheel.addEventListener("click", () => { if (ipPickWaiting) { ipPickWaiting = false; pickFiles(); } });
+ipWheel.addEventListener("click", () => { if (ipPickWaiting) { const go = ipPickWaiting; ipPickWaiting = false; go(); } });
 // a mouse's scroll wheel or a trackpad turns it too (on a Mac)
 let ipWheelAcc = 0;
 ipWheel.addEventListener("wheel", e => {

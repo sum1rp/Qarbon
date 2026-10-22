@@ -273,7 +273,16 @@
   .song .src { flex:none; font-size:.7rem; color:var(--muted); max-width:30%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .song.cur { border-color:rgba(123,108,255,.45); }
   .song.cur .ic { background:var(--accent-fill); color:#fff; }
-  .songdel { flex:none; width:44px; padding:0; border-radius:10px; color:var(--muted); }
+  /* My music: each song's cover (or ▶) in a small square, and ⋯ opens what you can do with it (album art, remove) */
+  .mymusic .song .ic { width:32px; height:32px; border-radius:6px; font-size:.75rem; overflow:hidden; }
+  .mymusic .song .ic img { width:100%; height:100%; object-fit:cover; display:block; }
+  .songmore { flex:none; width:44px; padding:0; border-radius:10px; color:var(--muted); font-size:1.2rem; letter-spacing:1px; }
+  .songmore[aria-expanded="true"] { border-color:rgba(123,108,255,.45); color:var(--text); }
+  .mymusic li.songacts { flex-wrap:wrap; gap:6px; padding:0 0 4px; }
+  .songacts button { flex:1 1 40%; min-width:0; min-height:40px; padding:6px 10px; border-radius:10px; font-size:.85rem; }
+  .songacts .del { color:var(--muted); }
+  /* the hidden photo picker for album art */
+  .artfile { position:absolute; left:0; top:0; width:1px; height:1px; opacity:0; pointer-events:none; }
 
   /* ---------- Focus page: the timer and music on their own ---------- */
   #focus { width:100%; max-width:480px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; }

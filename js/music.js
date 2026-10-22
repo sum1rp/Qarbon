@@ -46,7 +46,8 @@ let musicKind = "link";   // "link": the YouTube/SoundCloud link in state.music 
 // Kept only while the page is open: not saved, not synced.
 let played = [];
 let playedPos = -1;       // which entry of played is the one playing now (-1: none)
-let mySongs = [];         // your own music files on this device: { id, name, title, artist, album, cover, added }
+let mySongs = [];         // your own music files on this device: { id, name, title, artist, album, cover, art, added }
+                          // (cover = the picture from the file's tags, art = one you chose yourself; see "album art" below)
 let songIndex = -1;       // which of mySongs is loaded in the <audio> (-1: none)
 // the list you're playing from (song numbers in mySongs: an album, an artist... chosen on the 🎧 Media iPod).
 // ⏮ ⏭ and "3 of 12" stay inside it. null = all your songs, in the order you added them.
@@ -60,6 +61,11 @@ const audio = $("songaudio");
 // the link as a short label, for songs whose title we don't know: "youtube.com/watch?v=…"
 const shortLink = link => String(link).replace(/^https?:\/\/(www\.|m\.)?/, "").slice(0, 60);
 const songName = s => s.title || s.name;
+// the song's picture: the one you chose, else the one from its tags (or null: none)
+const songCover = s => s.art || s.cover || null;
+// the songs on the same album as this one (itself included). A song with no album is on its own.
+const albumSongs = s => s.album ? mySongs.filter(x => x.album === s.album) : [s];
+let songOpen = "";       // the song (id) whose ⋯ is open in "My music on this phone"
 
 // add a song to Played this session (or update it if it's there already).
 // toTop: you just chose it, so it moves to the top; otherwise it stays where it is (just marked as playing).
@@ -131,6 +137,29 @@ const musicMsg = text => document.querySelectorAll(".musicmsg").forEach(m => { m
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 let coverURL = "";   // the playing song's cover, as a temporary address the <img> can show
 
+// small cover pictures for the list: one temporary address per song, made again only when its picture changes
+const thumbs = new Map();   // song id → { pic, url }
+function thumbURL(s) {
+  const pic = songCover(s), had = thumbs.get(s.id);
+  if (had && had.pic === pic) return had.url;
+  if (had) URL.revokeObjectURL(had.url);
+  if (!pic) { thumbs.delete(s.id); return ""; }
+  const url = URL.createObjectURL(new Blob([pic.data], { type: pic.type }));
+  thumbs.set(s.id, { pic, url });
+  return url;
+}
+// what ⋯ opens under a song: choose a picture (for the song, or its whole album), go back to the original, remove the song
+function songActions(s, i) {
+  const album = albumSongs(s), b = [];
+  if (album.length > 1) b.push(`<button data-art="${i}">🖼 This song</button>`,
+                               `<button data-art="${i}" data-album="1">🖼 Album (${album.length})</button>`);
+  else b.push(`<button data-art="${i}">🖼 Choose picture</button>`);
+  if (s.art) b.push(`<button data-orig="${i}">↺ ${s.cover ? "Original picture" : "Remove picture"}</button>`);
+  if (album.length > 1 && album.some(x => x !== s && x.art)) b.push(`<button data-orig="${i}" data-album="1">↺ Album</button>`);
+  b.push(`<button class="del" data-del="${i}">✕ Remove song</button>`);
+  return b.join("");
+}
+
 function renderMusic() {
   const m = musicKind === "link" && state.music ? musicEmbed(state.music) : null;
   const file = musicKind === "file" && songIndex >= 0 ? mySongs[songIndex] : null;
@@ -165,10 +194,14 @@ function renderMusic() {
     const mine = p.querySelector(".mymusic");
     mine.hidden = !mySongs.length;
     mine.querySelector("summary").textContent = "📁 My music on this phone · " + mySongs.length + (mySongs.length === 1 ? " song" : " songs");
-    mine.querySelector("ol").innerHTML = mySongs.map((s, i) =>
-      `<li><button class="song${i === songIndex && file ? " cur" : ""}" data-song="${i}"><span class="ic">${i === songIndex && file ? "♪" : "▶"}</span>` +
-      `<span class="t">${esc(songName(s))}</span><span class="src">${esc(s.artist || "")}</span></button>` +
-      `<button class="songdel" data-del="${i}" aria-label="Remove ${esc(songName(s))} from this phone" title="Remove from this phone">✕</button></li>`).join("");
+    mine.querySelector("ol").innerHTML = mySongs.map((s, i) => {
+      const cur = i === songIndex && file, pic = thumbURL(s), open = songOpen === s.id;
+      return `<li><button class="song${cur ? " cur" : ""}" data-song="${i}">` +
+        `<span class="ic">${pic ? `<img alt="" src="${pic}">` : cur ? "♪" : "▶"}</span>` +
+        `<span class="t">${esc(songName(s))}</span><span class="src">${esc(s.artist || "")}</span></button>` +
+        `<button class="songmore" data-more="${i}" aria-expanded="${open}" aria-label="More for ${esc(songName(s))}" title="Album art, remove">⋯</button></li>` +
+        (open ? `<li class="songacts">${songActions(s, i)}</li>` : "");
+    }).join("");
     // played this session
     const box = p.querySelector(".played");
     box.hidden = !played.length;
@@ -483,6 +516,7 @@ async function removeSong(i) {
     await fileDo("songviz", "readwrite", st => st.delete(s.id));   // its Visualizer numbers (js/media.js)
   } catch (e) {}
   mySongs.splice(i, 1);
+  if (thumbs.has(s.id)) { URL.revokeObjectURL(thumbs.get(s.id).url); thumbs.delete(s.id); }
   if (songIndex > i) songIndex--;
   // the list being played: take this song out, and the songs after it move up one number
   if (songList) songList = songList.filter(n => n !== i).map(n => n > i ? n - 1 : n);
@@ -502,20 +536,75 @@ async function playSong(i) {
   musicKind = "file";
   emptyPlayer();
   if (audio.src.startsWith("blob:")) URL.revokeObjectURL(audio.src);   // free the last song's memory
-  if (coverURL) URL.revokeObjectURL(coverURL);
-  coverURL = s.cover ? URL.createObjectURL(new Blob([s.cover.data], { type: s.cover.type })) : "";
   songIndex = i;
   audio.src = URL.createObjectURL(new Blob([rec.data], { type: rec.type }));
   audio.play().catch(() => {});   // if the phone refuses (no tap), ▶ starts it
   musicMsg("");
   notePlayed({ key: "file:" + s.id, kind: "File", fileId: s.id, title: songName(s) }, false);
+  showCover(s);
+  fitIfStudying();
+}
+// the playing song's picture, for Now Playing, the music panels and the lock screen
+function showCover(s) {
+  if (coverURL) URL.revokeObjectURL(coverURL);
+  const pic = songCover(s);
+  coverURL = pic ? URL.createObjectURL(new Blob([pic.data], { type: pic.type })) : "";
   // the lock screen and Control Center: the song's name, cover and ⏮ ⏭ (the Media Session API)
   if ("mediaSession" in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({ title: songName(s), artist: s.artist, album: s.album,
-                                                          artwork: coverURL ? [{ src: coverURL, type: s.cover.type }] : [] });
+                                                          artwork: coverURL ? [{ src: coverURL, type: pic.type }] : [] });
   }
-  fitIfStudying();
 }
+// ----- album art you choose yourself -----
+// A picture you pick for a song is kept with it on this device (s.art, in "songinfo"; never synced, like the songs)
+// and shows instead of the cover from the file's tags. "Original picture" removes it, so the tag cover shows again.
+const ART_MAX = 600;   // pixels on the longest side: sharp enough for Now Playing and the lock screen, about 50–150 KB
+let artFor = [];       // the songs (ids) the picture being chosen is for
+// open the phone's photo picker (only works from a tap, a click or a key)
+function pickArt(ids) { artFor = ids; $("artfile").click(); }
+$("artfile").addEventListener("change", async e => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if (!file || !artFor.length) return;
+  let art;
+  try { art = await shrinkPicture(file); } catch (err) { return musicMsg("Couldn't read that picture. Try a JPEG or PNG."); }
+  setSongArt(artFor, art);
+});
+// make a big photo small: draw it on a canvas at most ART_MAX pixels wide and tall, and save that as a JPEG
+async function shrinkPicture(file) {
+  const url = URL.createObjectURL(file), img = new Image();
+  try {
+    img.src = url;
+    await img.decode();
+    const k = Math.min(1, ART_MAX / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement("canvas"), g = c.getContext("2d");
+    c.width = Math.max(1, Math.round(img.naturalWidth * k));
+    c.height = Math.max(1, Math.round(img.naturalHeight * k));
+    g.fillStyle = "#000";   // a see-through PNG gets a black background (a JPEG can't be see-through)
+    g.fillRect(0, 0, c.width, c.height);
+    g.drawImage(img, 0, 0, c.width, c.height);
+    const blob = await new Promise(ok => c.toBlob(ok, "image/jpeg", .85));
+    if (!blob) throw new Error("no picture");
+    return { type: "image/jpeg", data: await blob.arrayBuffer() };
+  } finally { URL.revokeObjectURL(url); }
+}
+// save a picture for these songs (art = null: back to the original), and show it at once if one of them is playing.
+// Only the pictures change: the song keeps playing.
+async function setSongArt(ids, art) {
+  try {
+    for (const id of ids) {
+      const s = mySongs.find(x => x.id === id);
+      if (!s) continue;
+      if (art) s.art = art; else delete s.art;
+      await fileDo("songinfo", "readwrite", st => st.put(s, s.id));
+    }
+    musicMsg("");
+  } catch (e) { musicMsg("Couldn't save the picture" + (e && e.name === "QuotaExceededError" ? ": this device is out of space for Qarbon." : ".")); }
+  const now = musicKind === "file" && mySongs[songIndex];
+  if (now && ids.includes(now.id)) showCover(now);
+  renderMusic();
+}
+
 function stopFile() {
   if (musicKind !== "file") return;
   audio.pause();
@@ -586,14 +675,23 @@ musicPanels().forEach(p => {
   p.querySelector(".seek").addEventListener("input", e => { if (audio.duration) audio.currentTime = e.target.value / 1000 * audio.duration; });
   p.querySelector(".musicfile").addEventListener("click", unlockAudio);
   p.querySelector(".musicfile").addEventListener("change", e => { addSongs([...e.target.files]); e.target.value = ""; });
-  // the two lists: tap a song to play it, ✕ to remove one of yours from this phone
+  // the two lists: tap a song to play it. ⋯ opens what you can do with one of yours: album art, or remove it from this phone
   p.addEventListener("click", e => {
-    const b = e.target.closest("[data-song], [data-del], [data-played]");
+    const b = e.target.closest("[data-song], [data-del], [data-played], [data-more], [data-art], [data-orig]");
     if (!b) return;
     unlockAudio();
-    if (b.dataset.song) { songList = null; playSong(+b.dataset.song); }   // from the panel's list: through all your songs
-    else if (b.dataset.del) removeSong(+b.dataset.del);
-    else playPlayed(+b.dataset.played);
+    const d = b.dataset, s = mySongs[d.more || d.art || d.orig];
+    const ids = s && (d.album ? albumSongs(s).map(x => x.id) : [s.id]);   // this song, or every song on its album
+    if (d.song) { songList = null; playSong(+d.song); }   // from the panel's list: through all your songs
+    else if (d.del) { songOpen = ""; removeSong(+d.del); }
+    else if (d.more) {
+      songOpen = songOpen === s.id ? "" : s.id;
+      renderMusic();
+      p.querySelector(`[data-more="${d.more}"]`).focus();   // the list was drawn again: keep the keyboard where it was
+    }
+    else if (d.art) pickArt(ids);
+    else if (d.orig) setSongArt(ids, null).then(() => { const m = p.querySelector(`[data-more="${d.orig}"]`); if (m) m.focus(); });
+    else playPlayed(+d.played);
   });
   p.querySelector(".musicclear").onclick = clearMusic;
 });
