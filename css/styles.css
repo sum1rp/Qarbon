@@ -520,6 +520,12 @@
           background-size:260% 260%; background-position:var(--mx) var(--my);
           box-shadow:0 6px 24px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.35); }
   .back-face { transform:rotateY(180deg); }
+  /* iPhone Safari sometimes draws the hidden side mirrored instead of hiding it, so each face is also
+     switched off halfway through the turn (the flip takes .6s): the front before, the answer after */
+  #card .face { transition:visibility 0s .3s; }
+  #card .back-face, #card.flipped .front-face { visibility:hidden; }
+  #card.flipped .back-face { visibility:visible; }
+  #card.noanim .face { transition:none; }
   .inner { position:relative; z-index:1; height:100%; box-sizing:border-box; color:var(--text); border-radius:12px; padding:14px;
            display:flex; flex-direction:column; overflow:hidden;
            box-shadow:0 0 0 1px rgba(0,0,0,.55);
@@ -678,6 +684,9 @@
   .pk-pack.nudge { animation:pk-nudge .5s ease; }
   @keyframes pk-nudge { 25% { transform:translateX(-6px); } 50% { transform:translateX(5px); } 75% { transform:translateX(-3px); } }
   .pk-pack.open .pk-cut { opacity:0; }
+  /* the dashed line glows softly: slide here */
+  .pk-pack:not(.open) .pk-tear { animation:pk-here 1.8s ease-in-out infinite; }
+  @keyframes pk-here { 50% { border-top-color:rgba(255,255,255,.75); box-shadow:0 0 8px rgba(207,200,255,.6); } }
   /* tearing it open: the top seal flies off, the pack drops away */
   .pk-pack.open .pk-crimp.top { animation:pk-lid .6s cubic-bezier(.4,0,.8,.6) forwards; }
   .pk-pack.open .pk-tear { opacity:0; }
@@ -700,10 +709,9 @@
   .pk-back .inner::before { display:none; }
   .pk-back .atom { width:44%; overflow:visible; filter:drop-shadow(0 0 10px rgba(123,108,255,.8)); }
   .pk-back .brand { margin-top:10px; font-size:.8rem; letter-spacing:.32em; text-transform:uppercase; color:var(--muted); }
+  .pk-flip { touch-action:none; }   /* your finger swipes the card instead of scrolling */
   .pk-in { animation:pk-in .45s cubic-bezier(.2,.8,.3,1) both; }
   @keyframes pk-in { from { transform:translateY(40px) scale(.92); opacity:0; } }
-  .pk-out { animation:pk-out .3s ease-in forwards; }
-  @keyframes pk-out { to { transform:translate(-70%, 10px) rotate(-8deg) scale(.8); opacity:0; } }
   /* the last (hardest) card waits face down, glowing in its world's colors */
   .pk-flip.down.charged > .pk-back .face { animation:pk-charge 1.2s ease-in-out infinite; }
   @keyframes pk-charge { 0%, 100% { box-shadow:0 0 18px 2px var(--h1), inset 0 0 0 1px rgba(255,255,255,.35); } 50% { box-shadow:0 0 42px 10px var(--h2), inset 0 0 0 1px rgba(255,255,255,.35); } }
@@ -721,7 +729,7 @@
   #pk-nudge { color:var(--muted); font-size:.85rem; max-width:40ch; margin:0; }
   @media (prefers-reduced-motion: reduce) {
     .pk-flip, .pk-flip > .qcard { transition:none; }
-    .pk-in, .pk-out, .pk-flash.go, .pk-pack.open .pk-crimp.top, .pk-pack.open .pk-body, .pk-pack.open .pk-crimp.bottom, .pk-atom .orbits, .pk-flip.down.charged > .pk-back .face { animation:none; }
+    .pk-in, .pk-flash.go, .pk-pack:not(.open) .pk-tear, .pk-pack.open .pk-crimp.top, .pk-pack.open .pk-body, .pk-pack.open .pk-crimp.bottom, .pk-atom .orbits, .pk-flip.down.charged > .pk-back .face { animation:none; }
   }
 
   /* small cards: the binder's pockets and the end of a pack */

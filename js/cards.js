@@ -58,6 +58,7 @@ function dailyList() {
 }
 
 function setMode(m, list) {
+  if (m === "deck" && mode !== "deck") showBinder(true);   // Decks opens on the binder; List is one tap away (js/collection.js)
   mode = m;
   if (m === "deck" || m === "focus" || m === "reading" || m === "media" || m === "translate") { render(); return; }
   if (m === "daily") queue = dailyList();

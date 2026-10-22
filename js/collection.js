@@ -153,7 +153,7 @@ function openPack() {
   $("pk-stage").hidden = false;
   $("pk-stage").innerHTML = packHTML(stack ? stack.name : "All my cards", cards.length, packBackground());
   $("pk-count").textContent = ready.daily ? "Today's pack" : "Another pack";
-  $("pk-hint").textContent = "Slide across the pack to tear it open";
+  $("pk-hint").textContent = "Slide along the top of the pack to tear it open";
   $("pk-close").textContent = "Skip ✕";
   $("packview").hidden = false;
   document.documentElement.classList.add("packing");
@@ -168,20 +168,17 @@ function tearPack() {
   setTimeout(() => { pk.busy = false; showPackCard(0); }, pkStill ? 0 : 850);
 }
 
-// card i comes up face down and turns over by itself; the last one waits, glowing, until you tap it
+// card i comes up face up; the last one waits face down, glowing, until you tap it
 function showPackCard(i) {
   pk.i = i;
   const c = pk.cards[i], last = i === pk.cards.length - 1, w = worldOf(c);
-  $("pk-stage").innerHTML = '<div class="pk-flash"></div><div class="pk-flip down pk-in' + (last ? " charged" : "") + '" role="button" tabindex="0">' +
+  $("pk-stage").innerHTML = '<div class="pk-flash"></div><div class="pk-flip pk-in' + (last ? " down charged" : "") + '" role="button" tabindex="0">' +
     cardHTML(c, 0, "big") + cardBackHTML(w.id) + '</div>';
   const flip = $("pk-stage").querySelector(".pk-flip");
   flip.setAttribute("aria-label", last ? "Turn over the last card" : c.front + ": " + (c.back || "") + ". Next card");
   $("pk-count").textContent = (i + 1) + " of " + pk.cards.length;
   if (last) $("pk-hint").textContent = c === pk.rare ? "Something rare is glowing… tap to turn it over" : "The hardest card of the pack. Tap to turn it over";
-  else {
-    setTimeout(() => flip.classList.remove("down"), pkStill ? 0 : 260);
-    $("pk-hint").textContent = "Tap for the next card";
-  }
+  else $("pk-hint").textContent = "Swipe it away for the next card";
   flip.focus({ preventScroll: true });
 }
 
@@ -202,11 +199,19 @@ function packTap() {
       badge.textContent = "RARE PULL · " + worldOf(c).name.toUpperCase();
       $("pk-stage").appendChild(badge);
     }
-    $("pk-hint").textContent = "Tap to see your pack";
+    $("pk-hint").textContent = "Swipe it away to see your pack";
     return;
   }
+  nextPackCard(-1);
+}
+
+// the card flies off to the side (dir = -1 left, 1 right), then the next one comes up
+function nextPackCard(dir) {
+  const flip = $("pk-stage").querySelector(".pk-flip");
   pk.busy = true;
-  flip.classList.add("pk-out");
+  flip.style.transition = "transform .3s ease-in, opacity .3s ease-in";
+  flip.style.transform = "translateX(" + dir * 130 + "%) rotate(" + dir * 14 + "deg)";
+  flip.style.opacity = "0";
   setTimeout(() => {
     pk.busy = false;
     if (pk.i === pk.cards.length - 1) packDone(); else showPackCard(pk.i + 1);
@@ -239,10 +244,50 @@ function closePack() {
 }
 
 // a tap or click: next card (the sealed pack opens by sliding, below; Enter on a keyboard opens it too)
-$("pk-stage").addEventListener("click", () => { if (pk && pk.i >= 0) packTap(); });
+$("pk-stage").addEventListener("click", e => {
+  if (swiped) { swiped = false; return; }   // that was the end of a swipe, not a tap
+  const pack = e.target.closest(".pk-pack");
+  if (pack && pk && pk.i < 0 && !pk.busy && !pack.classList.contains("open")) {   // a tap on the sealed pack: show how to open it
+    $("pk-hint").textContent = "Slide your finger along the top of the pack to tear it open";
+    pack.classList.remove("nudge"); void pack.offsetWidth; pack.classList.add("nudge");
+    return;
+  }
+  if (pk && pk.i >= 0) packTap();
+});
 
-// sliding a finger across the sealed pack cuts it open, like a real booster: a glowing cut follows your finger
+// swiping a card away: it follows your finger (with a little tilt) and flies off once it's far enough or flicked
+let swipe = null, swiped = false;   // swipe = { x, id, dx, flip, t (time of the last move), v (speed, px per ms) }
+$("pk-stage").addEventListener("pointerdown", e => {
+  const flip = e.target.closest(".pk-flip");
+  if (!pk || pk.i < 0 || pk.busy || !flip || flip.classList.contains("down")) return;
+  swipe = { x: e.clientX, id: e.pointerId, dx: 0, flip, t: performance.now(), v: 0 };
+  flip.style.transition = "none";
+  flip.setPointerCapture(e.pointerId);
+});
+$("pk-stage").addEventListener("pointermove", e => {
+  if (!swipe || e.pointerId !== swipe.id) return;
+  const dx = e.clientX - swipe.x, now = performance.now();
+  swipe.v = (dx - swipe.dx) / Math.max(1, now - swipe.t);
+  swipe.dx = dx; swipe.t = now;
+  swipe.flip.style.transform = "translateX(" + dx + "px) rotate(" + dx / 20 + "deg)";
+});
+function endSwipe(e) {
+  if (!swipe || e.pointerId !== swipe.id) return;
+  const { dx, v, flip } = swipe;
+  swipe = null;
+  if (Math.abs(dx) < 10) { flip.style.transition = flip.style.transform = ""; return; }   // a tap: the click handles it
+  swiped = true;
+  const flick = Math.abs(v) > .6 && Math.sign(v) === Math.sign(dx) && Math.abs(dx) > 40;
+  if (Math.abs(dx) > Math.min(100, flip.offsetWidth * .3) || flick) nextPackCard(Math.sign(dx));
+  else { flip.style.transition = "transform .25s ease"; flip.style.transform = ""; }   // not far enough: back to the middle
+}
+$("pk-stage").addEventListener("pointerup", endSwipe);
+$("pk-stage").addEventListener("pointercancel", endSwipe);
+
+// sliding a finger along the top of the sealed pack cuts it open, like a real booster: a glowing cut follows your finger
 // along the tear line and the top seal lifts a little. Past 70% of the pack's width (either way) it tears.
+// Only the top band counts (the seal and the dashed line, TEAR_ZONE of the pack's height): a slide lower down does nothing.
+const TEAR_ZONE = .16;
 let cut = null;   // { x: where the slide started, id: which finger, w: the pack's width }
 function setCut(pack, f, fromRight) {
   pack.style.setProperty("--cut", f.toFixed(3));
@@ -251,6 +296,8 @@ function setCut(pack, f, fromRight) {
 $("pk-stage").addEventListener("pointerdown", e => {
   const pack = e.target.closest(".pk-pack");
   if (!pk || pk.i >= 0 || pk.busy || !pack) return;
+  const r = pack.getBoundingClientRect();
+  if (e.clientY - r.top > r.height * TEAR_ZONE) return;   // below the top band: a tap there gets the hint (endCut won't see it)
   cut = { x: e.clientX, id: e.pointerId, w: pack.offsetWidth, pack };
   pack.classList.remove("snap");
   pack.setPointerCapture(e.pointerId);   // keep following the finger even past the pack's edge
@@ -267,10 +314,6 @@ function endCut(e) {
   cut = null;
   pack.classList.add("snap");   // not far enough: the cut slides back
   setCut(pack, 0, false);
-  if (Math.abs(e.clientX - x) < 10) {   // a tap, not a slide: show how
-    $("pk-hint").textContent = "Slide your finger across the pack to tear it open";
-    pack.classList.remove("nudge"); void pack.offsetWidth; pack.classList.add("nudge");
-  }
 }
 $("pk-stage").addEventListener("pointerup", endCut);
 $("pk-stage").addEventListener("pointercancel", endCut);
@@ -302,7 +345,7 @@ $("packbanner").onclick = openPack;
 // ================= the binder =================
 // In Decks mode, Binder shows the deck as collectible cards, grouped by world and numbered (easiest first).
 // Cards you haven't collected yet are silhouettes. A card's edge upgrades as you master it (js/cards.js, masteryOf).
-let binderOn = false, binderFilter = "all", binderAll = false;
+let binderOn = true, binderFilter = "all", binderAll = false;   // Decks opens on the binder (setMode in js/cards.js)
 const POCKETS = 24;   // pockets shown per world before "Show all"
 
 function showBinder(on) {
@@ -312,7 +355,7 @@ function showBinder(on) {
   $("decklistview").classList.toggle("binding", on);
   $("binder").hidden = !on;
   binderFilter = "all"; binderAll = false;
-  if (on) renderBinder();
+  if (on && mode === "deck") renderBinder();
 }
 $("tab-list").onclick = () => showBinder(false);
 $("tab-binder").onclick = () => showBinder(true);
