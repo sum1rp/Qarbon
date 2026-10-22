@@ -301,7 +301,7 @@ let launching = false;  // true while a world is zooming toward you, so taps and
 $("worlddots").innerHTML = slides.map((s, i) =>
   `<button class="${i ? "" : "hole"}" aria-label="${s.querySelector(".wname").textContent}"></button>`).join("");
 const worldDots = [...$("worlddots").children];
-worldDots.forEach((d, i) => { d.onclick = () => { stopTour(); goWorld(i, i > world ? 1 : -1); }; });
+worldDots.forEach((d, i) => { d.onclick = () => { pauseTour(); goWorld(i, i > world ? 1 : -1); }; });
 
 // show world i. dir = 1: it slides in from the right (going forward), -1: from the left (going back).
 // Going past Reading wraps back to the black hole, and the other way round.
@@ -327,12 +327,12 @@ function goWorld(i, dir) {
   slides.forEach((s, k) => { s.tabIndex = k === i ? 0 : -1; });   // only the showing world can be reached with Tab
   worldDots.forEach((d, k) => d.setAttribute("aria-current", k === i));
 }
-$("prevworld").onclick = () => { stopTour(); goWorld(world - 1, -1); };
-$("nextworld").onclick = () => { stopTour(); goWorld(world + 1, 1); };
+$("prevworld").onclick = () => { pauseTour(); goWorld(world - 1, -1); };
+$("nextworld").onclick = () => { pauseTour(); goWorld(world + 1, 1); };
 // on a computer: ← and → move between worlds while the home screen is showing
 document.addEventListener("keydown", e => {
   if ($("home").hidden || e.metaKey || e.ctrlKey || e.altKey) return;
-  stopTour();   // any key: you're exploring yourself now
+  pauseTour();   // any key: you're exploring yourself now
   if (e.key === "ArrowLeft") { e.preventDefault(); goWorld(world - 1, -1); }
   if (e.key === "ArrowRight") { e.preventDefault(); goWorld(world + 1, 1); }
 });
@@ -344,7 +344,7 @@ $("homebuild").textContent = BUILD;   // the version, at the bottom of the home 
 let swipeX = null, swipeDx = 0;
 const stage = $("stage");
 stage.addEventListener("pointerdown", e => {
-  stopTour();
+  pauseTour();
   if (launching) return;
   swipeX = e.clientX; swipeDx = 0;
   stage.setPointerCapture(e.pointerId);   // keep getting the moves even if the finger leaves the stage
@@ -359,6 +359,7 @@ stage.addEventListener("pointermove", e => {
 });
 stage.addEventListener("pointerup", () => {
   if (swipeX === null) return;
+  pauseTour();   // the 10 quiet seconds count from when the finger lifts
   swipeX = null;
   if (Math.abs(swipeDx) > 45) goWorld(world + (swipeDx < 0 ? 1 : -1), swipeDx < 0 ? 1 : -1);
   else { goWorld(world, 1); if (Math.abs(swipeDx) < 8) enterWorld(); }   // barely moved: that was a tap
@@ -375,19 +376,27 @@ function resetWorlds() {
   startTour();
 }
 
-// the tour: until you touch anything, the carousel moves on to the next world by itself every 5 seconds.
-// It starts again each time you come home, and stays off if your phone is set to Reduce Motion.
-let tourTimer = 0;
+// the tour: the carousel moves on to the next world by itself every 5 seconds. Touching it (a swipe, ‹ ›, a dot, a key)
+// pauses the tour, and it moves on again once you've left it alone for 10 seconds. It starts again each time you come
+// home, and stays off if your phone is set to Reduce Motion.
+const TOUR_STEP = 5000, TOUR_IDLE = 10000;
+let tourTimer = 0, tourWait = 0;
+const calm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 function startTour() {
   stopTour();
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (calm()) return;
   tourTimer = setInterval(() => {
     if ($("home").hidden) return stopTour();                  // you left home: it starts again when you're back
     if (launching || swipeX !== null || document.hidden) return;   // a world is opening, a finger is down, or the page is hidden
     goWorld(world + 1, 1);
-  }, 5000);
+  }, TOUR_STEP);
 }
-function stopTour() { clearInterval(tourTimer); tourTimer = 0; }
+function stopTour() { clearInterval(tourTimer); clearTimeout(tourWait); tourTimer = tourWait = 0; }
+// you touched it: wait, then go on touring (the first move comes TOUR_IDLE after your last touch)
+function pauseTour() {
+  stopTour();
+  if (!calm()) tourWait = setTimeout(startTour, TOUR_IDLE - TOUR_STEP);
+}
 
 // tap a world: it rushes toward you, then the app opens straight into that mode
 function enterWorld() {
