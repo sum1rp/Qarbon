@@ -672,6 +672,8 @@ async function openReader(b) {
   askingBook = null;
   const textId = bookTextId(b);
   reader = { b, kind: textId ? "text" : "pdf", from: b.done, minutes: 0, zoom: 1 };
+  shownPlace = JSON.stringify(b.place || null);
+  placePending = false;
   rdSecs = 0; rdActive = Date.now();
   $("reading").classList.add("rd-open");
   $("readerview").hidden = false;
@@ -826,16 +828,42 @@ document.addEventListener("keydown", e => {
 
 // ----- remembering your place, and counting reading time -----
 // saved a moment after you stop scrolling (saving on every tiny scroll would be wasteful)
+// ----- keeping your place, also between your devices -----
+// The place is stored 1.5 s after you stop scrolling (or at once when the book closes or you leave the app).
+// Syncing can bring a newer place from another device: then the open book jumps there (followSyncedPlace),
+// so this screen never saves its older page over the newer one.
+let placePending = false;   // you've moved and the place isn't stored yet
+let shownPlace = "";        // the place this screen is showing, as saved (JSON), to notice when a sync changes it
 function rememberPlace(now) {
   if (!reader) return;
   clearTimeout(placeTimer);
+  placePending = true;
   const store = () => {
     if (!reader) return;
+    // a sync is under way: wait for it, it may move this screen to a newer place first
+    if (!now && typeof syncing !== "undefined" && syncing) { placeTimer = setTimeout(store, 500); return; }
+    placePending = false;
     const b = reader.b;
     b.place = reader.kind === "text" ? { ch: reader.ch, y: Math.round(readFraction() * 1000) / 1000 } : { page: reader.page };
+    shownPlace = JSON.stringify(b.place);
     save();
   };
   if (now) store(); else placeTimer = setTimeout(store, 1500);
+}
+// store a waiting place right away: before a sync (js/account.js), and when you leave the app or lock the phone
+function flushPlace() { if (reader && placePending) rememberPlace(true); }
+document.addEventListener("visibilitychange", () => { if (document.hidden) flushPlace(); });   // runs before account.js's sync
+addEventListener("pagehide", flushPlace);
+// after a sync (applyMerged in js/account.js): if the open book's place changed, you read on elsewhere: go there
+function followSyncedPlace() {
+  if (!reader || !reader.b.place) return;
+  const p = reader.b.place, key = JSON.stringify(p);
+  if (key === shownPlace) return;
+  shownPlace = key;
+  clearTimeout(placeTimer);
+  placePending = false;
+  if (reader.kind === "text" && reader.text && Number.isInteger(p.ch)) showChapter(Math.min(p.ch, reader.text.chapters.length - 1), p.y || 0);
+  else if (reader.kind === "pdf" && reader.pdf && p.page) showPage(p.page);
 }
 const activity = () => { rdActive = Date.now(); };
 addEventListener("scroll", () => { if (reader && !$("reading").hidden) { activity(); updateProgress(); if (reader.kind === "text") rememberPlace(); } }, { passive: true });

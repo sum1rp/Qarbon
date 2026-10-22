@@ -137,12 +137,14 @@ function applyMerged(m) {
   }
   showReadbar();
   if (!$("study").hidden) render();
+  followSyncedPlace();   // the open book jumps to a newer place read on another device
 }
 
 // sync: download the online copy, merge it with this device's, then upload the result
 async function syncNow() {
   if (!auth) return;
   if (syncing) { syncAgain = true; return; }
+  flushPlace();   // a reading place still waiting to be stored (js/reading.js) goes in this sync
   syncing = true;
   clearTimeout(syncTimer); syncTimer = null;
   syncNote("Syncing…");
