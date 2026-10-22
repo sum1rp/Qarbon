@@ -60,7 +60,7 @@ document.addEventListener("keydown", e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   // on the Focus page, Space starts and pauses the timer (unless you're typing in a box)
   if (!$("focus").hidden && e.key === " " && e.target === document.body) { e.preventDefault(); $("fstart").click(); return; }
-  if ($("study").hidden || !cardShowing() || !current || ["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)) return;
+  if ($("study").hidden || !$("packview").hidden || !cardShowing() || !current || ["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)) return;
   if (!revealed && (e.key === " " || e.key === "Enter")) { e.preventDefault(); $("show").click(); }
   else if (revealed && /^[1-4]$/.test(e.key)) {
     const grade = Number(e.key);
@@ -299,7 +299,9 @@ function worldInfo() {
   const cards = s.words ? state.cards.filter(c => s.words.has(wordKey(c))) : state.cards;
   const due = cards.filter(c => active(c) && dirsOf(s).some(d => { const x = sideOf(c, d); return x.reviews > 0 && x.due <= t; })).length;
   $("ws-hole").textContent = "Dive in · " + s.name;
-  $("ws-daily").textContent = due ? due + " due" : "";
+  // today's pack, if it's still sealed (js/collection.js)
+  const packWaiting = state.packDate !== t && cards.some(c => active(c) && !inBinder(c));
+  $("ws-daily").textContent = [due ? due + " due" : "", packWaiting ? "today's pack is ready" : ""].filter(Boolean).join(" · ");
   $("ws-deck").textContent = s.name;
   $("ws-practice").textContent = moonLine();   // tonight's Moon (js/worlds.js)
   const reading = state.books.filter(b => !isFinished(b)).length;

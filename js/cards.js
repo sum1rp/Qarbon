@@ -29,10 +29,18 @@ function shuffle(a) {
   return a;
 }
 
+// a card is in your binder once you've seen it: from a pack (c.got), or studied before packs existed
+const inBinder = c => !!c.got || c.reviews > 0 || !!(c.rev && c.rev.reviews > 0);
+
 function dailyList() {
   const t = today();
   if (state.newDate !== t) { state.newDate = t; state.newDone = 0; }
   const dirs = dirsOf(stack);
+  // new words come from the packs you've opened (js/collection.js): the cards in your binder you haven't studied yet,
+  // plus a rare you pulled today (it may belong to another deck, like Level 6)
+  const mine = new Set(stackCards());
+  const pulledToday = state.cards.filter(c => c.pulled && c.got === t && c.reviews === 0 && active(c) && !mine.has(c))
+    .map(c => ({ c, dir: dirs[0] }));
   const items = stackCards().filter(active).flatMap(c => dirs.map(dir => ({ c, dir })));
   // words you missed in Burn After Reading go first, even if they aren't due yet
   const burnDir = dirs[0], isBurned = it => it.c.burnMissed && it.dir === burnDir;
@@ -41,13 +49,12 @@ function dailyList() {
     const s = sideOf(it.c, it.dir);
     return !isBurned(it) && s.reviews > 0 && s.due <= t;
   }));
-  const newLeft = Math.max(0, state.newPerDay - state.newDone);
   // new cards. With "both", a word's English → French side only unlocks once you've seen it French-first,
   // so you never get both sides of a brand-new word back to back.
-  const fresh = items.filter(it => sideOf(it.c, it.dir).reviews === 0 && !isBurned(it) &&
-    (it.dir === "fr" || !dirs.includes("fr") || it.c.reviews > 0)).slice(0, newLeft);
+  const fresh = items.filter(it => sideOf(it.c, it.dir).reviews === 0 && !isBurned(it) && inBinder(it.c) &&
+    (it.dir === "fr" || !dirs.includes("fr") || it.c.reviews > 0));
   save();
-  return [...burned, ...reviews, ...fresh];
+  return [...burned, ...reviews, ...fresh, ...pulledToday];
 }
 
 function setMode(m, list) {
@@ -112,6 +119,7 @@ function render() {
   if (mode === "translate") { renderTranslate(); return; }
   if (mode === "burn" || mode === "focus") return;   // these draw their own screens
 
+  if (typeof packBanner === "function") packBanner();   // "Today's pack is ready" above the card (js/collection.js)
   const left = queue.length + (current ? 1 : 0);
   const practicing = mode === "practice";
   $("status").textContent = practicing
@@ -135,7 +143,9 @@ function render() {
     $("card").dataset.type = "";
     $("front").textContent = practicing
       ? "Practice complete! " + practice.right + " of " + practice.total + " right on the first try"
-      : stackCards().length ? "Done for today! Try “Practice” to keep going." : "No cards here yet. Tap ‹ to pick a stack.";
+      : !stackCards().length ? "No cards here yet. Tap ‹ to pick a stack."
+      : !$("packbanner").hidden && !packReady().daily ? "Done for today! Open another pack above, or try “Practice”."
+      : !$("packbanner").hidden ? "Your new words are in today's pack, above." : "Done for today! Try “Practice” to keep going.";
     $("answer").textContent = $("example").textContent = "";
     $("type1").textContent = $("type2").textContent = "";
     $("newbadge").hidden = $("gender").hidden = $("dirbadge").hidden = true;
@@ -414,6 +424,7 @@ function renderDeck() {
   renderStacks();
   fillFilters();
   renderList();
+  renderBinder();   // only draws while the Binder tab is open (js/collection.js)
 }
 
 $("search").oninput = renderList;

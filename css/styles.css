@@ -494,17 +494,17 @@
 
   #cardview { width:100%; display:flex; flex-direction:column; align-items:center; }
 
-  /* ---------- card colors by part of speech ---------- */
-  #card[data-type="noun"]       { --type:#2fbf9b; }
-  #card[data-type="verb"]       { --type:#ff5d8f; }
-  #card[data-type="adjective"]  { --type:#ffb347; }
-  #card[data-type="adverb"]     { --type:#a06bff; }
-  #card[data-type="pronoun"]    { --type:#4aa3ff; }
+  /* ---------- card colors by part of speech (on every collectible card, .qcard) ---------- */
+  .qcard[data-type="noun"]       { --type:#2fbf9b; }
+  .qcard[data-type="verb"]       { --type:#ff5d8f; }
+  .qcard[data-type="adjective"]  { --type:#ffb347; }
+  .qcard[data-type="adverb"]     { --type:#a06bff; }
+  .qcard[data-type="pronoun"]    { --type:#4aa3ff; }
 
   /* ---------- flip animation ---------- */
   /* --rx / --ry = the small tilt that follows your finger or the phone (set by the shine code in js/cards.js) */
   #scene { width:100%; max-width:340px; height:440px; margin:20px 0; perspective:1000px; }
-  #card { --type:var(--accent); --mx:50%; --my:35%; --rx:0deg; --ry:0deg;
+  #card { --mx:50%; --my:35%; --rx:0deg; --ry:0deg;
           position:relative; width:100%; height:100%; transition:transform .6s; transform-style:preserve-3d;
           transform:rotateX(var(--rx)) rotateY(var(--ry)); }
   #card.flipped { transform:rotateX(var(--rx)) rotateY(calc(180deg + var(--ry))); }
@@ -529,26 +529,27 @@
 
   /* ---------- collectible cards: rarity, the holo shine, mastery (set by render() in js/cards.js) ---------- */
   /* the worlds (rarity): each one's foil colors (--h1, --h2, --h3) */
-  #card[data-tier="earth"]   { --h1:#4fc3ff; --h2:#2fbf9b; --h3:#b8f0ff; }
-  #card[data-tier="moon"]    { --h1:#e8ecff; --h2:#9aa4c8; --h3:#ffffff; }
-  #card[data-tier="venus"]   { --h1:#ffe6a8; --h2:#f2c46d; --h3:#fff6dc; }
-  #card[data-tier="mars"]    { --h1:#ff8a5c; --h2:#ffb38a; --h3:#ffe2cf; }
-  #card[data-tier="mercury"] { --h1:#c9c4bd; --h2:#8f8a84; --h3:#f2efe9; }
-  #card[data-tier="jupiter"] { --h1:#f0b27a; --h2:#d9825b; --h3:#fbe3c8; }
-  #card[data-tier="saturn"]  { --h1:#f3d99b; --h2:#d6b26b; --h3:#fff1cf; }
-  #card[data-tier="uranus"]  { --h1:#9ff0ef; --h2:#5fd0d6; --h3:#dcfffe; }
-  #card[data-tier="neptune"] { --h1:#5b8cff; --h2:#3d5bff; --h3:#a9c4ff; }
-  #card[data-tier="sun"]     { --h1:#ffd447; --h2:#ff9f43; --h3:#fff4c2; }
-  #card[data-tier="nebula"] { --h1:#ff5d8f; --h2:#a06bff; --h3:#4aa3ff; }
-  #card[data-tier="hole"]   { --h1:#ff8a3d; --h2:#7b6cff; --h3:#ffe0a0; }
+  .qcard[data-tier="earth"]   { --h1:#4fc3ff; --h2:#2fbf9b; --h3:#b8f0ff; }
+  .qcard[data-tier="moon"]    { --h1:#e8ecff; --h2:#9aa4c8; --h3:#ffffff; }
+  .qcard[data-tier="venus"]   { --h1:#ffe6a8; --h2:#f2c46d; --h3:#fff6dc; }
+  .qcard[data-tier="mars"]    { --h1:#ff8a5c; --h2:#ffb38a; --h3:#ffe2cf; }
+  .qcard[data-tier="mercury"] { --h1:#c9c4bd; --h2:#8f8a84; --h3:#f2efe9; }
+  .qcard[data-tier="jupiter"] { --h1:#f0b27a; --h2:#d9825b; --h3:#fbe3c8; }
+  .qcard[data-tier="saturn"]  { --h1:#f3d99b; --h2:#d6b26b; --h3:#fff1cf; }
+  .qcard[data-tier="uranus"]  { --h1:#9ff0ef; --h2:#5fd0d6; --h3:#dcfffe; }
+  .qcard[data-tier="neptune"] { --h1:#5b8cff; --h2:#3d5bff; --h3:#a9c4ff; }
+  .qcard[data-tier="sun"]     { --h1:#ffd447; --h2:#ff9f43; --h3:#fff4c2; }
+  .qcard[data-tier="nebula"] { --h1:#ff5d8f; --h2:#a06bff; --h3:#4aa3ff; }
+  .qcard[data-tier="hole"]   { --h1:#ff8a3d; --h2:#7b6cff; --h3:#ffe0a0; }
   /* mastery: how strong the foil is (0 = new, 4 = mastered) */
-  #card { --holo:0; --h1:#e8ecff; --h2:#9aa4c8; --h3:#ffffff; }
-  #card[data-m="1"] { --holo:.22; } #card[data-m="2"] { --holo:.42; } #card[data-m="3"] { --holo:.68; } #card[data-m="4"] { --holo:1; }
+  /* .qcard = any collectible card: the one in Review (#card), the cards in a pack and in the binder (js/collection.js) */
+  .qcard { --type:var(--accent); --holo:0; --h1:#e8ecff; --h2:#9aa4c8; --h3:#ffffff; }
+  .qcard[data-m="1"] { --holo:.22; } .qcard[data-m="2"] { --holo:.42; } .qcard[data-m="3"] { --holo:.68; } .qcard[data-m="4"] { --holo:1; }
   /* the foil on the silver edge: rainbow bands in the tier's colors, a light tint so the silver still reads as silver */
   .face .foil { position:absolute; inset:0; z-index:0; pointer-events:none; mix-blend-mode:overlay; opacity:calc(var(--holo) * .7);
                 background:repeating-linear-gradient(115deg, var(--h1) 0%, var(--h2) 7%, var(--h3) 14%, var(--h1) 21%);
                 background-size:300% 300%; background-position:calc(var(--mx) * 1.2) calc(var(--my) * 1.2); }
-  #card[data-tier="hole"] .face .foil { background:conic-gradient(from 0deg at var(--mx) var(--my), var(--h1), var(--h2), #0a0a14, var(--h3), var(--h1)); }
+  .qcard[data-tier="hole"] .face .foil { background:conic-gradient(from 0deg at var(--mx) var(--my), var(--h1), var(--h2), #0a0a14, var(--h3), var(--h1)); }
   /* the glare: a soft light where your finger (or the light from the tilt) is */
   .face .glare { position:absolute; inset:0; z-index:5; pointer-events:none; mix-blend-mode:overlay; opacity:calc(.2 + var(--holo) * .45);
                  background:radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,.75), rgba(255,255,255,0) 50%); }
@@ -573,15 +574,15 @@
   .pips { display:flex; justify-content:space-between; align-items:center; gap:6px; margin-top:8px; font-size:.72rem; color:var(--muted); }
   .pips i { display:inline-block; width:16px; height:4px; margin-right:4px; border-radius:2px; background:rgba(255,255,255,.14); }
   .pips i.on { background:var(--h1); box-shadow:0 0 6px var(--h1); }
-  #card[data-m="2"] .inner { box-shadow:0 0 0 1px rgba(0,0,0,.55), inset 0 0 0 1px rgba(220,225,240,.45); }
-  #card[data-m="3"] .inner { box-shadow:0 0 0 1px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,212,71,.6); }
-  #card[data-m="4"] .inner { box-shadow:0 0 0 1px rgba(0,0,0,.55), inset 0 0 0 1.5px rgba(255,212,71,.9), inset 0 0 18px rgba(255,212,71,.18); }
+  .qcard[data-m="2"] .inner { box-shadow:0 0 0 1px rgba(0,0,0,.55), inset 0 0 0 1px rgba(220,225,240,.45); }
+  .qcard[data-m="3"] .inner { box-shadow:0 0 0 1px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,212,71,.6); }
+  .qcard[data-m="4"] .inner { box-shadow:0 0 0 1px rgba(0,0,0,.55), inset 0 0 0 1.5px rgba(255,212,71,.9), inset 0 0 18px rgba(255,212,71,.18); }
   .face .spark { position:absolute; inset:0; z-index:4; pointer-events:none; display:none;
                  background-image:radial-gradient(1.5px 1.5px at 12% 20%, #fff, transparent), radial-gradient(1.5px 1.5px at 78% 14%, #fff, transparent),
                    radial-gradient(1px 1px at 88% 64%, #fff, transparent), radial-gradient(1.5px 1.5px at 22% 82%, #fff, transparent),
                    radial-gradient(1px 1px at 52% 40%, #fff, transparent), radial-gradient(1px 1px at 64% 90%, #fff, transparent);
                  animation:twinkle 2.4s ease-in-out infinite; }
-  #card[data-m="4"] .spark { display:block; }
+  .qcard[data-m="4"] .spark { display:block; }
   @keyframes twinkle { 0%, 100% { opacity:.25; } 50% { opacity:1; } }
   /* "⬆ le magasin · Known": floats over the top of the card for a moment after an answer */
   #scene { position:relative; }
@@ -591,7 +592,7 @@
   #levelup.show { animation:levelup 1.8s ease forwards; }
   @keyframes levelup { 0% { opacity:0; transform:translate(-50%, 8px); } 12%, 75% { opacity:1; transform:translate(-50%, 0); } 100% { opacity:0; transform:translate(-50%, -6px); } }
   /* no word on screen (done for today): a plain card, no emblem or bars */
-  #card:not([data-tier]) .pips, #card[data-tier=""] .pips { visibility:hidden; }
+  .qcard:not([data-tier]) .pips, .qcard[data-tier=""] .pips { visibility:hidden; }
 
   .top { display:flex; justify-content:space-between; align-items:center; font-size:.85rem; margin-bottom:10px; min-height:26px; }
   .pill { background:var(--type); color:#08080d; padding:3px 10px; border-radius:999px; font-weight:600; text-transform:capitalize; }
@@ -608,6 +609,159 @@
   .speak, .burnspeak { margin-top:8px; background:none; border:1px solid var(--line-strong);
            border-radius:999px; padding:4px 12px; font-size:1.1rem; cursor:pointer; }
   .textbox .speak { margin:0 0 0 6px; padding:2px 8px; font-size:1rem; }
+
+  /* ---------- packs and the binder (js/collection.js) ---------- */
+  .qcard { --mx:50%; --my:35%; }
+  /* "Today's pack is ready" above the Review card: a little pack + what's in it */
+  #packbanner { display:flex; align-items:center; gap:12px; width:100%; max-width:340px; box-sizing:border-box; margin-top:10px; padding:10px 12px;
+                text-align:left; border-radius:14px; border:1px solid rgba(123,108,255,.55); color:var(--text);
+                background:linear-gradient(120deg, rgba(123,108,255,.28), rgba(159,230,255,.10) 60%, rgba(255,216,240,.14)); }
+  #packbanner .pk-icon { width:30px; height:42px; flex:none; border-block:3px solid #d3d5df; background:radial-gradient(circle at 50% 45%, rgba(123,108,255,.5), transparent 60%), #05050b; box-shadow:0 2px 8px rgba(0,0,0,.5); }
+  #packbanner b { display:block; } #packbanner small { color:var(--muted); font-size:.82rem; }
+  #packbanner.extra { border-color:var(--line); background:var(--surface); }
+
+  /* the pack opening: a layer over the whole screen */
+  #packview { position:fixed; inset:0; z-index:60; overflow-y:auto; background:rgba(3,3,6,.95);
+              padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+              display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; }
+  #packview[hidden] { display:none; }
+  html.packing { overflow:hidden; }   /* the page behind the pack doesn't scroll */
+  #pk-close { position:absolute; top:max(12px, env(safe-area-inset-top, 0px)); right:max(12px, env(safe-area-inset-right, 0px)); padding:8px 14px; font-size:.9rem; }
+  #pk-stage { position:relative; width:min(320px, 86vw, calc((100svh - 150px) * .727)); aspect-ratio:320/440; perspective:1100px; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
+  #pk-hint, #pk-count { color:var(--muted); font-size:.88rem; text-align:center; min-height:1.3em; margin:0; font-variant-numeric:tabular-nums; }
+
+  /* the pack itself: the site's own sky (drawn by packSky), the logo atom, thin silver seals top and bottom */
+  .pk-pack { position:absolute; inset:0 4%; cursor:pointer; filter:drop-shadow(0 18px 30px rgba(0,0,0,.7)); }
+  .pk-crimp { position:absolute; left:0; right:0; height:3.6%; z-index:3;
+    background:repeating-linear-gradient(90deg, rgba(0,0,0,.2) 0 1px, transparent 1px 3px),
+               linear-gradient(118deg,#4a4c58 0%,#c9ccd8 12%,#7d8090 22%,#f6f7fc 33%,#9497a6 42%,#e2e4ec 52%,#5d606d 63%,#fbfcff 74%,#8a8d9b 84%,#d3d5df 92%,#4f5160 100%);
+    background-size:auto, 260% 260%; background-position:0 0, var(--mx, 40%) var(--my, 30%); }
+  /* the little teeth along the outside edge, like a heat-sealed booster pack */
+  .pk-crimp.top { top:0; transform-origin:100% 100%;
+    -webkit-mask:linear-gradient(#000,#000) bottom/100% 76% no-repeat, conic-gradient(from 135deg at 50% 0, #000 90deg, transparent 0) top/5px 24% repeat-x;
+            mask:linear-gradient(#000,#000) bottom/100% 76% no-repeat, conic-gradient(from 135deg at 50% 0, #000 90deg, transparent 0) top/5px 24% repeat-x; }
+  .pk-crimp.bottom { bottom:0;
+    -webkit-mask:linear-gradient(#000,#000) top/100% 76% no-repeat, conic-gradient(from -45deg at 50% 100%, #000 90deg, transparent 0) bottom/5px 24% repeat-x;
+            mask:linear-gradient(#000,#000) top/100% 76% no-repeat, conic-gradient(from -45deg at 50% 100%, #000 90deg, transparent 0) bottom/5px 24% repeat-x; }
+  .pk-tear { position:absolute; z-index:4; top:5.9%; left:6px; right:0; border-top:1px dashed rgba(255,255,255,.28); }
+  .pk-body { position:absolute; inset:3.4% 0; overflow:hidden; background:#030306; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08), inset 0 0 40px rgba(0,0,0,.9);
+             display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; text-align:center; }
+  .pk-body > img { position:absolute; pointer-events:none; }
+  .pk-body .pk-sky { inset:0; width:100%; height:100%; object-fit:cover; }
+  /* the plastic: a soft shine that slides with your finger */
+  .pk-gloss { position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:linear-gradient(105deg, transparent 30%, rgba(255,255,255,.07) 42%, rgba(255,255,255,.14) 46%, rgba(255,255,255,.04) 52%, transparent 62%),
+               linear-gradient(180deg, rgba(255,255,255,.06), transparent 7%, transparent 93%, rgba(255,255,255,.05));
+    background-size:260% 100%, 100% 100%; background-position:var(--mx, 40%) 0, 0 0; }
+  .pk-glow { position:absolute; z-index:1; left:50%; top:44%; width:120%; aspect-ratio:1; transform:translate(-50%,-50%); pointer-events:none;
+             background:radial-gradient(circle, rgba(123,108,255,.32), rgba(91,78,224,.10) 30%, transparent 55%); }
+  .pk-atom { position:relative; z-index:2; width:30%; aspect-ratio:1; filter:drop-shadow(0 0 10px rgba(190,180,255,.9)) drop-shadow(0 0 28px rgba(123,108,255,.7)); }
+  .pk-atom .atom { width:100%; height:100%; overflow:visible; }
+  .pk-atom .orbits { transform-origin:50% 50%; animation:swirl 24s linear infinite; }
+  .pk-name { position:relative; z-index:2; font-family:"Amiri", Georgia, serif; font-style:italic; font-size:1.6rem; line-height:1; color:#fff; text-shadow:0 0 14px rgba(123,108,255,.8); }
+  .pk-sub { position:relative; z-index:2; white-space:nowrap; font-size:.68rem; letter-spacing:.26em; text-transform:uppercase; color:rgba(236,235,245,.7); }
+  /* the deck's worlds behind the atom: photos with black skies, blended in with "screen" so only their light shows */
+  .pk-pic, .pk-pic2 { z-index:0; mix-blend-mode:screen; }
+  .pk-pack[data-bg="hole"] .pk-pic { width:90%; left:5%; top:14%; opacity:.8; -webkit-mask-image:radial-gradient(closest-side, #000 45%, transparent); mask-image:radial-gradient(closest-side, #000 45%, transparent); }
+  .pk-pack[data-bg="earth"] .pk-pic { width:150%; left:-25%; top:68%; border-radius:50%; mix-blend-mode:normal; box-shadow:0 0 50px rgba(79,195,255,.45); }
+  .pk-pack[data-bg="pair"] .pk-pic { width:68%; left:-20%; bottom:-20%; }    /* the level's easiest world, large, low on the left */
+  .pk-pack[data-bg="pair"] .pk-pic2 { width:30%; right:6%; top:6%; }         /* its hardest world, small, high on the right */
+  .pk-pack[data-bg="hole"] .pk-glow { opacity:.4; }
+  /* tearing it open: the top seal flies off, the pack drops away */
+  .pk-pack.open .pk-crimp.top { animation:pk-lid .6s cubic-bezier(.4,0,.8,.6) forwards; }
+  .pk-pack.open .pk-tear { opacity:0; }
+  .pk-pack.open .pk-body, .pk-pack.open .pk-crimp.bottom { animation:pk-drop .55s .35s ease-in forwards; }
+  @keyframes pk-lid { to { transform:translate(55%, -160%) rotate(24deg); opacity:0; } }
+  @keyframes pk-drop { to { transform:translateY(75%); opacity:0; } }
+
+  /* one card of the pack: its front and the Qarbon back, turned over like the Review card */
+  .pk-flip { position:absolute; inset:0; transform-style:preserve-3d; transition:transform .6s cubic-bezier(.3,.7,.3,1); cursor:pointer; }
+  .pk-flip.down { transform:rotateY(180deg); }
+  .pk-flip > .qcard { position:absolute; inset:0; }
+  .pk-flip > .pk-back { transform:rotateY(180deg); }
+  /* Safari can draw the hidden side mirrored instead of hiding it, so each side is also switched off halfway through the turn */
+  .pk-flip > .qcard { transition:visibility 0s .3s; }
+  .pk-flip > .pk-back, .pk-flip.down > .qcard:not(.pk-back) { visibility:hidden; }
+  .pk-flip.down > .pk-back { visibility:visible; }
+  .pk-flip .face { backface-visibility:visible; -webkit-backface-visibility:visible; }
+  .qcard .word { position:relative; font-size:2rem; font-weight:700; line-height:1.2; text-wrap:balance; color:var(--text); text-shadow:0 2px 10px rgba(0,0,0,.8); }
+  .pk-back .inner { align-items:center; justify-content:center; background:radial-gradient(circle at 50% 45%, rgba(123,108,255,.28), transparent 62%), #08080f; }
+  .pk-back .inner::before { display:none; }
+  .pk-back .atom { width:44%; overflow:visible; filter:drop-shadow(0 0 10px rgba(123,108,255,.8)); }
+  .pk-back .brand { margin-top:10px; font-size:.8rem; letter-spacing:.32em; text-transform:uppercase; color:var(--muted); }
+  .pk-in { animation:pk-in .45s cubic-bezier(.2,.8,.3,1) both; }
+  @keyframes pk-in { from { transform:translateY(40px) scale(.92); opacity:0; } }
+  .pk-out { animation:pk-out .3s ease-in forwards; }
+  @keyframes pk-out { to { transform:translate(-70%, 10px) rotate(-8deg) scale(.8); opacity:0; } }
+  /* the last (hardest) card waits face down, glowing in its world's colors */
+  .pk-flip.down.charged > .pk-back .face { animation:pk-charge 1.2s ease-in-out infinite; }
+  @keyframes pk-charge { 0%, 100% { box-shadow:0 0 18px 2px var(--h1), inset 0 0 0 1px rgba(255,255,255,.35); } 50% { box-shadow:0 0 42px 10px var(--h2), inset 0 0 0 1px rgba(255,255,255,.35); } }
+  .pk-flash { position:absolute; inset:-30px; border-radius:40px; pointer-events:none; opacity:0; background:radial-gradient(circle, rgba(255,255,255,.95), var(--fl, #ffd447) 35%, transparent 70%); }
+  .pk-flash.go { animation:pk-flash .9s ease-out; }
+  @keyframes pk-flash { 0% { opacity:0; transform:scale(.6); } 20% { opacity:1; } 100% { opacity:0; transform:scale(1.4); } }
+  .pk-rare { position:absolute; z-index:8; top:-14px; left:50%; transform:translateX(-50%); white-space:nowrap; padding:5px 14px; border-radius:999px; font-weight:700; font-size:.82rem; letter-spacing:.08em;
+             color:#1a0c08; background:linear-gradient(135deg,#ffe0a0,#ff8a3d 50%,#7b6cff); box-shadow:0 4px 18px rgba(255,138,61,.45); }
+  /* the end: the whole pack as small cards, then what to do next */
+  #pk-done { display:flex; flex-direction:column; align-items:center; gap:14px; width:min(380px, 100%); text-align:center; }
+  #pk-done[hidden] { display:none; }
+  #pk-grid { display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; width:100%; }
+  #pk-done .pk-btns { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+  #pk-study { background:linear-gradient(135deg,var(--accent-fill),var(--accent-fill-2)); color:#fff; border:none; font-weight:600; }
+  #pk-nudge { color:var(--muted); font-size:.85rem; max-width:40ch; margin:0; }
+  @media (prefers-reduced-motion: reduce) {
+    .pk-flip, .pk-flip > .qcard { transition:none; }
+    .pk-in, .pk-out, .pk-flash.go, .pk-pack.open .pk-crimp.top, .pk-pack.open .pk-body, .pk-pack.open .pk-crimp.bottom, .pk-atom .orbits, .pk-flip.down.charged > .pk-back .face { animation:none; }
+  }
+
+  /* small cards: the binder's pockets and the end of a pack */
+  .qmini { position:relative; display:block; width:100%; aspect-ratio:63/88; }
+  .qmini .face { padding:4px; border-radius:10px; }
+  .qmini .inner { padding:5px; border-radius:7px; }
+  .qmini .inner::before { height:3px; }
+  .qmini .art { padding:4px; border-radius:6px; }
+  .qmini .word { font-size:clamp(.58rem, 2.4vw, .78rem); line-height:1.15; word-break:break-word; text-wrap:balance; }
+  .qmini .pips { margin-top:3px; justify-content:center; }
+  .qmini .pips i { width:7px; height:2.5px; margin:0 1px; }
+  .qmini .num { position:relative; z-index:2; font-size:.55rem; color:var(--muted); text-align:right; margin-top:2px; font-variant-numeric:tabular-nums; }
+  /* the binder (Decks mode → Binder) */
+  #decktabs { display:flex; gap:6px; margin:0 0 10px; }
+  #decktabs button { flex:1; padding:8px 12px; font-size:.95rem; }
+  #decktabs button[aria-pressed="true"] { background:var(--accent-fill); border-color:var(--accent); color:#fff; }
+  /* while the binder shows, the list's search, buttons and rows step aside */
+  #decklistview.binding #filters, #decklistview.binding #deckactions, #decklistview.binding #decksummary, #decklistview.binding #decklist { display:none; }
+  #binder { display:flex; flex-direction:column; gap:14px; }
+  #binder[hidden] { display:none; }
+  .bd-head { display:flex; flex-direction:column; gap:10px; padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
+  .bd-big { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; color:var(--muted); font-size:.9rem; }
+  .bd-big b { font-size:1.6rem; color:var(--text); font-variant-numeric:tabular-nums; }
+  .bd-bar { height:8px; border-radius:4px; background:rgba(255,255,255,.08); overflow:hidden; }
+  .bd-bar i { display:block; height:100%; border-radius:4px; background:linear-gradient(90deg, var(--c1, #7b6cff), var(--c2, #9fe6ff)); }
+  .bd-world { display:grid; grid-template-columns:26px 1fr auto; gap:10px; align-items:center; font-size:.88rem; font-variant-numeric:tabular-nums; }
+  .bd-world img, .bd-sec h3 img { width:26px; height:26px; border-radius:50%; object-fit:cover; }
+  .bd-world .bd-bar { margin-top:3px; }
+  .bd-world .bd-row { display:flex; justify-content:space-between; gap:8px; }
+  .bd-world .bd-row span:last-child { color:var(--muted); }
+  .bd-filters { display:flex; gap:6px; flex-wrap:wrap; }
+  .bd-filters button { padding:6px 12px; font-size:.85rem; border-radius:999px; }
+  .bd-filters button[aria-pressed="true"] { background:var(--accent-fill); border-color:var(--accent); color:#fff; }
+  .bd-sec { display:flex; flex-direction:column; gap:10px; }
+  .bd-sec h3 { margin:6px 0 0; font-size:1rem; display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .bd-sec h3 img { width:22px; height:22px; }
+  .bd-sec h3 span { color:var(--muted); font-weight:400; font-size:.85rem; font-variant-numeric:tabular-nums; }
+  .bd-pockets { display:grid; grid-template-columns:repeat(auto-fill, minmax(72px, 1fr)); gap:8px; }
+  .bd-pockets > button { all:unset; cursor:pointer; display:block; border-radius:10px; }
+  .bd-pockets > button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .bd-more { align-self:center; padding:8px 16px; font-size:.9rem; }
+  /* a card you haven't collected yet: a silhouette with its number */
+  .bd-silo { aspect-ratio:63/88; border-radius:10px; border:1px dashed rgba(255,255,255,.14); color:rgba(255,255,255,.3); font-size:.62rem; font-variant-numeric:tabular-nums;
+             background:repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 6px, transparent 6px 12px), #07070c;
+             display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+  .bd-silo img { width:34%; aspect-ratio:1; border-radius:50%; object-fit:cover; filter:grayscale(1) brightness(.35); }
+  .bd-note { color:var(--muted); font-size:.85rem; margin:0; }
+  /* tapping a card in the binder shows it big */
+  #bd-zoom { position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center; background:rgba(3,3,6,.88); cursor:pointer; }
+  #bd-zoom[hidden] { display:none; }
+  #bd-zoom .qcard { position:relative; width:min(300px, 86vw); aspect-ratio:340/440; }
 
   /* ---------- buttons ---------- */
   #buttons { display:flex; gap:12px; }

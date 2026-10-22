@@ -84,6 +84,7 @@ function startBurn() {
   $("msg").textContent = "";
   const fresh = stackCards().filter(c => active(c) && c.reviews === 0).slice(0, BURN_SIZE);
   burn = { cards: fresh, order: [], i: 0, right: 0, missed: [] };
+  fresh.forEach(c => { c.got = c.got || today(); });   // seen for the first time: they go into your binder (js/collection.js)
   render();
   if (!fresh.length) {   // nothing new left: say so and offer the way back
     burnShow("burn-end");

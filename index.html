@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Qarbon</title>
+<!-- Amiri italic for the packs' "Level 1" (the logo's own built-in font only has the letters Q a r b n); offline, Georgia italic stands in -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:ital@1&display=swap">
 <link rel="stylesheet" href="css/styles.css?v=58">
 <!-- the atom icons: the little one in the browser tab, and the one iPhones use for "Add to Home Screen" -->
 <link rel="icon" type="image/svg+xml" href="favicon.svg?v=58">
@@ -134,7 +136,9 @@
     <div class="howsec">
       <h3>Review</h3>
       <ul>
-        <li>Shows the cards due today, plus a few new ones (set how many under <b>New cards per day</b>).</li>
+        <li>Shows the cards due today, plus the new words from the packs you've opened.</li>
+        <li><b>Today's pack:</b> new words come in a pack of 10 each day. Tap "Today's pack is ready" above the card, tap the pack to tear it open, then tap to turn over each card. The hardest world comes last, face down. About 1 daily pack in 10 has a <b>rare pull</b>: a Nebula or Black Hole word from Level 6.</li>
+        <li><b>More packs:</b> when you're done for the day you can open another pack. Each one adds to your reviews over the next days. Its size is <b>Cards per extra pack</b> in ⚙.</li>
         <li><b>Flip:</b> tap the card, tap <b>Show answer</b>, or press Space/Enter. Tap again to peek back at the front.</li>
         <li><b>Rate it:</b> Again, Hard, Good or Easy (keys 1 to 4). The small text under each button is when you'll see the card next.</li>
         <li><b>Swipe</b> right for Good, left for Again (after flipping).</li>
@@ -275,7 +279,7 @@
       <h3>Saving and backups</h3>
       <ul>
         <li>Progress saves automatically, <b>in this browser on this device</b>. Your phone and your Mac keep separate progress.</li>
-        <li>In <b>⚙</b> settings: <b>New cards per day</b> sets how many new words Review adds each day.</li>
+        <li>In <b>⚙</b> settings: <b>Cards per extra pack</b> sets how many new words an extra pack has (today's pack is always 10).</li>
         <li><b>Export backup</b> (in ⚙) downloads a file with all your cards, progress, decks and settings. <b>Restore backup</b> replaces your progress with a backup (it asks first). Use these to move progress between devices.</li>
         <li>Private browsing windows can block saving. Qarbon shows a warning if that happens.</li>
       </ul>
@@ -320,7 +324,7 @@
 
   <!-- settings: hidden until you tap ⚙ -->
   <div id="settings" hidden>
-    <label>New cards per day
+    <label>Cards per extra pack
       <select id="perday"><option>10</option><option>20</option><option>30</option></select>
     </label>
     <label>Card direction (this stack) <select id="direction"></select></label>
@@ -628,10 +632,12 @@
 
   <div id="cardview">
     <div id="status"></div>
+    <!-- "Today's pack is ready" (or "Open another pack" when you're done): opens the pack (js/collection.js) -->
+    <button id="packbanner" hidden><span class="pk-icon"></span><span><b id="pb-title"></b><small id="pb-sub"></small></span></button>
     <div id="scene">
       <!-- "⬆ le magasin · Known" for a moment when an answer moves a word up a step -->
       <div id="levelup" hidden></div>
-      <div id="card">
+      <div id="card" class="qcard">
         <!-- each face: the silver edge (.face), the holo foil, the panel (.inner), sparkles and the glare (see "collectible cards" in js/cards.js) -->
         <div class="face front-face"><div class="foil"></div><div class="inner">
           <div class="top">
@@ -689,6 +695,12 @@
         <label id="newdeck">+ New deck from a CSV file<input type="file" id="file" accept=".csv" hidden></label>
       </details>
       <div id="stackmsg"></div>
+      <!-- List = the cards as rows (search, edit); Binder = your collection as cards, by world (js/collection.js) -->
+      <div id="decktabs" role="group" aria-label="Show the deck as">
+        <button id="tab-list" aria-pressed="true">List</button>
+        <button id="tab-binder" aria-pressed="false">Binder</button>
+      </div>
+      <div id="binder" hidden></div>
       <div id="filters">
         <input type="search" id="search" placeholder="Search words or meanings...">
         <select id="level"></select>
@@ -780,6 +792,24 @@
 <!-- the Visualizer's Space or Cover look on the whole screen (tap it on the Qpod's screen; tap again to come back).
      Both are outside #study on purpose: the Qpod's own full screen hides everything else inside #study -->
 <canvas class="spacefull" id="spacefull" hidden></canvas>
+<!-- opening a pack (js/collection.js): over the whole screen -->
+<div id="packview" hidden role="dialog" aria-modal="true" aria-label="Opening a pack">
+  <button id="pk-close">Skip ✕</button>
+  <div id="pk-stage" aria-live="polite"></div>
+  <p id="pk-count"></p>
+  <p id="pk-hint"></p>
+  <div id="pk-done" hidden>
+    <b id="pk-title"></b>
+    <div id="pk-grid"></div>
+    <div class="pk-btns">
+      <button id="pk-study">Study them now</button>
+      <button id="pk-another"></button>
+    </div>
+    <p id="pk-nudge"></p>
+  </div>
+</div>
+<!-- a card from the binder, shown big -->
+<div id="bd-zoom" hidden></div>
 <!-- the photo picker for album art (js/music.js): opened by "🖼 Choose picture" in My music or Album Art on the Qpod.
      Outside #study too, so it works from every music panel -->
 <input type="file" class="artfile" id="artfile" accept="image/*" tabindex="-1" aria-hidden="true">
@@ -800,6 +830,7 @@
 <script src="js/music.js?v=58"></script>
 <script src="js/media.js?v=58"></script>
 <script src="js/app.js?v=58"></script>
+<script src="js/collection.js?v=58"></script>
 <script src="js/reading.js?v=58"></script>
 <script src="js/translate.js?v=58"></script>
 <script src="js/account.js?v=58"></script>
