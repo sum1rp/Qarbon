@@ -667,6 +667,17 @@
   .pk-pack[data-bg="pair"] .pk-pic { width:68%; left:-20%; bottom:-20%; }    /* the level's easiest world, large, low on the left */
   .pk-pack[data-bg="pair"] .pk-pic2 { width:30%; right:6%; top:6%; }         /* its hardest world, small, high on the right */
   .pk-pack[data-bg="hole"] .pk-glow { opacity:.4; }
+  /* sliding to tear (--cut = 0 to 1, set while your finger moves): a glowing cut along the tear line, the top seal lifts a little */
+  .pk-pack { touch-action:none; }   /* the finger slides the cut instead of scrolling the page */
+  .pk-cut { position:absolute; z-index:5; top:5.9%; left:0; height:2px; margin-top:-1px; width:calc(var(--cut, 0) * 100%); pointer-events:none;
+            background:linear-gradient(90deg, rgba(255,255,255,.2), #fff); box-shadow:0 0 6px #fff, 0 0 14px var(--accent); border-radius:1px; }
+  .pk-cut.right { left:auto; right:0; background:linear-gradient(270deg, rgba(255,255,255,.2), #fff); }
+  .pk-pack:not(.open) .pk-crimp.top { transform:translateY(calc(var(--cut, 0) * -4px)) rotate(calc(var(--cut, 0) * -1.5deg)); }
+  .pk-pack.snap .pk-cut { transition:width .25s ease; }
+  .pk-pack.snap .pk-crimp.top { transition:transform .25s ease; }
+  .pk-pack.nudge { animation:pk-nudge .5s ease; }
+  @keyframes pk-nudge { 25% { transform:translateX(-6px); } 50% { transform:translateX(5px); } 75% { transform:translateX(-3px); } }
+  .pk-pack.open .pk-cut { opacity:0; }
   /* tearing it open: the top seal flies off, the pack drops away */
   .pk-pack.open .pk-crimp.top { animation:pk-lid .6s cubic-bezier(.4,0,.8,.6) forwards; }
   .pk-pack.open .pk-tear { opacity:0; }

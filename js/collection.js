@@ -117,7 +117,7 @@ function packHTML(name, size, look) {
   if (!packSkyURL) packSkyURL = packSky(300, 420);
   const pic = look.bg === "earth" ? "img/earth.jpg" : look.bg === "hole" ? "img/sgr-a.jpg" : look.bg === "pair" ? look.big.img : "";
   return '<div class="pk-pack" data-bg="' + look.bg + '" role="button" tabindex="0" aria-label="Open the pack">' +
-    '<div class="pk-crimp top"></div><div class="pk-tear"></div>' +
+    '<div class="pk-crimp top"></div><div class="pk-tear"></div><div class="pk-cut"></div>' +
     '<div class="pk-body"><img class="pk-sky" alt="" src="' + packSkyURL + '">' +
       (pic ? '<img class="pk-pic" alt="" src="' + pic + '">' : '') +
       (look.bg === "pair" && look.small !== look.big ? '<img class="pk-pic2" alt="" src="' + look.small.img + '">' : '') +
@@ -153,7 +153,7 @@ function openPack() {
   $("pk-stage").hidden = false;
   $("pk-stage").innerHTML = packHTML(stack ? stack.name : "All my cards", cards.length, packBackground());
   $("pk-count").textContent = ready.daily ? "Today's pack" : "Another pack";
-  $("pk-hint").textContent = "Tap the pack to tear it open";
+  $("pk-hint").textContent = "Slide across the pack to tear it open";
   $("pk-close").textContent = "Skip ✕";
   $("packview").hidden = false;
   document.documentElement.classList.add("packing");
@@ -238,7 +238,42 @@ function closePack() {
   if (mode === "daily") setMode("daily"); else render();
 }
 
-$("pk-stage").addEventListener("click", packTap);
+// a tap or click: next card (the sealed pack opens by sliding, below; Enter on a keyboard opens it too)
+$("pk-stage").addEventListener("click", () => { if (pk && pk.i >= 0) packTap(); });
+
+// sliding a finger across the sealed pack cuts it open, like a real booster: a glowing cut follows your finger
+// along the tear line and the top seal lifts a little. Past 70% of the pack's width (either way) it tears.
+let cut = null;   // { x: where the slide started, id: which finger, w: the pack's width }
+function setCut(pack, f, fromRight) {
+  pack.style.setProperty("--cut", f.toFixed(3));
+  pack.querySelector(".pk-cut").classList.toggle("right", fromRight);
+}
+$("pk-stage").addEventListener("pointerdown", e => {
+  const pack = e.target.closest(".pk-pack");
+  if (!pk || pk.i >= 0 || pk.busy || !pack) return;
+  cut = { x: e.clientX, id: e.pointerId, w: pack.offsetWidth, pack };
+  pack.classList.remove("snap");
+  pack.setPointerCapture(e.pointerId);   // keep following the finger even past the pack's edge
+});
+$("pk-stage").addEventListener("pointermove", e => {
+  if (!cut || e.pointerId !== cut.id) return;
+  const f = Math.min(1, Math.abs(e.clientX - cut.x) / (cut.w * .7));
+  setCut(cut.pack, f, e.clientX < cut.x);
+  if (f >= 1) { cut = null; tearPack(); }
+});
+function endCut(e) {
+  if (!cut || e.pointerId !== cut.id) return;
+  const { pack, x } = cut;
+  cut = null;
+  pack.classList.add("snap");   // not far enough: the cut slides back
+  setCut(pack, 0, false);
+  if (Math.abs(e.clientX - x) < 10) {   // a tap, not a slide: show how
+    $("pk-hint").textContent = "Slide your finger across the pack to tear it open";
+    pack.classList.remove("nudge"); void pack.offsetWidth; pack.classList.add("nudge");
+  }
+}
+$("pk-stage").addEventListener("pointerup", endCut);
+$("pk-stage").addEventListener("pointercancel", endCut);
 $("pk-stage").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); packTap(); } });
 // the shine follows your finger over the pack and the cards
 $("pk-stage").addEventListener("pointermove", e => {
