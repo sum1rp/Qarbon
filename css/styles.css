@@ -127,7 +127,15 @@
   #w-helix .photo { width:128%; -webkit-mask:radial-gradient(closest-side, #000 60%, transparent); mask:radial-gradient(closest-side, #000 60%, transparent);
                     animation:breathe-in 14s ease-in-out infinite alternate; }
   @keyframes breathe-in { from { transform:translate(-50%, -50%) scale(1); } to { transform:translate(-50%, -50%) scale(1.05); } }
-  @media (prefers-reduced-motion: reduce) { #w-hole .photo, #w-crab .pulse, #w-crab .glint, #w-helix .photo { animation:none; } }
+  /* Translate: Bruegel's Tower of Babel, a painting (not on black, so no "screen" blending: its edge fades out instead),
+     slowly drifting up as if you were looking up at it. "Hello" in 14 languages turns around it once every 90 s */
+  #w-babel .photo { width:104%; mix-blend-mode:normal; border-radius:50%;
+                    -webkit-mask:radial-gradient(closest-side, #000 72%, transparent 99%); mask:radial-gradient(closest-side, #000 72%, transparent 99%);
+                    animation:babeldrift 24s ease-in-out infinite alternate; }
+  @keyframes babeldrift { from { transform:translate(-50%, -50%) scale(1); } to { transform:translate(-50%, -52%) scale(1.07); } }
+  #w-babel .ring { left:-22%; top:-22%; width:144%; height:144%; overflow:visible; animation:swirl 90s linear infinite; }
+  #w-babel .ring text { fill:rgba(225,215,255,.55); font:500 9.5px system-ui, sans-serif; letter-spacing:.4px; }
+  @media (prefers-reduced-motion: reduce) { #w-hole .photo, #w-crab .pulse, #w-crab .glint, #w-helix .photo, #w-babel .photo, #w-babel .ring { animation:none; } }
   /* short screens (iPhone SE): a little tighter */
   @media (max-height: 620px) {
     #homelogo { font-size:2.8rem; margin-top:4px; }
