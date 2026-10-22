@@ -170,7 +170,7 @@ function renderMusic() {
     p.querySelector(".playerslot").className = "playerslot" + (m ? (m.kind === "YouTube" ? " yt" : " sc") : "");
     p.querySelector(".filecard").hidden = !file;
     if (file) {
-      p.querySelector(".cover").innerHTML = coverURL ? `<img alt="" src="${coverURL}">` : "♪";
+      p.querySelector(".cover").innerHTML = coverURL ? `<img alt="" src="${coverURL}">` : atomSVG(4.5);   // no picture: the Qarbon atom
       p.querySelector(".ftitle").textContent = songName(file);
       p.querySelector(".fartist").textContent = [file.artist, file.album].filter(Boolean).join(" · ");
       const list = playingList();
@@ -197,7 +197,7 @@ function renderMusic() {
     mine.querySelector("ol").innerHTML = mySongs.map((s, i) => {
       const cur = i === songIndex && file, pic = thumbURL(s), open = songOpen === s.id;
       return `<li><button class="song${cur ? " cur" : ""}" data-song="${i}">` +
-        `<span class="ic">${pic ? `<img alt="" src="${pic}">` : cur ? "♪" : "▶"}</span>` +
+        `<span class="ic">${pic ? `<img alt="" src="${pic}">` : atomSVG(6.5)}</span>` +   // no picture: the atom (thicker lines, it's small)
         `<span class="t">${esc(songName(s))}</span><span class="src">${esc(s.artist || "")}</span></button>` +
         `<button class="songmore" data-more="${i}" aria-expanded="${open}" aria-label="More for ${esc(songName(s))}" title="Album art, remove">⋯</button></li>` +
         (open ? `<li class="songacts">${songActions(s, i)}</li>` : "");
@@ -552,7 +552,8 @@ function showCover(s) {
   // the lock screen and Control Center: the song's name, cover and ⏮ ⏭ (the Media Session API)
   if ("mediaSession" in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({ title: songName(s), artist: s.artist, album: s.album,
-                                                          artwork: coverURL ? [{ src: coverURL, type: pic.type }] : [] });
+                                                          artwork: coverURL ? [{ src: coverURL, type: pic.type }]
+                                                                   : [{ src: "apple-touch-icon.png", sizes: "180x180", type: "image/png" }] });   // no picture: Qarbon's icon
   }
 }
 // ----- album art you choose yourself -----

@@ -251,6 +251,7 @@
   .filecard .cover { width:64px; height:64px; flex:none; border-radius:8px; overflow:hidden; display:grid; place-items:center;
                      font-size:1.6rem; color:var(--muted); background:linear-gradient(135deg, #2a2348, #13131C); }
   .filecard .cover img { width:100%; height:100%; object-fit:cover; }
+  .filecard .cover .atom, .mymusic .song .ic .atom { width:62%; height:62%; overflow:visible; }   /* a song with no picture: the atom */
   .fmeta { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
   .fmeta b, .fmeta .fartist { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .fmeta .fartist { color:var(--muted); font-size:.85rem; min-height:1.2em; }
@@ -282,9 +283,10 @@
   .song .src { flex:none; font-size:.7rem; color:var(--muted); max-width:30%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .song.cur { border-color:rgba(123,108,255,.45); }
   .song.cur .ic { background:var(--accent-fill); color:#fff; }
-  /* My music: each song's cover (or ▶) in a small square, and ⋯ opens what you can do with it (album art, remove) */
+  /* My music: each song's cover (or the atom) in a small square, and ⋯ opens what you can do with it (album art, remove) */
   .mymusic .song .ic { width:32px; height:32px; border-radius:6px; font-size:.75rem; overflow:hidden; }
   .mymusic .song .ic img { width:100%; height:100%; object-fit:cover; display:block; }
+  .mymusic .song:not(.cur) .ic:has(.atom) { background:linear-gradient(135deg, #2a2348, #13131C); }   /* same as the song card's */
   .songmore { flex:none; width:44px; padding:0; border-radius:10px; color:var(--muted); font-size:1.2rem; letter-spacing:1px; }
   .songmore[aria-expanded="true"] { border-color:rgba(123,108,255,.45); color:var(--text); }
   .mymusic li.songacts { flex-wrap:wrap; gap:6px; padding:0 0 4px; }
@@ -820,8 +822,9 @@
 #media .ip-art { flex:none; position:relative; width:26cqw; height:26cqw; }
 #media .ip-art img, #media .ip-art .ip-noart { display:block; width:100%; height:100%; object-fit:cover;
   box-shadow:0 0 0 .2cqw rgba(0,0,0,.25); }
-#media .ip-noart { display:grid; place-items:center; font-size:12cqw; color:#c9ced5;
-  background:linear-gradient(160deg, #f3f5f7, #cfd5dc); }
+#media .ip-noart { display:grid; place-items:center; background:radial-gradient(circle at 50% 45%, #3a2f6e, #0d0b18 75%); }   /* no picture: the atom on a dark purple glow */
+#media .ip-art .ip-noart { position:relative; }
+#media .ip-noart .atom { position:absolute; left:19%; top:19%; width:62%; height:62%; overflow:visible; }   /* centered: 19 + 62 + 19 = 100% */
 /* the picture's reflection, fading out, like the iPod's Cover Flow look */
 #media .ip-art .ip-refl { position:absolute; left:0; top:100%; width:100%; height:9cqw; overflow:hidden; margin-top:.5cqw;
   -webkit-mask-image:linear-gradient(180deg, rgba(0,0,0,.35), transparent 90%); mask-image:linear-gradient(180deg, rgba(0,0,0,.35), transparent 90%); }

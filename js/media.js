@@ -395,7 +395,7 @@ function renderNow() {
   const key = file ? "f" + songIndex + coverURL : what + nowTitle();
   if (box.dataset.key !== key) {   // the song changed: redraw the text and cover (otherwise only the bar moves)
     box.dataset.key = key;
-    const art = file && coverURL ? `<img alt="" src="${coverURL}">` : `<span class="ip-noart">♪</span>`;
+    const art = file && coverURL ? `<img alt="" src="${coverURL}">` : `<span class="ip-noart">${atomSVG(4.5)}</span>`;   // no picture: the Qarbon atom
     $("ip-art").innerHTML = art + `<span class="ip-refl">${art}</span>`;
     $("ip-song").textContent = file ? songName(file) : what ? nowTitle() : "Nothing playing";
     $("ip-artist").textContent = file ? file.artist || "Unknown Artist" : what === "SoundCloud" ? "Player below" : "Choose a song in Music";
