@@ -140,7 +140,10 @@
         <li><b>Swipe</b> right for Good, left for Again (after flipping).</li>
         <li><b>Again</b> brings the card back a few cards later today, and again tomorrow.</li>
         <li><b>Scheduling works like Anki:</b> every card has an "ease" (starts at 2.5). Good multiplies the wait by it. Hard grows the wait a little and lowers the ease. Easy jumps further and raises it. Again resets the card to 1 day. Words you find hard come back more often.</li>
-        <li>🔊 says the word or the example sentence. The card's frame color shows the word type: noun green, verb pink, adjective orange, adverb purple, pronoun blue.</li>
+        <li>🔊 says the word or the example sentence. The color band along the top of the card (and the word-type label) shows the word type: noun green, verb pink, adjective orange, adverb purple, pronoun blue.</li>
+        <li><b>Every word is a world.</b> The cards are collectibles on a trip out from Earth: each level has two worlds, its easier half and its harder half. Level A1 is <b>Earth</b>, then the <b>Moon</b>; A2 is <b>Venus</b>, then <b>Mars</b>; B1 is <b>Mercury</b>, then <b>Jupiter</b>. Harder levels to come reach Saturn, Uranus, Neptune and the Sun, and the rarest cards are <b>Nebulas</b> and <b>Black Holes</b>. The world's real photo is behind the word, and its name is at the top right. "Harder" is worked out from the word itself: its level, accents, and length (or several words).</li>
+        <li><b>Mastery:</b> the four little bars at the bottom show how well you know a word: <b>New</b>, <b>Learning</b> (after your first right answer), <b>Familiar</b>, <b>Known</b> and <b>Mastered</b>, from how long until the card's next review. Easy worlds master fast (one Easy on a new Earth word masters it); Black Holes take 60 days. As a word moves up, its holo foil gets stronger, the panel's edge turns silver, then gold, and Mastered cards sparkle. A gold "⬆" note says when an answer moved a word up.</li>
+        <li><b>The shine:</b> drag across a card (or move the mouse over it) and the light slides across its silver edge and foil. On a phone you can let it follow the tilt instead: <b>⚙ → Card shine follows tilt</b> (iPhone asks permission once). Swiping still grades the card.</li>
         <li><b>Reverse cards:</b> in <b>⚙ → Card direction</b>, each stack can be <b>French → English</b>, <b>English → French</b> (you answer in French; the card shows <b>EN → FR</b>), or <b>Both</b>. Each direction has its own schedule. With Both, a new word's English → French side unlocks once you've seen it French-first.</li>
       </ul>
     </div>
@@ -288,6 +291,7 @@
         <li><b>Big Dipper:</b> the real positions, brightness and colors of its stars, plus Alcor.</li>
         <li><b>Sun:</b> NASA's Solar Dynamics Observatory (in extreme ultraviolet light, 304 Å, October 2026).</li>
         <li><b>Crab Nebula</b> (Hubble's mosaic, 2005) and <b>Helix Nebula</b> (Hubble): NASA, ESA, STScI.</li>
+        <li><b>Card worlds</b> (all public domain, via Wikimedia Commons): <b>Mercury</b> NASA / Johns Hopkins APL / Carnegie Institution (MESSENGER); <b>Venus</b> NASA (Mariner 10); <b>Mars</b> NASA / USGS (Viking); <b>Jupiter</b> NASA, ESA, A. Simon (Hubble, 2014); <b>Saturn</b> NASA / JPL / Space Science Institute (Cassini, 2008); <b>Uranus</b> NASA / JPL (Voyager 2); <b>Neptune</b> NASA / JPL (Voyager 2, processed by Aster Cowart). Earth, the Moon, the Sun, the Crab Nebula and Sagittarius A* are the photos above.</li>
         <li><b>Tower of Babel</b> (not from space, but it's where the story says languages came from): Pieter Bruegel the Elder's painting, about 1563, Museum Boijmans Van Beuningen, Rotterdam. Public domain, via Wikimedia Commons (Google Art Project).</li>
       </ul>
     </div>
@@ -321,6 +325,8 @@
     </label>
     <label>Card direction (this stack) <select id="direction"></select></label>
     <label>Voice <select id="voice"></select></label>
+    <!-- the cards' holo shine can follow the phone's tilt (iPhone asks permission once); this device only -->
+    <button id="tiltbtn" hidden>Card shine: follow tilt</button>
     <span id="voiceinfo"></span>
     <button id="export">Export backup</button>
     <label>Restore backup <input type="file" id="restore" accept=".json"></label>
@@ -623,34 +629,43 @@
   <div id="cardview">
     <div id="status"></div>
     <div id="scene">
+      <!-- "⬆ le magasin · Known" for a moment when an answer moves a word up a step -->
+      <div id="levelup" hidden></div>
       <div id="card">
-        <div class="face front-face"><div class="inner">
+        <!-- each face: the silver edge (.face), the holo foil, the panel (.inner), sparkles and the glare (see "collectible cards" in js/cards.js) -->
+        <div class="face front-face"><div class="foil"></div><div class="inner">
           <div class="top">
             <span id="type1" class="pill"></span>
-            <span>
+            <span class="topright">
               <span id="dirbadge" class="new dir" hidden>EN → FR</span>
               <span id="newbadge" class="new">New</span>
+              <span class="tier"><img alt=""><b></b></span>
             </span>
           </div>
-          <div class="art"><div>
+          <div class="art"><img class="photo" alt=""><div class="foil2"></div><div>
             <div id="front"></div>
             <!-- hidden when the English is on the front, so the sound doesn't give the answer away -->
             <button id="speakfront" class="speak" data-speak="front" title="Hear it">🔊</button>
           </div></div>
           <div class="textbox">Think it through, then tap the card to flip it.</div>
-        </div></div>
-        <div class="face back-face"><div class="inner">
+          <div class="pips"><span><i></i><i></i><i></i><i></i></span><span class="step"></span></div>
+        </div><div class="spark"></div><div class="glare"></div></div>
+        <div class="face back-face"><div class="foil"></div><div class="inner">
           <div class="top">
             <span id="type2" class="pill"></span>
-            <span id="gender" class="pill"></span>
+            <span class="topright">
+              <span id="gender" class="pill"></span>
+              <span class="tier"><img alt=""><b></b></span>
+            </span>
           </div>
-          <div class="art"><div>
+          <div class="art"><img class="photo" alt=""><div class="foil2"></div><div>
             <div id="answer"></div>
             <!-- shown when the answer is the French word (English → French cards) -->
             <button id="speakanswer" class="speak" data-speak="answer" title="Hear it" hidden>🔊</button>
           </div></div>
           <div class="textbox"><span id="example"></span><button class="speak" data-speak="example" title="Hear the sentence">🔊</button></div>
-        </div></div>
+          <div class="pips"><span><i></i><i></i><i></i><i></i></span><span class="step"></span></div>
+        </div><div class="spark"></div><div class="glare"></div></div>
       </div>
     </div>
 

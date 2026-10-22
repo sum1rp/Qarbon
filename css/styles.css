@@ -502,20 +502,96 @@
   #card[data-type="pronoun"]    { --type:#4aa3ff; }
 
   /* ---------- flip animation ---------- */
+  /* --rx / --ry = the small tilt that follows your finger or the phone (set by the shine code in js/cards.js) */
   #scene { width:100%; max-width:340px; height:440px; margin:20px 0; perspective:1000px; }
-  #card { position:relative; width:100%; height:100%; transition:transform .6s; transform-style:preserve-3d; }
-  #card.flipped { transform:rotateY(180deg); }
+  #card { --type:var(--accent); --mx:50%; --my:35%; --rx:0deg; --ry:0deg;
+          position:relative; width:100%; height:100%; transition:transform .6s; transform-style:preserve-3d;
+          transform:rotateX(var(--rx)) rotateY(var(--ry)); }
+  #card.flipped { transform:rotateX(var(--rx)) rotateY(calc(180deg + var(--ry))); }
   #card.noanim { transition:none; }
 
-  /* ---------- the card: colored frame with a panel inside ---------- */
-  .face { position:absolute; inset:0; box-sizing:border-box; padding:12px; border-radius:20px;
+  /* ---------- the card: a reflective silver edge, the word type as a color band, a panel inside ---------- */
+  /* the silver is one big chrome gradient; moving its position with --mx / --my makes the light slide along the edge */
+  /* (no isolation:isolate here: in WebKit it flattens the 3D flip, so the back face showed through the front) */
+  .face { position:absolute; inset:0; box-sizing:border-box; padding:10px; border-radius:20px; overflow:hidden;
           backface-visibility:hidden; -webkit-backface-visibility:hidden;
-          background:linear-gradient(145deg, transparent 40%, rgba(255,255,255,.35)), var(--type);
-          box-shadow:0 6px 24px rgba(0,0,0,.5); }
+          background:linear-gradient(118deg, #4a4c58 0%, #c9ccd8 12%, #7d8090 22%, #f6f7fc 33%, #9497a6 42%,
+                                     #e2e4ec 52%, #5d606d 63%, #fbfcff 74%, #8a8d9b 84%, #d3d5df 92%, #4f5160 100%);
+          background-size:260% 260%; background-position:var(--mx) var(--my);
+          box-shadow:0 6px 24px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.35); }
   .back-face { transform:rotateY(180deg); }
-  .inner { height:100%; box-sizing:border-box; color:var(--text); border-radius:12px; padding:14px;
-           display:flex; flex-direction:column;
+  .inner { position:relative; z-index:1; height:100%; box-sizing:border-box; color:var(--text); border-radius:12px; padding:14px;
+           display:flex; flex-direction:column; overflow:hidden;
+           box-shadow:0 0 0 1px rgba(0,0,0,.55);
            background:radial-gradient(circle at 20% 0%, rgba(123,108,255,.10), transparent 60%), var(--card); }
+  /* the word type's color band along the top of the panel (green noun, pink verb, ...) */
+  .inner::before { content:""; position:absolute; left:0; right:0; top:0; height:5px; background:var(--type); }
+
+  /* ---------- collectible cards: rarity, the holo shine, mastery (set by render() in js/cards.js) ---------- */
+  /* the worlds (rarity): each one's foil colors (--h1, --h2, --h3) */
+  #card[data-tier="earth"]   { --h1:#4fc3ff; --h2:#2fbf9b; --h3:#b8f0ff; }
+  #card[data-tier="moon"]    { --h1:#e8ecff; --h2:#9aa4c8; --h3:#ffffff; }
+  #card[data-tier="venus"]   { --h1:#ffe6a8; --h2:#f2c46d; --h3:#fff6dc; }
+  #card[data-tier="mars"]    { --h1:#ff8a5c; --h2:#ffb38a; --h3:#ffe2cf; }
+  #card[data-tier="mercury"] { --h1:#c9c4bd; --h2:#8f8a84; --h3:#f2efe9; }
+  #card[data-tier="jupiter"] { --h1:#f0b27a; --h2:#d9825b; --h3:#fbe3c8; }
+  #card[data-tier="saturn"]  { --h1:#f3d99b; --h2:#d6b26b; --h3:#fff1cf; }
+  #card[data-tier="uranus"]  { --h1:#9ff0ef; --h2:#5fd0d6; --h3:#dcfffe; }
+  #card[data-tier="neptune"] { --h1:#5b8cff; --h2:#3d5bff; --h3:#a9c4ff; }
+  #card[data-tier="sun"]     { --h1:#ffd447; --h2:#ff9f43; --h3:#fff4c2; }
+  #card[data-tier="nebula"] { --h1:#ff5d8f; --h2:#a06bff; --h3:#4aa3ff; }
+  #card[data-tier="hole"]   { --h1:#ff8a3d; --h2:#7b6cff; --h3:#ffe0a0; }
+  /* mastery: how strong the foil is (0 = new, 4 = mastered) */
+  #card { --holo:0; --h1:#e8ecff; --h2:#9aa4c8; --h3:#ffffff; }
+  #card[data-m="1"] { --holo:.22; } #card[data-m="2"] { --holo:.42; } #card[data-m="3"] { --holo:.68; } #card[data-m="4"] { --holo:1; }
+  /* the foil on the silver edge: rainbow bands in the tier's colors, a light tint so the silver still reads as silver */
+  .face .foil { position:absolute; inset:0; z-index:0; pointer-events:none; mix-blend-mode:overlay; opacity:calc(var(--holo) * .7);
+                background:repeating-linear-gradient(115deg, var(--h1) 0%, var(--h2) 7%, var(--h3) 14%, var(--h1) 21%);
+                background-size:300% 300%; background-position:calc(var(--mx) * 1.2) calc(var(--my) * 1.2); }
+  #card[data-tier="hole"] .face .foil { background:conic-gradient(from 0deg at var(--mx) var(--my), var(--h1), var(--h2), #0a0a14, var(--h3), var(--h1)); }
+  /* the glare: a soft light where your finger (or the light from the tilt) is */
+  .face .glare { position:absolute; inset:0; z-index:5; pointer-events:none; mix-blend-mode:overlay; opacity:calc(.2 + var(--holo) * .45);
+                 background:radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,.75), rgba(255,255,255,0) 50%); }
+  /* the space window: the tier's real photo behind the word, drifting a little against the tilt */
+  .art { position:relative; overflow:hidden; }
+  .art .photo { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:.55; pointer-events:none;
+                -webkit-mask-image:radial-gradient(closest-side, #000 72%, transparent); mask-image:radial-gradient(closest-side, #000 72%, transparent);
+                transform:translate(calc((var(--mx) - 50%) * -.08), calc((var(--my) - 50%) * -.08)); }
+  .art .photo:not([src]) { display:none; }
+  .art::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg, rgba(13,13,20,.1), rgba(13,13,20,.55)); }
+  .art .foil2 { position:absolute; inset:0; z-index:1; pointer-events:none; mix-blend-mode:soft-light; opacity:calc(var(--holo) * .5);
+                background:repeating-linear-gradient(115deg, var(--h1) 0%, var(--h2) 7%, var(--h3) 14%, var(--h1) 21%);
+                background-size:300% 300%; background-position:calc(var(--mx) * 1.2) calc(var(--my) * 1.2); }
+  .art > div:last-child { position:relative; z-index:2; }
+  #front, #answer { text-shadow:0 2px 10px rgba(0,0,0,.8); }
+  /* the rarity emblem, top right: the world's photo in a little circle + its name */
+  .topright { display:flex; align-items:center; gap:6px; min-width:0; }
+  .tier { display:flex; align-items:center; gap:5px; font-weight:600; font-size:.78rem; letter-spacing:.08em; font-variant:small-caps; white-space:nowrap; }
+  .tier img { width:20px; height:20px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 1px rgba(255,255,255,.25), 0 0 8px var(--h1); }
+  .tier img:not([src]) { display:none; }
+  /* mastery: four little bars + the step's name; the panel's edge turns silver, then gold, and Mastered sparkles */
+  .pips { display:flex; justify-content:space-between; align-items:center; gap:6px; margin-top:8px; font-size:.72rem; color:var(--muted); }
+  .pips i { display:inline-block; width:16px; height:4px; margin-right:4px; border-radius:2px; background:rgba(255,255,255,.14); }
+  .pips i.on { background:var(--h1); box-shadow:0 0 6px var(--h1); }
+  #card[data-m="2"] .inner { box-shadow:0 0 0 1px rgba(0,0,0,.55), inset 0 0 0 1px rgba(220,225,240,.45); }
+  #card[data-m="3"] .inner { box-shadow:0 0 0 1px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,212,71,.6); }
+  #card[data-m="4"] .inner { box-shadow:0 0 0 1px rgba(0,0,0,.55), inset 0 0 0 1.5px rgba(255,212,71,.9), inset 0 0 18px rgba(255,212,71,.18); }
+  .face .spark { position:absolute; inset:0; z-index:4; pointer-events:none; display:none;
+                 background-image:radial-gradient(1.5px 1.5px at 12% 20%, #fff, transparent), radial-gradient(1.5px 1.5px at 78% 14%, #fff, transparent),
+                   radial-gradient(1px 1px at 88% 64%, #fff, transparent), radial-gradient(1.5px 1.5px at 22% 82%, #fff, transparent),
+                   radial-gradient(1px 1px at 52% 40%, #fff, transparent), radial-gradient(1px 1px at 64% 90%, #fff, transparent);
+                 animation:twinkle 2.4s ease-in-out infinite; }
+  #card[data-m="4"] .spark { display:block; }
+  @keyframes twinkle { 0%, 100% { opacity:.25; } 50% { opacity:1; } }
+  /* "⬆ le magasin · Known": floats over the top of the card for a moment after an answer */
+  #scene { position:relative; }
+  #levelup { position:absolute; z-index:6; top:-4px; left:50%; transform:translateX(-50%); max-width:90%; overflow:hidden; text-overflow:ellipsis;
+             white-space:nowrap; padding:5px 14px; border-radius:999px; font-size:.85rem; font-weight:600; pointer-events:none;
+             color:#2a2000; background:linear-gradient(135deg, #ffe58a, #ffc94a); box-shadow:0 4px 16px rgba(255,201,74,.35); }
+  #levelup.show { animation:levelup 1.8s ease forwards; }
+  @keyframes levelup { 0% { opacity:0; transform:translate(-50%, 8px); } 12%, 75% { opacity:1; transform:translate(-50%, 0); } 100% { opacity:0; transform:translate(-50%, -6px); } }
+  /* no word on screen (done for today): a plain card, no emblem or bars */
+  #card:not([data-tier]) .pips, #card[data-tier=""] .pips { visibility:hidden; }
 
   .top { display:flex; justify-content:space-between; align-items:center; font-size:.85rem; margin-bottom:10px; min-height:26px; }
   .pill { background:var(--type); color:#08080d; padding:3px 10px; border-radius:999px; font-weight:600; text-transform:capitalize; }
@@ -684,6 +760,7 @@
     .musicnav button { min-height:44px; }
     /* tighter spacing so everything stays inside the card when it's short */
     .face { padding:8px; }
+    .pips { margin-top:6px; }
     .inner { padding:10px; overflow:hidden; }
     .top { margin-bottom:6px; }
     .art { min-height:0; padding:6px; }

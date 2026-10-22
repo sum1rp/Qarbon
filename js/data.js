@@ -111,6 +111,7 @@ function clean(data) {
   // the Qpod (Qarbon Fiber) is the default player: everyone is switched to it once (build 50), then can choose another color
   if (!s.qpodDefault) { s.ipodSkin = "fiber"; s.qpodDefault = true; }
   s.ipodClick = s.ipodClick !== false;
+  s.cardTilt = s.cardTilt === true;   // the cards' holo shine follows the phone's tilt (this device, turned on in ⚙)
   // where the mini Qpod sits: on the "left" or "right" side, y = how far down (0 top, 1 bottom)
   const qp = s.qpodPos || {};
   s.qpodPos = { side: qp.side === "left" ? "left" : "right", y: Number(qp.y) >= 0 && Number(qp.y) <= 1 ? Number(qp.y) : .62 };
@@ -335,7 +336,8 @@ const fileDo = (name, mode, fn) => fileStore(name, mode).then(st => new Promise(
 }));
 
 // ================= levels (read from each card's tags, like "A1;core") =================
-const LEVELS = { A1: "Beginner (A1)", A2: "Elementary (A2)", B1: "Intermediate (B1)", B2: "Upper intermediate (B2)" };
+const LEVELS = { A1: "Beginner (A1)", A2: "Elementary (A2)", B1: "Intermediate (B1)", B2: "Upper intermediate (B2)",
+                 C1: "Advanced (C1)", C2: "Mastery (C2)" };
 const levelOf = c => (c.tags || "").split(";").map(t => t.trim()).find(t => LEVELS[t]) || "";
 
 // ================= CSV reading (handles quoted fields) =================

@@ -129,6 +129,7 @@ function render() {
   $("buttons").hidden = !current;
   $("card").classList.toggle("flipped", revealed);
   fitCard();
+  startShine();
 
   if (!current) {
     $("card").dataset.type = "";
@@ -138,6 +139,7 @@ function render() {
     $("answer").textContent = $("example").textContent = "";
     $("type1").textContent = $("type2").textContent = "";
     $("newbadge").hidden = $("gender").hidden = $("dirbadge").hidden = true;
+    dressCard(null);
     return;
   }
 
@@ -157,6 +159,7 @@ function render() {
   $("gender").hidden = !genders[current.gender];
   $("example").textContent = current.example_target
     ? current.example_target + " — " + (current.example_english || "") : "";
+  dressCard(current, currentDir);
 }
 
 // phones: tell the CSS how much room the top bars and bottom buttons take, so the card fills the rest
@@ -166,6 +169,177 @@ function fitCard() {
   r.setProperty("--below", ($("buttons").offsetHeight + 8) + "px");
 }
 window.addEventListener("resize", () => { if (cardShowing()) fitCard(); });
+
+// ================= collectible cards: rarity, mastery and the holo shine =================
+// Every word is a world on a trip out from Earth. Each level covers two worlds: its easier half and its harder half
+// (A1 = Earth, then the Moon; A2 = Venus, then Mars; ...). The rare cards come last: C2 words are Nebulas and Black Holes.
+// The real photos are in img/ (NASA, public domain; credits on the how-to page). Each world has its own foil colors (css/styles.css).
+// steps = the review wait in days for Familiar, Known and Mastered: easy words master fast, only Black Holes take 60 days.
+const WORLDS = [
+  { id: "earth",   name: "Earth",      img: "img/earth.jpg",       steps: [2, 3, 4] },
+  { id: "moon",    name: "Moon",       img: "img/moon-full.jpg",   steps: [2, 4, 7] },
+  { id: "venus",   name: "Venus",      img: "img/venus.jpg",       steps: [3, 5, 10] },
+  { id: "mars",    name: "Mars",       img: "img/mars.jpg",        steps: [3, 7, 14] },
+  { id: "mercury", name: "Mercury",    img: "img/mercury.jpg",     steps: [4, 9, 18] },
+  { id: "jupiter", name: "Jupiter",    img: "img/jupiter.jpg",     steps: [5, 10, 21] },
+  { id: "saturn",  name: "Saturn",     img: "img/saturn.jpg",      steps: [7, 14, 28] },
+  { id: "uranus",  name: "Uranus",     img: "img/uranus.jpg",      steps: [7, 15, 30] },
+  { id: "neptune", name: "Neptune",    img: "img/neptune.jpg",     steps: [7, 18, 35] },
+  { id: "sun",     name: "Sun",        img: "img/sun.jpg",         steps: [7, 20, 40] },
+  { id: "nebula",  name: "Nebula",     img: "img/crab-nebula.jpg", steps: [7, 21, 50] },
+  { id: "hole",    name: "Black Hole", img: "img/sgr-a.jpg",       steps: [7, 21, 60] },
+];
+const MASTERY = ["New", "Learning", "Familiar", "Known", "Mastered"];
+const LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C1", "C2"];
+
+// how hard a word looks, as one number: 100 for accents, 100 for a long word (9+ letters) or several words, plus its letters
+function difficulty(front) {
+  const w = front || "";
+  const word = w.replace(/^(le|la|les|l'|un|une) /i, "");        // "la femme" counts as "femme"
+  const letters = word.replace(/ /g, "").length;
+  let d = letters;
+  if (/[éèêëàâçîïôûùœæ]/i.test(w)) d += 100;                      // accents
+  if (letters >= 9 || word.includes(" ") || w.includes("s'")) d += 100;   // long, several words, or reflexive
+  return d;
+}
+
+// compare two words by difficulty; words that tie are put in alphabetical order, so each level splits exactly in half
+const harderThan = (a, b) => a.d - b.d || (a.w < b.w ? -1 : a.w > b.w ? 1 : 0);
+
+// where each level splits into its two halves: the middle difficulty of that level's words.
+// Worked out from the built-in packs (so a word's world never changes when you add cards); a level with no
+// built-in words (B2, C1, C2 for now) uses your own cards at that level instead.
+let worldCuts = null, worldCutsFor = -1;
+function levelCut(level) {
+  if (!worldCuts || worldCutsFor !== state.cards.length) {
+    const byLevel = {};
+    const add = (front, tags) => { const l = levelOf({ tags }) || "A1"; (byLevel[l] = byLevel[l] || []).push({ d: difficulty(front), w: front }); };
+    BUILT_IN.forEach(b => {
+      const rows = parseCSV(PACKS[b.id]), head = rows[0];
+      rows.slice(1).forEach(r => add(r[head.indexOf("front")], r[head.indexOf("tags")]));
+    });
+    const builtIn = new Set(Object.keys(byLevel));
+    state.cards.forEach(c => { if (!builtIn.has(levelOf(c) || "A1")) add(c.front, c.tags); });
+    worldCuts = {};
+    for (const l in byLevel) { const d = byLevel[l].sort(harderThan); worldCuts[l] = d[Math.floor(d.length / 2)]; }
+    worldCutsFor = state.cards.length;
+  }
+  return worldCuts[level];
+}
+
+function worldOf(c) {
+  const level = levelOf(c) || "A1";
+  const harder = harderThan({ d: difficulty(c.front), w: c.front }, levelCut(level)) >= 0;
+  return WORLDS[LEVEL_ORDER.indexOf(level) * 2 + (harder ? 1 : 0)];
+}
+
+// mastery step 0–4 for one direction of a card: New until you get it right once (Learning),
+// then Familiar / Known / Mastered as its review wait (interval) passes the tier's steps
+function masteryOf(c, dir) {
+  const s = sideOf(c, dir);
+  if (!s.reviews || (!s.correct && s.interval <= 1)) return 0;
+  return 1 + worldOf(c).steps.filter(d => s.interval >= d).length;
+}
+
+// put the world and mastery on the card on screen (both faces); c = null for the "done for today" card
+function dressCard(c, dir) {
+  const card = $("card");
+  const r = c && worldOf(c), m = c ? masteryOf(c, dir) : 0;
+  card.dataset.tier = r ? r.id : "";
+  card.dataset.m = m;
+  card.querySelectorAll(".tier img, .art .photo").forEach(img => {
+    if (!r) img.removeAttribute("src");
+    else if (img.getAttribute("src") !== r.img) img.src = r.img;
+  });
+  card.querySelectorAll(".tier b").forEach(b => { b.textContent = r ? r.name : ""; });
+  card.querySelectorAll(".pips").forEach(p => {
+    p.querySelectorAll("i").forEach((i, n) => i.classList.toggle("on", n < m));
+    p.querySelector(".step").textContent = c ? MASTERY[m] : "";
+  });
+}
+
+// after an answer: if the word went up a step, say so for a moment above the card ("le magasin · Known")
+function noteLevelUp(c, dir, before) {
+  const after = masteryOf(c, dir);
+  if (after <= before) return;
+  const el = $("levelup");
+  el.textContent = "⬆ " + c.front + " · " + MASTERY[after];
+  el.hidden = false;
+  el.classList.remove("show"); void el.offsetWidth; el.classList.add("show");
+  clearTimeout(noteLevelUp.timer);
+  noteLevelUp.timer = setTimeout(() => { el.hidden = true; }, 1800);
+}
+
+// The shine: --mx / --my (where the light is, 0–100%) and --rx / --ry (a small tilt) on #card.
+// It follows your finger or the mouse, the phone's tilt when that's turned on in ⚙, and drifts slowly by itself otherwise.
+const stillCards = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let fingerAt = 0, tiltAt = 0, tiltBase = null, shineLoop = false;
+const clamp01 = v => Math.min(1, Math.max(0, v));
+
+function setShine(x, y) {   // x, y from 0 to 1
+  const st = $("card").style;
+  st.setProperty("--mx", (x * 100).toFixed(1) + "%");
+  st.setProperty("--my", (y * 100).toFixed(1) + "%");
+  st.setProperty("--rx", stillCards ? "0deg" : ((0.5 - y) * 8).toFixed(2) + "deg");
+  st.setProperty("--ry", stillCards ? "0deg" : ((x - 0.5) * 10).toFixed(2) + "deg");
+}
+
+// finger or mouse over the card (also while swiping: the light slides with it)
+$("scene").addEventListener("pointermove", e => {
+  if (!current) return;
+  const r = $("scene").getBoundingClientRect();
+  fingerAt = performance.now();
+  setShine(clamp01((e.clientX - r.left) / r.width), clamp01((e.clientY - r.top) / r.height));
+});
+
+// the phone's tilt: gamma = left/right, beta = forward/back. The "level" slowly follows how you hold the phone,
+// so only the movement counts, whether you hold it upright or flat.
+function onTilt(e) {
+  if (e.gamma == null || e.beta == null) return;
+  if (!tiltBase) tiltBase = { b: e.beta, g: e.gamma };
+  tiltBase.b += (e.beta - tiltBase.b) * 0.02;
+  tiltBase.g += (e.gamma - tiltBase.g) * 0.02;
+  if (!cardShowing() || performance.now() - fingerAt < 1500) return;   // your finger wins
+  tiltAt = performance.now();
+  setShine(clamp01(0.5 + (e.gamma - tiltBase.g) / 40), clamp01(0.5 + (e.beta - tiltBase.b) / 40));
+}
+function startTilt(on) {
+  window.removeEventListener("deviceorientation", onTilt);
+  tiltBase = null;
+  if (on) window.addEventListener("deviceorientation", onTilt);
+}
+// iPhone only allows tilt after you say yes, and only from a tap: ask from ⚙ (or the card, if it was on before)
+async function askTilt() {
+  const D = window.DeviceOrientationEvent;
+  if (!D) return false;
+  if (typeof D.requestPermission === "function") {
+    try { if (await D.requestPermission() !== "granted") return false; } catch (err) { return false; }
+  }
+  startTilt(true);
+  return true;
+}
+// tilt was turned on in an earlier visit: listen now, and if iPhone wants a yes again, ask on the first tap of a card
+if (state.cardTilt) startTilt(true);
+$("scene").addEventListener("pointerup", () => { if (state.cardTilt && !tiltBase) askTilt(); });
+
+// the slow drift when nothing moves the light (30 times a second, only while a card is on screen)
+function shineDrift(t) {
+  const onScreen = cardShowing() && !$("study").hidden && !document.hidden && current;
+  if (!onScreen || stillCards) { shineLoop = false; return; }
+  const now = performance.now();
+  if (now - fingerAt > 1500 && now - tiltAt > 1500 && !(shineDrift.last > now - 33)) {
+    shineDrift.last = now;
+    const a = t / 2600;
+    setShine(0.5 + Math.cos(a) * 0.3, 0.42 + Math.sin(a * 1.3) * 0.25);
+  }
+  requestAnimationFrame(shineDrift);
+}
+function startShine() {
+  if (shineLoop || stillCards) return;
+  shineLoop = true;
+  requestAnimationFrame(shineDrift);
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && cardShowing()) startShine(); });
 
 // ================= the deck screen =================
 function setOptions(sel, items, prev) {
@@ -406,7 +580,9 @@ function rate(grade) {
     return;
   }
   const wasNew = side.reviews === 0;
+  const step = masteryOf(current, currentDir);
   applyGrade(side, grade);
+  noteLevelUp(current, currentDir, step);
   if (wasNew) state.newDone++;
   if (grade === 1) againSoon();
   save(); next();

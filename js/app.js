@@ -270,6 +270,17 @@ function toggleSettings(open) {
   }
   if (cardShowing()) fitCard();   // the panel pushes the card down
 }
+// the cards' shine can follow the phone's tilt: only offered on phones and tablets (a Mac has no tilt)
+const tiltBtnText = () => { $("tiltbtn").textContent = "Card shine follows tilt: " + (state.cardTilt ? "on" : "off"); };
+$("tiltbtn").hidden = !window.DeviceOrientationEvent || !matchMedia("(pointer: coarse)").matches;
+tiltBtnText();
+$("tiltbtn").onclick = async () => {
+  if (state.cardTilt) { state.cardTilt = false; startTilt(false); }
+  else if (await askTilt()) state.cardTilt = true;
+  else $("msg").textContent = "Tilt wasn't allowed. Dragging a card still moves its shine.";
+  save();
+  tiltBtnText();
+};
 $("gosettings").onclick = () => toggleSettings($("settings").hidden);
 $("setdone").onclick = () => toggleSettings(false);
 $("direction").onchange = e => {
