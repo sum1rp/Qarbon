@@ -132,7 +132,7 @@ $("file").addEventListener("change", async e => {
 // Built-in packs are stored in js/packs.js (PACKS),
 // so they work offline and when index.html is opened straight from the Mac.
 const BUILT_IN = [
-  { id: "beginner150", name: "Beginner 150", blurb: "The 150 most useful words to start with" },
+  { id: "beginner150", name: "Level 1",      blurb: "The 150 most useful words to start with" },
   { id: "level2",      name: "Level 2",      blurb: "The next 150 useful words" },
   { id: "level3",      name: "Level 3",      blurb: "300 words for everyday life (A2–B1)" }
 ];
@@ -173,7 +173,7 @@ function openStacks() {
   $("deckpicker").open = true;
 }
 
-// the black hole opens the app on the deck you used last (Beginner 150 the first time)
+// the black hole opens the app on the deck you used last (Level 1 the first time)
 function openApp() {
   const all = allStacks();
   chooseStack(all.find(s => s.id === state.stackId) || all[0]);
