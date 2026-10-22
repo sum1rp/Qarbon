@@ -217,7 +217,7 @@ function aboutScreen() {
     <p><b>On iPhone:</b> YouTube and SoundCloud pause when the screen locks or you switch apps. Your own files usually keep playing.</p>
     <p><b>YouTube tip:</b> play the video full screen (its ⛶ button), lock the phone, then press ▶ on the lock screen. It keeps playing, and the screen being off saves battery.</p>
     <p><b>Full screen:</b> tap the corner button or hold MENU to leave it. On a Mac, F switches it on and off.</p>
-    <p><b>Visualizer:</b> press the center on Now Playing, or tap the bottom-left button. Your own songs only.</p>` };
+    <p><b>Visualizer:</b> press the center on Now Playing, or tap the bottom-left button. Waveform, iTunes and Space: your own songs only. Cover: anything.</p>` };
 }
 
 // what's loaded now: "file", "YouTube", "SoundCloud", or "" for nothing
@@ -440,8 +440,9 @@ if (navigator.getBattery) navigator.getBattery().then(b => {
 // Opened from Now Playing with the center button (like the real iPod's Now Playing screens), or the button in the
 // iPod's bottom-left corner. Inside it the wheel moves through the song, the center switches the look, MENU goes back.
 // Looks (state.ipodViz): "wave", the whole song as a SoundCloud-style waveform that fills in purple as it plays;
-// "itunes", bars and a glowing wave moving with the music, like iTunes' visualizer in the 2000s; and "space", a slow flight
-// through stars and nebulas (see "space" below). The center button goes through them in that order.
+// "itunes", bars and a glowing wave moving with the music, like iTunes' visualizer in the 2000s; "space", a slow flight
+// through stars and nebulas (see "space" below); and "cover", the song's picture filling the screen (see "cover" below).
+// The center button goes through them in that order.
 //
 // The safe way: the playing <audio> is NEVER connected to Web Audio. (An iPhone pauses Web Audio when the screen locks,
 // so your music would stop.) Instead the song's bytes, already stored on this device, are decoded once on the side into
@@ -455,7 +456,7 @@ const VIZ_BANDS = 20;     // bars in the iTunes look, from deep bass (left) to t
 const VIZ_COLS = 800;     // slices of the whole-song waveform
 const VIZ_PTS = 64;       // points along the glowing wave
 const VIZ_V = 1;          // the analysis' version: change it when the analysis changes, so saved ones are made again
-const VIZ_LOOKS = { wave: "Waveform", itunes: "iTunes", space: "Space" };
+const VIZ_LOOKS = { wave: "Waveform", itunes: "iTunes", space: "Space", cover: "Cover" };
 // the next look (the center button in the Visualizer, and Settings › Visualizer), with its name showing for a moment
 function nextLook() {
   const k = Object.keys(VIZ_LOOKS);
@@ -622,9 +623,16 @@ function vizWaitShow() {
 function drawViz() {
   if (!vizShowing()) return;
   const look = state.ipodViz, what = nowPlaying(), file = what === "file" ? mySongs[songIndex] : null;
-  if (spaceFull && (look !== "space" || !file)) return setSpaceFull(false);   // another look, or not your song: back to the Qpod
+  // full screen is for Space with your own song, and for Cover with anything: otherwise back to the Qpod
+  if (spaceFull && !(look === "cover" || look === "space" && file)) return setSpaceFull(false);
   $("ip-viz").classList.toggle("ip-it", look !== "wave");   // every look but the waveform is on a black screen
-  ipod.classList.toggle("ip-nohead", look === "space");      // Space fills the whole screen: no title bar
+  ipod.classList.toggle("ip-nohead", look === "space" || look === "cover");   // these fill the whole screen: no title bar
+  // Cover needs no analysis of the sound (only the picture), so it works at once, and for YouTube / SoundCloud too
+  if (look === "cover") {
+    $("ip-vwait").hidden = true;
+    if (vizSizeCanvas()) drawCover(file, what);
+    return vizLabel(look);
+  }
   if (!file) return vizMessage(what ? "Your own songs only" : "Nothing playing",
     what ? what + " doesn't let Qarbon read its sound, so the Visualizer only works with songs from your phone."
          : "Play one of your songs, then come back here.", null);
@@ -635,14 +643,21 @@ function drawViz() {
   if (vizSong !== file.id) { vizSong = file.id; vizSince = performance.now(); vizPeaks.fill(0); vizKey = ""; }
   $("ip-vsong").textContent = songName(file);
   $("ip-vartist").textContent = [file.artist || "Unknown Artist", file.album].filter(Boolean).join(" · ");
-  // the canvas is drawn at the screen's real pixels (2 or 3 per CSS pixel on an iPhone), so it's sharp.
-  // On the whole screen at most 2 (stars don't need more, and it's less work for the battery)
-  const dpr = Math.min(spaceFull ? 2 : 3, devicePixelRatio || 1), w = Math.round(vizCv.clientWidth * dpr), h = Math.round(vizCv.clientHeight * dpr);
-  if (!w || !h) return;
-  if (vizCv.width !== w || vizCv.height !== h) { vizCv.width = w; vizCv.height = h; vizKey = ""; }
+  if (!vizSizeCanvas()) return;
   if (look === "wave") drawWave(a);
   else { if (look === "itunes") drawBars(a); else drawSpace(a); vizOverlay(a); }
-  // the look's name, for a moment after switching
+  vizLabel(look);
+}
+// the canvas is drawn at the screen's real pixels (2 or 3 per CSS pixel on an iPhone), so it's sharp.
+// On the whole screen at most 2 (stars don't need more, and it's less work for the battery). false = it has no size (hidden)
+function vizSizeCanvas() {
+  const dpr = Math.min(spaceFull ? 2 : 3, devicePixelRatio || 1), w = Math.round(vizCv.clientWidth * dpr), h = Math.round(vizCv.clientHeight * dpr);
+  if (!w || !h) return false;
+  if (vizCv.width !== w || vizCv.height !== h) { vizCv.width = w; vizCv.height = h; vizKey = ""; }
+  return true;
+}
+// the look's name, for a moment after switching
+function vizLabel(look) {
   const label = $("ip-vlabel"), on = performance.now() - vizLabelAt < 1500;
   label.textContent = VIZ_LOOKS[look];
   label.classList.toggle("ip-show", on);
@@ -924,16 +939,107 @@ function drawSpace(a) {
   g.globalCompositeOperation = "source-over";
 }
 
-// the animation loop, only for the moving looks (iTunes and space) while the song plays, on screen, and the page isn't hidden (saves battery).
+// ----- cover: the song's picture filling the screen -----
+// The picture you see everywhere else (songCover: one you chose, else the one inside the file), drifting slowly while
+// the song plays and still while it's paused, with a thin progress line along the bottom. No picture, or a YouTube /
+// SoundCloud link: the Qarbon atom, turning slowly in a purple glow. Tap it to fill the whole screen, like Space.
+let vizArt = { url: "", img: null };   // the playing song's picture as an <img> (made again only when the picture changes)
+function coverArt() {
+  if (vizArt.url !== coverURL) {
+    const art = vizArt = { url: coverURL, img: null };
+    if (coverURL) {
+      const img = new Image();
+      img.onload = () => { if (vizArt === art) { art.img = img; vizKick(); } };   // (unless the song changed meanwhile)
+      img.src = coverURL;
+    }
+  }
+  return vizArt.img;
+}
+// the logo's atom as a picture, made once (atomSVG is in js/look.js; a picture made from SVG text needs the xmlns,
+// and unlike on the page, nothing outside its box shows)
+let vizAtomImg = null;
+function atomImage() {
+  if (!vizAtomImg) {
+    vizAtomImg = new Image();
+    vizAtomImg.onload = vizKick;
+    vizAtomImg.src = "data:image/svg+xml," + encodeURIComponent(atomSVG(4.5)
+      .replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ').replace('viewBox="0 0 100 100"', 'viewBox="-8 -8 116 116"'));   // a margin, so the electrons aren't cut off
+  }
+  return vizAtomImg;
+}
+// draw img covering the box x, y, w, h (cut off at the sides or top, like CSS "cover"), z times bigger, moved by mx, my (-1 to 1)
+function drawCovering(g, img, x, y, w, h, z, mx, my) {
+  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height, k = Math.max(w / iw, h / ih) * z;
+  const dw = iw * k, dh = ih * k;
+  g.drawImage(img, x + (w - dw) / 2 + mx * (dw - w) / 2, y + (h - dh) / 2 + my * (dh - h) / 2, dw, dh);
+}
+let coverSong = "";   // which song (or link) the name was last shown for
+let vizDrift = 0, vizDriftAt = 0;   // the Cover look's drift: seconds it has moved for (only while playing), and when last drawn
+function drawCover(file, what) {
+  const g = vizG, W = vizCv.width, H = vizCv.height, u = Math.min(W, H) / 100;
+  const now = performance.now() / 1000, img = file && coverURL ? coverArt() : null;
+  const key = file ? file.id : what + nowTitle();
+  if (coverSong !== key) { coverSong = key; vizSince = performance.now(); }   // a new song: show its name again
+  // the drift: a slow loop that never quite repeats (two different speeds), paused when the music is
+  if (vizMoving()) vizDrift += Math.min(.1, now - (vizDriftAt || now));
+  vizDriftAt = now;
+  const t = vizDrift, mx = Math.sin(t / 13), my = Math.cos(t / 17), zoom = 1.1 + .05 * Math.sin(t / 9);
+  g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+  g.fillStyle = "#000"; g.fillRect(0, 0, W, H);
+  // the picture covers the whole screen (cut off at the edges), a little bigger than that so it has room to drift
+  if (img) drawCovering(g, img, 0, 0, W, H, zoom, mx, my);
+  else {
+    // no picture: the atom, turning once every 40 seconds, in a soft purple glow that breathes
+    const cx = W / 2, cy = H / 2, s = Math.min(W, H) * .46, glow = g.createRadialGradient(cx, cy, 0, cx, cy, s * 1.1);
+    glow.addColorStop(0, `rgba(123,108,255,${.32 + .08 * Math.sin(t * 1.3)})`); glow.addColorStop(1, "rgba(123,108,255,0)");
+    g.fillStyle = glow; g.fillRect(0, 0, W, H);
+    const atom = atomImage();
+    if (atom.complete && atom.naturalWidth) {
+      g.save(); g.translate(cx, cy); g.rotate(t / 40 * 2 * Math.PI); g.drawImage(atom, -s / 2, -s / 2, s, s); g.restore();
+    }
+  }
+  // the bottom, darkened a little so the line and the words show on any picture
+  const shade = g.createLinearGradient(0, H * .55, 0, H);
+  shade.addColorStop(0, "rgba(0,0,0,0)"); shade.addColorStop(1, "rgba(0,0,0,.55)");
+  g.fillStyle = shade; g.fillRect(0, H * .55, W, H * .45);
+  // the song's name for the first 5 seconds (like the iTunes look), and how to fill the screen / come back
+  const age = performance.now() - vizSince, fs = Math.min(W, H) * .065, font = `"Helvetica Neue", Helvetica, Arial, sans-serif`;
+  if (age < 5000 || !what) {
+    g.globalAlpha = what ? Math.min(1, (5000 - age) / 1200) : 1;   // "Nothing playing" stays
+    g.textBaseline = "bottom"; g.fillStyle = "#fff"; g.shadowColor = "rgba(0,0,0,.8)"; g.shadowBlur = fs * .4;
+    const name = file ? songName(file) : what ? nowTitle() : "Nothing playing";
+    const by = file ? [file.artist || "Unknown Artist", file.album].filter(Boolean).join(" · ") : what || "Play something, then come back here.";
+    g.font = `700 ${fs}px ${font}`; g.fillText(name, 4 * u, H - 7 * u - fs * 1.1, W - 8 * u);
+    g.font = `400 ${fs * .8}px ${font}`; g.fillStyle = "rgba(255,255,255,.8)"; g.fillText(by, 4 * u, H - 6 * u, W - 8 * u);
+    g.font = `700 ${fs * .7}px ${font}`; g.textAlign = "center"; g.textBaseline = "top";
+    g.fillText(spaceFull ? "Tap to go back to the Qpod" : "Tap to fill the screen", W / 2, 4 * u);
+    g.textAlign = "left"; g.shadowBlur = 0; g.globalAlpha = 1;
+  }
+  // the thin progress line along the bottom (your own songs: the links don't tell how long they are), and the time while scrubbing
+  if (file && audio.duration) {
+    const p = Math.min(1, audio.currentTime / audio.duration), lh = Math.max(2, .9 * u);
+    g.fillStyle = "rgba(255,255,255,.25)"; g.fillRect(0, H - lh, W, lh);
+    g.fillStyle = "#fff"; g.fillRect(0, H - lh, p * W, lh);
+    if (Date.now() - ipShowScrub < 2000) {
+      g.font = `700 ${fs * .75}px ${font}`; g.textBaseline = "bottom"; g.textAlign = "right";
+      g.fillText(clock(audio.currentTime) + " / " + clock(audio.duration), W - 3 * u, H - 3 * u);
+      g.textAlign = "left";
+    }
+  }
+}
+
+// the animation loop, only for the moving looks while the music plays, on screen, and the page isn't hidden (saves battery).
 // The waveform look doesn't need one: it redraws when the song's time moves (timeupdate, about 4 times a second).
+// iTunes and Space move with your own songs only (they need the analysis); Cover drifts with a playing link too.
+const vizMoving = () => state.ipodViz !== "wave" && (musicKind === "file" ? !audio.paused : state.ipodViz === "cover" && linkPlaying);
 function vizKick() {
   if (!vizShowing()) return;
-  if (state.ipodViz === "wave" || audio.paused || musicKind !== "file") return drawViz();
+  if (!vizMoving()) return drawViz();
   if (!vizRAF) vizRAF = requestAnimationFrame(vizFrame);
 }
 function vizFrame(now) {
   vizRAF = 0;
-  if (!vizShowing() || state.ipodViz === "wave" || audio.paused || musicKind !== "file") return drawViz();
+  if (!vizShowing() || !vizMoving()) return drawViz();
   if (now - vizLast > 1000 / VIZ_FPS - 4) { vizLast = now; drawViz(); }   // 30 pictures a second is plenty
   vizRAF = requestAnimationFrame(vizFrame);
 }
@@ -1118,7 +1224,7 @@ function setSpaceFull(on) {
   vizKick();
 }
 $("ip-vcanvas").addEventListener("click", () => {
-  if (state.ipodViz === "space" && $("ip-vwait").hidden && nowPlaying() === "file") { ipClick(); setSpaceFull(true); }
+  if (state.ipodViz === "cover" || state.ipodViz === "space" && $("ip-vwait").hidden && nowPlaying() === "file") { ipClick(); setSpaceFull(true); }
 });
 $("spacefull").addEventListener("click", () => { ipClick(); setSpaceFull(false); });
 
