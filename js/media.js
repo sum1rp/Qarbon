@@ -1198,8 +1198,10 @@ qmini.addEventListener("click", e => { if (!e.detail) miniTap(); });   // Enter 
 // tap: back to the Qpod in 🎧 Media, remembering the mode you came from (miniFrom),
 // so ‹ (or MENU on the Qpod's main menu) takes you back there instead of to the home screen
 let miniFrom = "";
+let miniBook = null;   // the book that was open in the reader (switching modes closes it, saving your place)
 function miniTap() {
   miniFrom = mode;
+  miniBook = mode === "reading" && reader ? reader.b : null;
   setMode("media");
   const name = $("modeselect").querySelector(`option[value="${miniFrom}"]`);
   backLabel("Back to " + (name ? name.textContent.replace(/^\S+\s/, "") : "where you were"));   // "🃏 Review" → "Back to Review"
@@ -1208,12 +1210,15 @@ function miniTap() {
 function miniBack() {
   setFull(false);
   setSpaceFull(false);
+  const book = miniBook;
   mode = miniFrom;
   render();   // render calls miniQpod, which forgets miniFrom now that you've left the Qpod
+  if (book && state.books.includes(book)) openReader(book);   // the same book, at the place it saved (book.place)
 }
 // left the Qpod some other way (the Mode menu, home...): ‹ goes home again
 function miniForget() {
   miniFrom = "";
+  miniBook = null;
   backLabel("Back to home");
 }
 // what ‹ says when you hover it (or a screen reader reads it)
