@@ -502,12 +502,14 @@
   .qcard[data-type="pronoun"]    { --type:#4aa3ff; }
 
   /* ---------- flip animation ---------- */
-  /* --rx / --ry = the small tilt that follows your finger or the phone (set by the shine code in js/cards.js) */
+  /* two layers, so the turn is never interrupted: #tilt = the small tilt that follows your finger or the phone
+     (--rx / --ry, set by the shine code in js/cards.js, up to 30 times a second); #card inside it only turns over.
+     (When both were on #card, every tilt update restarted the .6s turn, and it jerked on iPhone.) */
   #scene { width:100%; max-width:340px; height:440px; margin:20px 0; perspective:1000px; }
-  #card { --mx:50%; --my:35%; --rx:0deg; --ry:0deg;
-          position:relative; width:100%; height:100%; transition:transform .6s; transform-style:preserve-3d;
-          transform:rotateX(var(--rx)) rotateY(var(--ry)); }
-  #card.flipped { transform:rotateX(var(--rx)) rotateY(calc(180deg + var(--ry))); }
+  #tilt { position:relative; width:100%; height:100%; transform-style:preserve-3d; transform:rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+  #card { --mx:50%; --my:35%;
+          position:relative; width:100%; height:100%; transition:transform .6s; transform-style:preserve-3d; transform:rotateY(0deg); }
+  #card.flipped { transform:rotateY(180deg); }
   #card.noanim { transition:none; }
 
   /* ---------- the card: a reflective silver edge, the word type as a color band, a panel inside ---------- */

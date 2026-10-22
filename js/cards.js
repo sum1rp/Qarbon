@@ -281,18 +281,18 @@ function noteLevelUp(c, dir, before) {
   noteLevelUp.timer = setTimeout(() => { el.hidden = true; }, 1800);
 }
 
-// The shine: --mx / --my (where the light is, 0–100%) and --rx / --ry (a small tilt) on #card.
+// The shine: --mx / --my (where the light is, 0–100%) on #card, and --rx / --ry (a small tilt) on #tilt, the layer around it.
 // It follows your finger or the mouse, the phone's tilt when that's turned on in ⚙, and drifts slowly by itself otherwise.
 const stillCards = matchMedia("(prefers-reduced-motion: reduce)").matches;
 let fingerAt = 0, tiltAt = 0, tiltBase = null, shineLoop = false;
 const clamp01 = v => Math.min(1, Math.max(0, v));
 
 function setShine(x, y) {   // x, y from 0 to 1
-  const st = $("card").style;
+  const st = $("card").style, tilt = $("tilt").style;   // the light on the card, the tilt on its holder (see #tilt in the styles)
   st.setProperty("--mx", (x * 100).toFixed(1) + "%");
   st.setProperty("--my", (y * 100).toFixed(1) + "%");
-  st.setProperty("--rx", stillCards ? "0deg" : ((0.5 - y) * 8).toFixed(2) + "deg");
-  st.setProperty("--ry", stillCards ? "0deg" : ((x - 0.5) * 10).toFixed(2) + "deg");
+  tilt.setProperty("--rx", stillCards ? "0deg" : ((0.5 - y) * 8).toFixed(2) + "deg");
+  tilt.setProperty("--ry", stillCards ? "0deg" : ((x - 0.5) * 10).toFixed(2) + "deg");
 }
 
 // finger or mouse over the card (also while swiping: the light slides with it)
