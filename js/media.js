@@ -236,7 +236,10 @@ function shuffleSongs() {
 
 // ================= moving around =================
 function ipOpen(screen) { screen.sel = screen.sel || 0; screen.top = screen.top || 0; ipStack.push(screen); ipScrub = false; ipLeaveBox(); renderMedia(); }
-function ipBack() { if (ipStack.length > 1) { ipStack.pop(); ipScrub = false; ipLeaveBox(); renderMedia(); } }
+function ipBack() {
+  if (ipStack.length > 1) { ipStack.pop(); ipScrub = false; ipLeaveBox(); renderMedia(); }
+  else if (miniFrom) miniBack();   // MENU on the main menu: back to the mode the mini Qpod brought you from
+}
 // leaving the Add a Link screen: let go of the link box (closes the iPhone keyboard)
 function ipLeaveBox() { if (document.activeElement === $("ip-link")) $("ip-link").blur(); }
 const rowsOf = s => s.form ? FORM_ROWS : IP_ROWS;   // how many rows show on this screen
@@ -1128,6 +1131,7 @@ const qmini = $("qpodmini");
 $("qpodmini-skin").insertAdjacentHTML("beforeend", `<span class="qm-atom">${atomSVG(8)}</span>`);
 let miniAway = false;   // swiped away (until you open the Qpod again, or nothing is loaded any more)
 function miniQpod() {
+  if (miniFrom && (mode !== "media" || $("study").hidden)) miniForget();
   if (mode === "media" || !nowPlaying()) miniAway = false;
   const show = !$("study").hidden && mode !== "media" && !!nowPlaying() && !miniAway;
   qmini.hidden = !show;
@@ -1191,8 +1195,29 @@ qmini.addEventListener("keydown", e => {   // on the keyboard: Delete, Backspace
 qmini.addEventListener("pointerup", miniUp);
 qmini.addEventListener("pointercancel", miniUp);
 qmini.addEventListener("click", e => { if (!e.detail) miniTap(); });   // Enter or Space on the keyboard (a real click was the pointer)
-// tap: back to the Qpod in 🎧 Media
-function miniTap() { setMode("media"); }
+// tap: back to the Qpod in 🎧 Media, remembering the mode you came from (miniFrom),
+// so ‹ (or MENU on the Qpod's main menu) takes you back there instead of to the home screen
+let miniFrom = "";
+function miniTap() {
+  miniFrom = mode;
+  setMode("media");
+  const name = $("modeselect").querySelector(`option[value="${miniFrom}"]`);
+  backLabel("Back to " + (name ? name.textContent.replace(/^\S+\s/, "") : "where you were"));   // "🃏 Review" → "Back to Review"
+}
+// back to that mode just as you left it (the same card, the same page): only the mode changes, nothing is rebuilt
+function miniBack() {
+  setFull(false);
+  setSpaceFull(false);
+  mode = miniFrom;
+  render();   // render calls miniQpod, which forgets miniFrom now that you've left the Qpod
+}
+// left the Qpod some other way (the Mode menu, home...): ‹ goes home again
+function miniForget() {
+  miniFrom = "";
+  backLabel("Back to home");
+}
+// what ‹ says when you hover it (or a screen reader reads it)
+function backLabel(text) { $("gohome").title = text; $("gohome").setAttribute("aria-label", text); }
 addEventListener("resize", () => { if (!qmini.hidden) placeMini(); });
 
 // keep the iPod in step with the music: renderMusic (js/music.js) calls these after every change

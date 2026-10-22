@@ -609,7 +609,8 @@ $("readsave").onclick = () => {
     : "Saved" + (minutes ? ": " + mins(minutes) + " of reading" : "") + ".");
 };
 showReadbar();
-$("gohome").onclick = () => show("home");
+// ‹ goes home, unless the mini Qpod brought you into the Qpod: then back to where you were (see miniTap in js/media.js)
+$("gohome").onclick = () => { if (mode === "media" && miniFrom) miniBack(); else show("home"); };
 $("logo").onclick = () => show("home");   // tapping the Qarbon logo also takes you back to the black hole
 
 // ================= the in-app reader =================
