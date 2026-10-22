@@ -79,8 +79,11 @@
 
   /* the worlds: real things (js/worlds.js). Photos are NASA / Event Horizon Telescope images on black;
      "screen" blending drops their black, so only the light shows over the star sky */
-  .world .photo { position:absolute; left:50%; top:50%; width:100%; transform:translate(-50%, -50%);
+  .world .photo { position:absolute; left:50%; top:50%; width:100%; aspect-ratio:1; transform:translate(-50%, -50%);
                   mix-blend-mode:screen; pointer-events:none; }
+  /* aspect-ratio:1 (every world photo is square) gives a photo its height before it has loaded. The photos load a moment
+     after the page, and iPhone Safari works out an animation's "-50% of its own height" once, when the animation starts:
+     with no height yet that was 0, so the Tower of Babel sat half its height too low (build 57 fix) */
   .world canvas, .world svg { position:absolute; pointer-events:none; }
   /* Black hole: Sagittarius A* in polarized light, faded at its edge and turning once every 2 minutes like its gas */
   #w-hole .photo { width:118%; -webkit-mask:radial-gradient(closest-side, #000 62%, transparent); mask:radial-gradient(closest-side, #000 62%, transparent);
