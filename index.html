@@ -47,10 +47,26 @@
           <span class="wname">Decks</span><span class="wsub" id="ws-deck"></span>
         </button>
         <!-- 🌐 Translate: Bruegel's Tower of Babel (the story of where languages came from), with "hello" in 14 languages
-             turning around it on a circle (textLength stretches the words to fit it exactly) -->
+             turning around it. Each word sits at its own even spot on the circle (startOffset = its middle, every 1/14 of the
+             way round), so the spacing never depends on how wide a phone draws the letters; the <span> around it is what turns -->
         <button class="slide" data-mode="translate">
           <span class="body world" id="w-babel" aria-hidden="true"><img class="photo" alt="" data-src="img/babel.jpg">
-            <svg class="ring" viewBox="0 0 200 200"><path id="babelring" d="M100,100 m-88,0 a88,88 0 1,1 176,0 a88,88 0 1,1 -176,0" fill="none"/><text><textPath href="#babelring" textLength="548" lengthAdjust="spacing">bonjour · hello · hola · ciao · hallo · olá · привет · 你好 · こんにちは · مرحبا · שלום · नमस्ते · merhaba · salut · </textPath></text></svg></span>
+            <span class="ring"><svg viewBox="0 0 200 200"><path id="babelring" d="M100,100 m-88,0 a88,88 0 1,1 176,0 a88,88 0 1,1 -176,0" fill="none"/>
+              <text><textPath href="#babelring" startOffset="3.57%">bonjour</textPath></text>
+              <text><textPath href="#babelring" startOffset="10.71%">hello</textPath></text>
+              <text><textPath href="#babelring" startOffset="17.86%">hola</textPath></text>
+              <text><textPath href="#babelring" startOffset="25.00%">ciao</textPath></text>
+              <text><textPath href="#babelring" startOffset="32.14%">hallo</textPath></text>
+              <text><textPath href="#babelring" startOffset="39.29%">olá</textPath></text>
+              <text><textPath href="#babelring" startOffset="46.43%">привет</textPath></text>
+              <text><textPath href="#babelring" startOffset="53.57%">你好</textPath></text>
+              <text><textPath href="#babelring" startOffset="60.71%">こんにちは</textPath></text>
+              <text><textPath href="#babelring" startOffset="67.86%">مرحبا</textPath></text>
+              <text><textPath href="#babelring" startOffset="75.00%">שלום</textPath></text>
+              <text><textPath href="#babelring" startOffset="82.14%">नमस्ते</textPath></text>
+              <text><textPath href="#babelring" startOffset="89.29%">merhaba</textPath></text>
+              <text><textPath href="#babelring" startOffset="96.43%">salut</textPath></text>
+            </svg></span></span>
           <span class="wname">Translate</span><span class="wsub"></span>
         </button>
         <!-- 🔁 Practice: the Moon, in tonight's phase -->
