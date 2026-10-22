@@ -87,14 +87,14 @@ async function signIn(create) {
 // the part of your save that goes online (things that belong to one device, like the book you're
 // reading right now or the last deck you opened, stay on that device)
 function syncedPart() {
-  return { v: 1, cards: state.cards, decks: state.decks, books: state.books, deleted: state.deleted,
+  return { v: 1, cards: state.cards, decks: state.decks, playlists: state.playlists, books: state.books, deleted: state.deleted,
            settings: settingsOf(state), settingsT: state.settingsT, sessions: state.sessions,
            newDate: state.newDate, newDone: state.newDone };
 }
 
 // tidy up the online copy the same way a loaded save is tidied (see clean)
 function cleanRemote(d) {
-  return clean({ ...(d.settings || {}), cards: d.cards, decks: d.decks, books: d.books, deleted: d.deleted,
+  return clean({ ...(d.settings || {}), cards: d.cards, decks: d.decks, playlists: d.playlists, books: d.books, deleted: d.deleted,
                  settingsT: d.settingsT, sessions: d.sessions, newDate: d.newDate, newDone: d.newDone });
 }
 
@@ -119,6 +119,7 @@ function applyMerged(m) {
   for (const from of Object.keys(moves.book)) movePdf(from, movedTo(moves.book, from));
   state.cards = reuse(state.cards, m.cards, cardKey);
   state.decks = reuse(state.decks, m.decks, d => d.id);
+  state.playlists = reuse(state.playlists, m.playlists, p => p.id);
   state.books = reuse(state.books, m.books, b => b.id);
   state.deleted = m.deleted;
   Object.assign(state, m.settings, { settingsT: m.settingsT, sessions: m.sessions, newDate: m.newDate, newDone: m.newDone });
@@ -136,6 +137,7 @@ function applyMerged(m) {
     showMusic(false);
   }
   showReadbar();
+  playlistsSynced(moves.playlist || {});   // the playlist playing follows a fold, and the lists redraw (js/music.js)
   if (!$("study").hidden) render();
   followSyncedPlace();   // the open book jumps to a newer place read on another device
 }

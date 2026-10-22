@@ -5,7 +5,7 @@
 let storageOK = true;
 try { localStorage.setItem("_qtest", "1"); localStorage.removeItem("_qtest"); } catch (e) { storageOK = false; }
 
-const FRESH = { cards: [], decks: [], music: "", directions: {}, books: [], readingBook: "", stackId: "", newPerDay: 10, newDate: "", newDone: 0, voice: "female", sessions: 0, timerMode: "pomodoro" };
+const FRESH = { cards: [], decks: [], playlists: [], music: "", directions: {}, books: [], readingBook: "", stackId: "", newPerDay: 10, newDate: "", newDone: 0, voice: "female", sessions: 0, timerMode: "pomodoro" };
 
 // where you stopped reading a book: { ch: chapter (from 0), y: how far down it (0 to 1) } or { page } for a PDF
 function cleanPlace(p) {
@@ -31,6 +31,23 @@ function cleanMeta(m) {
   if (Number(m.pages)) out.pages = Math.round(Number(m.pages));
   if (typeof m.textId === "string" && /^[a-z0-9-]+$/.test(m.textId)) out.textId = m.textId;   // a built-in text to read in Qarbon
   return out;
+}
+
+// your playlists (js/music.js): { id, name, items, t }. Each item is a link { k: "link", link, title }
+// or one of your own songs { k: "song", id, title, artist, album }. A song's file stays on the device it was added on,
+// so the item keeps enough to find it again (its id there, or its title + artist + album on another device).
+const str = (v, n) => typeof v === "string" ? v.slice(0, n) : "";
+function cleanPlaylists(list) {
+  return (Array.isArray(list) ? list : [])
+    .filter(p => p && typeof p.name === "string" && p.name.trim() && Array.isArray(p.items))
+    .map(p => ({ id: String(p.id || "pl-" + Math.random()), name: p.name.trim().slice(0, 60),
+                 items: p.items.filter(it => it && (it.k === "song" ? typeof it.id === "string"
+                                                   : it.k === "link" && /^https:\/\/[^\s"'<>]{1,500}$/.test(it.link)))
+                               .slice(0, 500)
+                               .map(it => it.k === "song"
+                                 ? { k: "song", id: it.id.slice(0, 40), title: str(it.title, 200), artist: str(it.artist, 200), album: str(it.album, 200) }
+                                 : { k: "link", link: it.link, title: str(it.title, 200) }),
+                 t: Number(p.t) || 0 }));
 }
 
 // make sure whatever we loaded (or restored) has the right shape
@@ -65,6 +82,7 @@ function clean(data) {
     .map(d => ({ id: String(d.id || "deck-" + Math.random()), name: d.name, words: d.words.map(String), added: d.added || "",
                  t: Number(d.t) || 0 }));
   s.music = typeof s.music === "string" ? s.music : "";   // the YouTube/SoundCloud link you pasted
+  s.playlists = cleanPlaylists(s.playlists);
   // your books: title, author, chapter names, how many chapters are done, and reading time
   s.books = (Array.isArray(s.books) ? s.books : [])
     .filter(b => b && typeof b.title === "string" && Array.isArray(b.chapters))
@@ -99,7 +117,7 @@ function clean(data) {
   s.ipodViz = ["wave", "itunes", "space"].includes(s.ipodViz) ? s.ipodViz : "wave";   // the Visualizer's look: the whole song, bars and a glowing wave, or a flight through space
   // for syncing: things you deleted ("card:chat" → when), and when your settings last changed
   const del = s.deleted && typeof s.deleted === "object" ? s.deleted : {};
-  s.deleted = Object.fromEntries(Object.entries(del).filter(([k, v]) => /^(card|deck|book):/.test(k) && Number(v) > 0).map(([k, v]) => [k, Number(v)]));
+  s.deleted = Object.fromEntries(Object.entries(del).filter(([k, v]) => /^(card|deck|playlist|book):/.test(k) && Number(v) > 0).map(([k, v]) => [k, Number(v)]));
   s.settingsT = Number(s.settingsT) || 0;
   s.newPerDay = PER_DAY_CHOICES.includes(Number(s.newPerDay)) ? Number(s.newPerDay) : 10;
   s.newDone = Number(s.newDone) || 0;
@@ -132,6 +150,7 @@ function snapshot(s) {
   const add = (key, obj) => { const { t, ...rest } = obj; out[key] = JSON.stringify(rest); };
   s.cards.forEach(c => add("card:" + cardKey(c), c));
   s.decks.forEach(d => add("deck:" + d.id, d));
+  s.playlists.forEach(p => add("playlist:" + p.id, p));
   s.books.forEach(b => add("book:" + b.id, b));
   out.settings = JSON.stringify(settingsOf(s));
   out.counters = JSON.stringify([s.sessions, s.newDate, s.newDone]);   // not stamped, but worth syncing
@@ -143,7 +162,7 @@ let snap = {};   // the fingerprints at the last save
 function stampChanges() {
   const now = Date.now(), next = snapshot(state);
   let changed = false;
-  [["card", state.cards, cardKey], ["deck", state.decks, d => d.id], ["book", state.books, b => b.id]].forEach(([kind, list, keyOf]) => {
+  [["card", state.cards, cardKey], ["deck", state.decks, d => d.id], ["playlist", state.playlists, p => p.id], ["book", state.books, b => b.id]].forEach(([kind, list, keyOf]) => {
     for (const it of list) {
       const key = kind + ":" + keyOf(it);
       if (snap[key] !== next[key]) { it.t = now; delete state.deleted[key]; changed = true; }
@@ -180,6 +199,7 @@ let syncTimer = null, syncing = false, syncAgain = false;
 const PROGRESS = {
   card: c => (c.reviews || 0) + (c.rev ? c.rev.reviews || 0 : 0),
   deck: d => (d.words || []).length,
+  playlist: p => (p.items || []).length,
   book: b => (b.done || 0) + (b.sessions || 0)
 };
 function mergeLists(kind, mine, theirs, keyOf, deleted) {
@@ -197,6 +217,8 @@ function mergeLists(kind, mine, theirs, keyOf, deleted) {
 // doesn't come back from the other device), and its progress is added in.
 const bookTwin = b => b.title.trim().toLowerCase() + "|" + (b.author || "").trim().toLowerCase();
 const deckTwin = d => d.name.trim().toLowerCase();
+// the same song or link in two playlists (or in two copies of one): a song by its title + artist + album, a link by itself
+const itemKey = it => it.k === "song" ? "song:" + [it.title, it.artist, it.album].join("|").toLowerCase() : "link:" + it.link;
 
 // two copies of one book → one. keep = the copy with more progress.
 function combineBooks(keep, other) {
@@ -225,6 +247,12 @@ function combineBooks(keep, other) {
 // two copies of one deck → one, with the words from both
 const combineDecks = (keep, other) => ({ ...keep, words: [...new Set([...keep.words, ...other.words])],
                                           added: [keep.added, other.added].filter(Boolean).sort()[0] || "" });
+
+// two copies of one playlist → one: the kept copy's order, then anything only the other copy had
+function combinePlaylists(keep, other) {
+  const have = new Set(keep.items.map(itemKey));
+  return { ...keep, items: [...keep.items, ...other.items.filter(it => !have.has(itemKey(it)))] };
+}
 
 // fold twins in a merged list. moves = { old id: id it was folded into }, so things that pointed at the
 // old one (the book you're reading, a deck's card direction, a PDF) can follow it.
@@ -256,8 +284,9 @@ function mergeStates(a, b) {   // a = this device, b = online (both already clea
   const forgetBefore = Date.now() - 90 * 864e5;   // deletions older than 90 days are forgotten
   for (const k of Object.keys(deleted)) if (deleted[k] < forgetBefore) delete deleted[k];
   const later = (a.newDate || "") >= (b.newDate || "") ? a : b;
-  const moves = { deck: {}, book: {} };
+  const moves = { deck: {}, book: {}, playlist: {} };
   const decks = foldTwins("deck", mergeLists("deck", a.decks, b.decks, d => d.id, deleted), deckTwin, combineDecks, deleted, moves.deck);
+  const playlists = foldTwins("playlist", mergeLists("playlist", a.playlists, b.playlists, p => p.id, deleted), deckTwin, combinePlaylists, deleted, moves.playlist);
   const books = foldTwins("book", mergeLists("book", a.books, b.books, x => x.id, deleted), bookTwin, combineBooks, deleted, moves.book);
   // a folded deck's card direction goes to the deck it was folded into
   const settings = settingsOf(b.settingsT > a.settingsT ? b : a);
@@ -270,7 +299,7 @@ function mergeStates(a, b) {   // a = this device, b = online (both already clea
   }
   return {
     cards: mergeLists("card", a.cards, b.cards, cardKey, deleted),
-    decks, books, moves,
+    decks, playlists, books, moves,
     deleted,
     settings,
     settingsT: Math.max(a.settingsT, b.settingsT),

@@ -82,6 +82,7 @@ function notePlayed(entry, toTop) {
     i = 0;
   }
   playedPos = i;
+  if (entry.title && entry.link) nameLinkItems(entry.key, entry.title);
   renderMusic();
 }
 
@@ -123,6 +124,7 @@ function musicPanelHTML() {
       <input type="file" class="musicfile" accept="audio/*,.mp3,.m4a,.aac,.wav" multiple></label>
     <p class="iphone">iPhone: YouTube and SoundCloud pause when the screen locks or you switch apps. Your own files usually keep going.
       Tip: play a YouTube video full screen (its ⛶ button), lock the phone, then press ▶ on the lock screen: it keeps playing.</p>
+    <details class="plists" hidden><summary></summary><ol></ol></details>
     <details class="mymusic" hidden><summary></summary><ol></ol></details>
     <div class="musicmsg"></div>
     <details class="played" hidden><summary></summary><ol></ol></details>
@@ -150,7 +152,7 @@ function thumbURL(s) {
 }
 // what ⋯ opens under a song: choose a picture (for the song, or its whole album), go back to the original, remove the song
 function songActions(s, i) {
-  const album = albumSongs(s), b = [];
+  const album = albumSongs(s), b = [`<button data-addto="song:${esc(s.id)}" aria-expanded="${addOpen === "song:" + s.id}">＋ Add to playlist</button>`];
   if (album.length > 1) b.push(`<button data-art="${i}">🖼 This song</button>`,
                                `<button data-art="${i}" data-album="1">🖼 Album (${album.length})</button>`);
   else b.push(`<button data-art="${i}">🖼 Choose picture</button>`);
@@ -164,7 +166,8 @@ function renderMusic() {
   const m = musicKind === "link" && state.music ? musicEmbed(state.music) : null;
   const file = musicKind === "file" && songIndex >= 0 ? mySongs[songIndex] : null;
   // ⏮ ⏭ go through: the playlist (YouTube/SoundCloud), your files, or the Played list
-  const hasNav = (m && m.playlist) || (file && mySongs.length > 1) || (!file && played.length > 1);
+  const pl = plActive();
+  const hasNav = !!pl || (m && m.playlist) || (file && mySongs.length > 1) || (!file && played.length > 1);
   $("timer").classList.toggle("hasmusic", !!(m || file));
   musicPanels().forEach(p => {
     p.querySelector(".playerslot").className = "playerslot" + (m ? (m.kind === "YouTube" ? " yt" : " sc") : "");
@@ -173,8 +176,7 @@ function renderMusic() {
       p.querySelector(".cover").innerHTML = coverURL ? `<img alt="" src="${coverURL}">` : atomSVG(4.5);   // no picture: the Qarbon atom
       p.querySelector(".ftitle").textContent = songName(file);
       p.querySelector(".fartist").textContent = [file.artist, file.album].filter(Boolean).join(" · ");
-      const list = playingList();
-      p.querySelector(".fcount").textContent = (list.indexOf(songIndex) + 1) + " of " + list.length;
+      p.querySelector(".fcount").textContent = countText();
     }
     p.querySelector(".musicnav").hidden = !hasNav && !file;
     p.querySelector(".musicprev").textContent = file ? "⏮" : "⏮ Previous";
@@ -190,6 +192,22 @@ function renderMusic() {
     rep.setAttribute("aria-label", "Repeat: " + repeatMode);
     rep.classList.toggle("on", repeatMode !== "off");
     p.querySelector(".musicclear").hidden = !(m || file);
+    // while you're typing a playlist's name in this panel, its lists aren't drawn again (that would lose what you typed)
+    if (typingIn(p)) return;
+    // your playlists
+    const pls = p.querySelector(".plists");
+    pls.hidden = !(state.playlists.length || mySongs.length || played.length || state.music);
+    pls.querySelector("summary").textContent = "🎶 Playlists · " + state.playlists.length;
+    pls.querySelector("ol").innerHTML = state.playlists.map(x => {
+      const open = plOpen === x.id, cur = pl === x, pic = plCover(x);
+      return `<li><button class="song${cur ? " cur" : ""}" data-plplay="${esc(x.id)}">` +
+        `<span class="ic">${pic ? `<img alt="" src="${pic}">` : atomSVG(6.5)}</span>` +
+        `<span class="t">${esc(x.name)}</span><span class="src">${cur ? "now" : esc(plCount(x))}</span></button>` +
+        `<button class="songmore" data-plmore="${esc(x.id)}" aria-expanded="${open}" aria-label="More for ${esc(x.name)}" title="Play, shuffle, rename, delete">⋯</button></li>` +
+        (open ? `<li class="songacts">${plActions(x)}</li>` : "");
+    }).join("") + (plForm === "new"
+      ? `<li class="songacts">${nameForm("new", "")}</li>`
+      : `<li><button class="song" data-plnew="1"><span class="ic">＋</span><span class="t">New playlist</span></button></li>`);
     // your music on this phone
     const mine = p.querySelector(".mymusic");
     mine.hidden = !mySongs.length;
@@ -200,7 +218,8 @@ function renderMusic() {
         `<span class="ic">${pic ? `<img alt="" src="${pic}">` : atomSVG(6.5)}</span>` +   // no picture: the atom (thicker lines, it's small)
         `<span class="t">${esc(songName(s))}</span><span class="src">${esc(s.artist || "")}</span></button>` +
         `<button class="songmore" data-more="${i}" aria-expanded="${open}" aria-label="More for ${esc(songName(s))}" title="Album art, remove">⋯</button></li>` +
-        (open ? `<li class="songacts">${songActions(s, i)}</li>` : "");
+        (open ? `<li class="songacts">${songActions(s, i)}</li>` : "") +
+        (open && addOpen === "song:" + s.id ? `<li class="songacts plpick">${chooser()}</li>` : "");
     }).join("");
     // played this session
     const box = p.querySelector(".played");
@@ -208,8 +227,11 @@ function renderMusic() {
     box.querySelector("summary").textContent = "🕘 Played this session · " + played.length;
     box.querySelector("ol").innerHTML = played.map((s, i) => {
       const cur = i === playedPos && (m || file);
+      const adding = addOpen === "played:" + s.key;
       return `<li><button class="song${cur ? " cur" : ""}" data-played="${i}"><span class="ic">${cur ? "♪" : "▶"}</span>` +
-             `<span class="t${s.title ? "" : " link"}">${esc(s.title || shortLink(s.link))}</span><span class="src">${cur ? "now" : s.kind}</span></button></li>`;
+             `<span class="t${s.title ? "" : " link"}">${esc(s.title || shortLink(s.link))}</span><span class="src">${cur ? "now" : s.kind}</span></button>` +
+             `<button class="songmore" data-addto="played:${esc(s.key)}" aria-expanded="${adding}" aria-label="Add ${esc(s.title || "it")} to a playlist" title="Add to playlist">＋</button></li>` +
+             (adding ? `<li class="songacts plpick">${chooser()}</li>` : "");
     }).join("");
   });
   // the closed ⏱ Focus dropdown shows what's playing
@@ -317,6 +339,9 @@ addEventListener("message", e => {
   if (e.origin === YT_ORIGIN && d.event === "onStateChange" && typeof d.info === "number") linkPlaying = d.info === 1;
   if (e.origin === SC_ORIGIN && ["play", "pause", "finish"].includes(d.method)) linkPlaying = d.method === "play";
   if (linkPlaying !== was) renderMusic();
+  // it got to the end (YouTube: state 0; SoundCloud: "finish"): in a playlist, the next item plays
+  if ((e.origin === YT_ORIGIN && ((d.event === "onStateChange" && d.info === 0) || (d.info && d.info.playerState === 0))) ||
+      (e.origin === SC_ORIGIN && d.method === "finish")) linkEnded();
   if (e.origin === YT_ORIGIN && d.info && d.info.videoData && d.info.videoData.video_id && d.info.videoData.title) {
     const v = d.info.videoData;
     notePlayed({ key: "yt:" + v.video_id, kind: "YouTube", title: v.title,
@@ -631,6 +656,7 @@ function stepSong(dir) {
 audio.addEventListener("ended", () => {
   if (musicKind !== "file") return;
   if (repeatMode === "one") { audio.currentTime = 0; audio.play().catch(() => {}); }
+  else if (plActive()) plStep(1, true);   // in a playlist: its next item (a song or a link)
   else if (shuffleOn || repeatMode === "all" || playingList().indexOf(songIndex) < playingList().length - 1) stepSong(1);
   else renderMusic();   // the end of the list: stop
 });
@@ -640,14 +666,238 @@ audio.addEventListener("timeupdate", updateProgress);
 audio.addEventListener("loadedmetadata", updateProgress);
 audio.addEventListener("error", () => { if (musicKind === "file") musicMsg("This file's format can't play here. MP3, M4A, AAC and WAV work best."); });
 if ("mediaSession" in navigator) {
-  [["play", () => audio.play()], ["pause", () => audio.pause()], ["previoustrack", () => stepSong(-1)], ["nexttrack", () => stepSong(1)],
+  [["play", () => audio.play()], ["pause", () => audio.pause()], ["previoustrack", () => musicStep(-1)], ["nexttrack", () => musicStep(1)],
    ["seekto", d => { audio.currentTime = d.seekTime; }]].forEach(([action, fn]) => {
     try { navigator.mediaSession.setActionHandler(action, d => { if (musicKind === "file") fn(d); }); } catch (e) {}   // some phones don't have every action
   });
 }
 
+// ================= your playlists =================
+// state.playlists: saved and synced (see cleanPlaylists in js/data.js). Each mixes your songs and YouTube/SoundCloud links.
+// A song item keeps the song's id on the device it was added on, plus its title, artist and album, so another device
+// can find its own copy of the same file. If it has none, the song shows as "not on this phone" there and is skipped.
+let plPlay = null;   // the playlist playing: { id, pos: which item }, or null
+let plOpen = "";     // the playlist whose ⋯ is open in the panels
+let plForm = "";     // the panels' little form: "new", "rename:<id>" or "delete:<id>" ("" = none)
+let addOpen = "";    // whose "Add to playlist" choice is open: "song:<song id>" or "played:<key>" ("" = none)
+const playlistById = id => state.playlists.find(x => x.id === id);
+const songItem = s => ({ k: "song", id: s.id, title: songName(s), artist: s.artist || "", album: s.album || "" });
+const itemName = it => it.title || shortLink(it.link || "");
+// the song on this device an item means (its number in mySongs), or -1: by its id, else by title + artist + album
+function itemSong(it) {
+  if (it.k !== "song") return -1;
+  const i = mySongs.findIndex(s => s.id === it.id);
+  return i >= 0 ? i : mySongs.findIndex(s => itemKey(songItem(s)) === itemKey(it));
+}
+const canPlay = it => it.k === "link" ? !!musicEmbed(it.link) : itemSong(it) >= 0;
+
+// the playlist that's playing right now, or null. Choosing something else (a song in My music, a pasted link…)
+// quietly leaves the playlist: then what's loaded isn't the item it's on any more.
+function plActive() {
+  const pl = plPlay && playlistById(plPlay.id), it = pl && pl.items[plPlay.pos];
+  if (!it) return null;
+  if (it.k === "link") return musicKind === "link" && state.music === it.link ? pl : null;
+  return musicKind === "file" && songIndex >= 0 && songIndex === itemSong(it) ? pl : null;
+}
+// "3 of 12": in a playlist, its place there; otherwise in the list of songs being played
+function countText() {
+  const pl = plActive();
+  if (pl) return (plPlay.pos + 1) + " of " + pl.items.length;
+  const list = playingList();
+  return (list.indexOf(songIndex) + 1) + " of " + list.length;
+}
+
+// play item pos of a playlist. false if it can't play on this device
+function playItem(pl, pos) {
+  const it = pl.items[pos];
+  if (!it || !canPlay(it)) return false;
+  plPlay = { id: pl.id, pos };
+  if (it.k === "link") playLink(it.link, true);
+  else { songList = null; playSong(itemSong(it)); }
+  return true;
+}
+// start a playlist at item pos (or the first one after it that plays here). shuffle: true/false switches shuffle on/off,
+// and shuffle on starts at a random item
+function playPlaylist(id, pos = 0, shuffle) {
+  const pl = playlistById(id), n = pl ? pl.items.length : 0;
+  if (!n) return false;
+  if (shuffle !== undefined) shuffleOn = shuffle;
+  const start = shuffle ? Math.floor(Math.random() * n) : pos;
+  for (let k = 0; k < n; k++) if (playItem(pl, (start + k) % n)) return true;
+  musicMsg("None of this playlist's songs are on this device.");
+  return false;
+}
+// the next (dir 1) or previous (-1) item. auto: the last one ended by itself, so Repeat decides what's next
+function plStep(dir, auto) {
+  const pl = plActive();
+  if (!pl) return;
+  const n = pl.items.length, here = plPlay.pos;
+  if (auto && repeatMode === "one") return playItem(pl, here);
+  const ok = [...pl.items.keys()].filter(i => canPlay(pl.items[i]));
+  if (shuffleOn && ok.length > 1) { let i; do i = ok[Math.floor(Math.random() * ok.length)]; while (i === here); return playItem(pl, i); }
+  for (let k = 1; k <= n; k++) {
+    const i = here + dir * k;
+    if (auto && repeatMode === "off" && (i >= n || i < 0)) return renderMusic();   // the end of the playlist: stop
+    if (playItem(pl, (i % n + n) % n)) return;   // (songs that aren't on this device are skipped)
+  }
+}
+// a YouTube/SoundCloud link in a playlist ended. Wait a moment first: a YouTube playlist link says "ended" between its
+// videos too, then goes on playing. If the phone blocks the next link (locked, no tap yet), it waits for ▶ on its player.
+let linkEndTimer = 0;
+function linkEnded() {
+  if (linkEndTimer || !plActive()) return;
+  const was = state.music;
+  linkEndTimer = setTimeout(() => {
+    linkEndTimer = 0;
+    if (!linkPlaying && state.music === was && plActive()) plStep(1, true);
+  }, 1500);
+}
+// a link's real title arrived from its player: links in playlists with no title yet get it too
+function nameLinkItems(key, title) {
+  let named = false;
+  for (const x of state.playlists) for (const it of x.items) {
+    if (it.k === "link" && !it.title && (musicEmbed(it.link) || {}).key === key) { it.title = title.slice(0, 200); named = true; }
+  }
+  if (named) save();
+}
+
+// ----- making and changing playlists (the panels and the 🎧 Qpod both use these) -----
+function newPlaylist(name, item) {
+  const x = { id: "pl-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: name.trim().slice(0, 60), items: item ? [item] : [] };
+  state.playlists.push(x);
+  save();
+  return x;
+}
+const hasItem = (x, item) => x.items.some(it => itemKey(it) === itemKey(item));
+// add an item, or take it out if it's in there already (the ✓ you see next to the playlist)
+function toggleItem(x, item) {
+  const i = x.items.findIndex(it => itemKey(it) === itemKey(item));
+  if (i >= 0) removeItem(x, i); else { x.items.push(item); save(); }
+  renderMusic();
+}
+function removeItem(x, i) {
+  x.items.splice(i, 1);
+  if (plPlay && plPlay.id === x.id) {
+    if (plPlay.pos === i) plPlay = null;   // the one playing: it plays on, but outside the playlist
+    else if (plPlay.pos > i) plPlay.pos--;
+  }
+  save();
+}
+// move the item at from to place to (the Qpod's Move Songs). The one playing keeps playing, at its new place.
+function moveItem(x, from, to) {
+  if (to < 0 || to >= x.items.length || from === to) return;
+  x.items.splice(to, 0, x.items.splice(from, 1)[0]);
+  if (plPlay && plPlay.id === x.id) {
+    const p = plPlay.pos;
+    plPlay.pos = p === from ? to : p > from && p <= to ? p - 1 : p < from && p >= to ? p + 1 : p;
+  }
+  save();
+}
+function deletePlaylist(id) {
+  state.playlists = state.playlists.filter(x => x.id !== id);
+  if (plPlay && plPlay.id === id) plPlay = null;
+  save();
+  renderMusic();
+}
+// after syncing: a playlist that was folded into its twin (the same name made on two devices) is followed
+function playlistsSynced(moves) {
+  if (plPlay && moves[plPlay.id]) plPlay.id = movedTo(moves, plPlay.id);
+  renderMusic();
+}
+
+// ----- the 🎶 Playlists dropdown in the panels -----
+// the playlist's picture: its first song (on this device) with a picture, as a small address for the <img>, or "" (the atom)
+function plCover(x) {
+  const s = x.items.map(itemSong).filter(i => i >= 0).map(i => mySongs[i])[0];
+  return s ? thumbURL(s) : "";
+}
+// "12", "12 · 3 links" or "3 links"
+function plCount(x) {
+  const n = x.items.length, links = x.items.filter(it => it.k === "link").length;
+  const l = links + (links === 1 ? " link" : " links");
+  return !links ? String(n) : links === n ? l : n + " · " + l;
+}
+const nameForm = (which, value) =>
+  `<input class="plname" data-for="${esc(which)}" value="${esc(value)}" maxlength="60" placeholder="Playlist name" aria-label="Playlist name" enterkeyhint="done">` +
+  `<button data-plsave="${esc(which)}">${which.startsWith("rename") ? "Save" : "Create"}</button><button class="del" data-plcancel="1">Cancel</button>`;
+// what ⋯ opens under a playlist
+function plActions(x) {
+  if (plForm === "rename:" + x.id) return nameForm(plForm, x.name);
+  if (plForm === "delete:" + x.id)
+    return `<span class="plask">Delete “${esc(x.name)}”? Its songs stay on your phone.</span>` +
+           `<button data-plcancel="1">Keep</button><button class="del" data-pldelete="${esc(x.id)}">✕ Delete</button>`;
+  const b = x.items.length
+    ? [`<button data-plplay="${esc(x.id)}">▶ Play</button>`, `<button data-plshuffle="${esc(x.id)}">🔀 Shuffle</button>`]
+    : [`<span class="plask">Empty. Add songs with ⋯ › ＋ Add to playlist in My music, or ＋ in Played this session.</span>`];
+  return b.concat(`<button data-plrename="${esc(x.id)}">✎ Rename</button>`, `<button class="del" data-plask="${esc(x.id)}">✕ Delete</button>`).join("");
+}
+// the song or link whose "Add to playlist" is open (see addOpen)
+function addingItem() {
+  if (addOpen.startsWith("song:")) { const s = mySongs.find(x => x.id === addOpen.slice(5)); return s ? songItem(s) : null; }
+  const p = played.find(x => "played:" + x.key === addOpen);
+  if (!p) return null;
+  if (p.kind !== "File") return { k: "link", link: p.link, title: p.title || "" };
+  const s = mySongs.find(x => x.id === p.fileId);
+  return s ? songItem(s) : null;
+}
+// the row of playlists to add it to (✓ = it's in there: tap again to take it out), and a new one
+function chooser() {
+  const item = addingItem();
+  if (!item) return "";
+  return `<span class="plask">Add “${esc(itemName(item))}” to:</span>` + state.playlists.map(x => { const on = hasItem(x, item);
+    return `<button data-pladd="${esc(x.id)}" aria-pressed="${on}">${on ? "✓" : "＋"} ${esc(x.name)}</button>`; }).join("") +
+    (plForm === "new-add" ? nameForm("new-add", "") : `<button data-plnewadd="1">＋ New playlist…</button>`);
+}
+// is a playlist's name being typed in this panel? (then renderMusic leaves its lists alone)
+const typingIn = p => p.contains(document.activeElement) && document.activeElement.classList.contains("plname");
+// open a name form and put the cursor in it
+function askName(p, which) {
+  plForm = which;
+  renderMusic();
+  const box = p.querySelector(`.plname[data-for="${which}"]`);
+  if (box) { box.focus(); box.select(); }
+}
+function saveName(p, which) {
+  const box = p.querySelector(`.plname[data-for="${which}"]`), name = box ? box.value.trim() : "";
+  if (!name) { if (box) box.focus(); return; }
+  if (which === "new") newPlaylist(name);
+  else if (which === "new-add") { const item = addingItem(); if (item) newPlaylist(name, item); }
+  else { const x = playlistById(which.slice(7)); if (x) { x.name = name.slice(0, 60); save(); } }
+  plForm = "";
+  box.blur();
+  renderMusic();
+}
+musicPanels().forEach(p => {
+  p.addEventListener("click", e => {
+    const b = e.target.closest("[data-plplay], [data-plshuffle], [data-plmore], [data-plnew], [data-plrename], [data-plask], " +
+                               "[data-pldelete], [data-plcancel], [data-plsave], [data-addto], [data-pladd], [data-plnewadd]");
+    if (!b) return;
+    unlockAudio();
+    const d = b.dataset;
+    if (d.plplay) { playPlaylist(d.plplay, 0, false); return; }
+    if (d.plshuffle) { playPlaylist(d.plshuffle, 0, true); return; }
+    if (d.plmore) { plOpen = plOpen === d.plmore ? "" : d.plmore; plForm = ""; }
+    else if (d.plnew) return askName(p, "new");
+    else if (d.plrename) return askName(p, "rename:" + d.plrename);
+    else if (d.plnewadd) return askName(p, "new-add");
+    else if (d.plask) plForm = "delete:" + d.plask;
+    else if (d.pldelete) { plForm = plOpen = ""; return deletePlaylist(d.pldelete); }
+    else if (d.plcancel) plForm = "";
+    else if (d.plsave) return saveName(p, d.plsave);
+    else if (d.addto) { addOpen = addOpen === d.addto ? "" : d.addto; if (plForm === "new-add") plForm = ""; }
+    else if (d.pladd) { const x = playlistById(d.pladd), item = addingItem(); if (x && item) toggleItem(x, item); return; }
+    renderMusic();
+  });
+  // in a name box: Enter saves, Esc cancels
+  p.addEventListener("keydown", e => {
+    if (!e.target.classList.contains("plname")) return;
+    if (e.key === "Enter") { e.preventDefault(); saveName(p, e.target.dataset.for); }
+    if (e.key === "Escape") { e.preventDefault(); plForm = ""; e.target.blur(); renderMusic(); }
+  });
+});
+
 // ================= the buttons =================
-// ⏮ ⏭: in a YouTube/SoundCloud playlist → through the playlist; your files → through your files;
+// ⏮ ⏭: in one of your playlists → through it; in a YouTube/SoundCloud playlist → through that; your files → through your files;
 // otherwise → through Played this session (⏮ = the one played before, ⏭ = the one after)
 function playPlayed(i) {
   const s = played[i];
@@ -658,6 +908,7 @@ function playPlayed(i) {
   renderMusic();
 }
 function musicStep(dir) {
+  if (plActive()) return plStep(dir);   // in one of your playlists: its next / previous item
   const m = musicKind === "link" && state.music && musicEmbed(state.music);
   if (m && m.playlist) return musicCommand(dir > 0 ? "next" : "prev");
   if (musicKind === "file") return stepSong(dir);

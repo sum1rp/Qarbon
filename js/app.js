@@ -301,7 +301,7 @@ let launching = false;  // true while a world is zooming toward you, so taps and
 $("worlddots").innerHTML = slides.map((s, i) =>
   `<button class="${i ? "" : "hole"}" aria-label="${s.querySelector(".wname").textContent}"></button>`).join("");
 const worldDots = [...$("worlddots").children];
-worldDots.forEach((d, i) => { d.onclick = () => goWorld(i, i > world ? 1 : -1); });
+worldDots.forEach((d, i) => { d.onclick = () => { stopTour(); goWorld(i, i > world ? 1 : -1); }; });
 
 // show world i. dir = 1: it slides in from the right (going forward), -1: from the left (going back).
 // Going past Reading wraps back to the black hole, and the other way round.
@@ -327,11 +327,12 @@ function goWorld(i, dir) {
   slides.forEach((s, k) => { s.tabIndex = k === i ? 0 : -1; });   // only the showing world can be reached with Tab
   worldDots.forEach((d, k) => d.setAttribute("aria-current", k === i));
 }
-$("prevworld").onclick = () => goWorld(world - 1, -1);
-$("nextworld").onclick = () => goWorld(world + 1, 1);
+$("prevworld").onclick = () => { stopTour(); goWorld(world - 1, -1); };
+$("nextworld").onclick = () => { stopTour(); goWorld(world + 1, 1); };
 // on a computer: ← and → move between worlds while the home screen is showing
 document.addEventListener("keydown", e => {
   if ($("home").hidden || e.metaKey || e.ctrlKey || e.altKey) return;
+  stopTour();   // any key: you're exploring yourself now
   if (e.key === "ArrowLeft") { e.preventDefault(); goWorld(world - 1, -1); }
   if (e.key === "ArrowRight") { e.preventDefault(); goWorld(world + 1, 1); }
 });
@@ -343,6 +344,7 @@ $("homebuild").textContent = BUILD;   // the version, at the bottom of the home 
 let swipeX = null, swipeDx = 0;
 const stage = $("stage");
 stage.addEventListener("pointerdown", e => {
+  stopTour();
   if (launching) return;
   swipeX = e.clientX; swipeDx = 0;
   stage.setPointerCapture(e.pointerId);   // keep getting the moves even if the finger leaves the stage
@@ -370,7 +372,22 @@ slides.forEach(s => s.addEventListener("click", e => { if (e.detail === 0) enter
 function resetWorlds() {
   slides.forEach(s => { s.classList.remove("go"); s.style.transition = s.style.transform = s.style.opacity = ""; });
   goWorld(0, 1);
+  startTour();
 }
+
+// the tour: until you touch anything, the carousel moves on to the next world by itself every 5 seconds.
+// It starts again each time you come home, and stays off if your phone is set to Reduce Motion.
+let tourTimer = 0;
+function startTour() {
+  stopTour();
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  tourTimer = setInterval(() => {
+    if ($("home").hidden) return stopTour();                  // you left home: it starts again when you're back
+    if (launching || swipeX !== null || document.hidden) return;   // a world is opening, a finger is down, or the page is hidden
+    goWorld(world + 1, 1);
+  }, 5000);
+}
+function stopTour() { clearInterval(tourTimer); tourTimer = 0; }
 
 // tap a world: it rushes toward you, then the app opens straight into that mode
 function enterWorld() {

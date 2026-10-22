@@ -75,12 +75,86 @@ function groupMenu(title, tag, unknown) {
     return groups.map(([name, list]) => ({ label: name, more: true, go: () => ipOpen(songsMenu(name, list)) }));
   } };
 }
-// two automatic playlists, like the iPod's "smart playlists"
+// two automatic playlists, like the iPod's "smart playlists", then your own (see "your playlists" in js/music.js)
 function playlistsMenu() {
   return { title: "Playlists", items: () => [
     { label: "Recently Added", more: true, go: () => ipOpen(songsMenu("Recently Added",
         mySongs.map((s, i) => i).sort((a, b) => mySongs[b].added - mySongs[a].added).slice(0, 25))) },
-    { label: "Played This Session", more: true, go: () => ipOpen(playedMenu()) }
+    { label: "Played This Session", more: true, go: () => ipOpen(playedMenu()) },
+    ...state.playlists.map(x => ({ label: x.name, value: String(x.items.length), more: true, playing: plActive() === x,
+                                   go: () => ipOpen(playlistMenu(x.id)) })),
+    { label: "New Playlist…", more: true, go: () => ipOpen(nameScreen("")) }
+  ] };
+}
+
+// ----- one of your playlists -----
+// ▶ marks a YouTube link, ☁ a SoundCloud one; a song that isn't on this device is greyed out
+const linkMark = it => it.k === "link" ? (musicEmbed(it.link) || {}).kind === "SoundCloud" ? "☁" : "▶" : "";
+const plLabel = it => it.k === "song" && itemSong(it) >= 0 ? songName(mySongs[itemSong(it)]) : itemName(it);
+function playlistMenu(id) {
+  return { get title() { return (playlistById(id) || {}).name || "Playlist"; }, items: () => {
+    const x = playlistById(id);
+    if (!x) return [{ label: "Deleted", dim: true }];
+    const rows = [], on = plActive() === x;
+    if (x.items.length > 1) rows.push({ label: "Shuffle", go: () => { if (playPlaylist(id, 0, true)) ipOpen(nowScreen()); } });
+    x.items.forEach((it, i) => rows.push(canPlay(it)
+      ? { label: plLabel(it), value: linkMark(it), playing: on && plPlay.pos === i, go: () => { if (playPlaylist(id, i)) ipOpen(nowScreen()); } }
+      : { label: plLabel(it) + " (not on this phone)", dim: true }));
+    if (!x.items.length) rows.push({ label: "Empty playlist", dim: true });
+    rows.push(x.items.length ? { label: "Edit Playlist", more: true, go: () => ipOpen(editMenu(id)) }
+                             : { label: "Add Songs & Videos", more: true, go: () => ipOpen(addItemsMenu(id)) });
+    return rows;
+  } };
+}
+function editMenu(id) {
+  return { title: "Edit Playlist", items: () => !playlistById(id) ? [{ label: "Deleted", dim: true }] : [
+    { label: "Add Songs & Videos", more: true, go: () => ipOpen(addItemsMenu(id)) },
+    { label: "Move Songs", more: true, go: () => ipOpen(moveMenu(id)) },
+    { label: "Remove Songs", more: true, go: () => ipOpen(removeItemsMenu(id)) },
+    { label: "Rename…", more: true, go: () => ipOpen(nameScreen(id)) },
+    { label: "Delete Playlist", more: true, go: () => ipOpen(deleteMenu(id)) }
+  ] };
+}
+// everything you could add: your songs (A to Z), then your links. ✓ = it's in the playlist; choosing it adds or takes it out
+function addItemsMenu(id) {
+  return { title: "Add Songs & Videos", items: () => {
+    const x = playlistById(id);
+    if (!x) return [{ label: "Deleted", dim: true }];
+    const all = [...byTitle(mySongs.map((s, i) => i)).map(i => songItem(mySongs[i])),
+                 ...videoLinks().map(({ p }) => ({ k: "link", link: p.link, title: p.title || "" }))];
+    if (!all.length) return [{ label: "No songs or videos yet", dim: true }, addFilesRow(), addLinkRow()];
+    return all.map(item => ({ label: plLabel(item), value: hasItem(x, item) ? "✓" : linkMark(item), go: () => toggleItem(x, item) }));
+  } };
+}
+// Move Songs: press the center to pick a song up (↕), turn the wheel to move it, press again to put it down (see ipTurn)
+function moveMenu(id) {
+  const screen = { title: "Move Songs", held: -1, items: () => {
+    const x = playlistById(id);
+    if (!x || !x.items.length) return [{ label: x ? "Empty playlist" : "Deleted", dim: true }];
+    return x.items.map((it, i) => ({ label: (i === screen.held ? "≡ " : "") + plLabel(it), value: i === screen.held ? "↕" : linkMark(it),
+                                     go: () => { screen.held = screen.held === i ? -1 : i; } }));
+  }, move: id };
+  return screen;
+}
+function removeItemsMenu(id) {
+  return { title: "Remove Songs", items: () => {
+    const x = playlistById(id);
+    if (!x || !x.items.length) return [{ label: x ? "Empty playlist" : "Deleted", dim: true }];
+    return x.items.map((it, i) => ({ label: plLabel(it), value: "✕", go: () => { removeItem(x, i); renderMusic(); } }));
+  } };
+}
+function deleteMenu(id) {
+  return { title: "Delete Playlist", items: () => [
+    { label: (playlistById(id) || { name: "" }).name, dim: true },
+    { label: "Cancel", go: ipBack },
+    { label: "Delete", go: () => { deletePlaylist(id); ipStack.length -= 3; renderMedia(); } }   // back to Playlists
+  ] };
+}
+// Add to Playlist (a song's menu): your playlists, ✓ where it's in already; New Playlist… makes one with it in
+function addToMenu(item) {
+  return { title: "Add to Playlist", items: () => [
+    { label: "New Playlist…", more: true, go: () => ipOpen(nameScreen("", item)) },
+    ...state.playlists.map(x => ({ label: x.name, value: hasItem(x, item) ? "✓" : String(x.items.length), go: () => toggleItem(x, item) }))
   ] };
 }
 // what played this session (your files and links), newest first
@@ -122,13 +196,49 @@ function addMenu() {
 function pickFiles() { unlockAudio(); $("ip-file").click(); }
 $("ip-file").addEventListener("change", e => { wantJump(); addSongs([...e.target.files]); e.target.value = ""; });
 
+// the box above the rows on a form screen: a link (Add a Link) or a playlist's name (New Playlist, Rename)
+function setBox(label, value, link) {
+  const box = $("ip-link");
+  document.querySelector("#ip-form .ip-flabel").textContent = label;
+  box.type = link ? "url" : "text";
+  box.inputMode = link ? "url" : "text";
+  box.enterKeyHint = link ? "go" : "done";
+  box.autocapitalize = link ? "off" : "words";
+  box.placeholder = link ? "https://" : "Playlist name";
+  box.maxLength = link ? 2000 : 60;
+  box.value = value;
+}
 // Add a Link: the link box above two rows. Paste reads the clipboard (the iPhone asks first: tap its "Paste" bubble).
 function linkScreen() {
   formMsg("Tap the box to type or paste, or choose Paste.");
+  setBox("YouTube or SoundCloud link", "", true);
   return { title: "Add a Link", form: true, items: () => [
     { label: "Paste", go: pasteLink },
     { label: "Play", go: submitLink }
   ] };
+}
+// New Playlist (id "") or Rename: the name box above Save and Cancel. item: a song or link to put in the new playlist.
+function nameScreen(id, item) {
+  const x = id && playlistById(id);
+  formMsg(x ? "Change the name, then Save." : "Type a name, then Save.");
+  setBox("Playlist name", x ? x.name : "", false);
+  return { title: x ? "Rename" : "New Playlist", form: true, name: true, nameFor: [id, item], items: () => [
+    { label: "Save", go: () => submitName(id, item) },
+    { label: "Cancel", go: ipBack }
+  ] };
+}
+function submitName(id, item) {
+  const box = $("ip-link"), name = box.value.trim();
+  if (!name) return formMsg("Type a name first.", true);
+  box.blur();
+  const x = id && playlistById(id);
+  if (x) { x.name = name.slice(0, 60); save(); ipBack(); }
+  else {
+    const made = newPlaylist(name, item);
+    ipStack.pop();                                   // the name box goes away…
+    if (!item) ipOpen(playlistMenu(made.id));        // …and a new empty playlist opens (Add Songs & Videos is its row)
+  }
+  renderMusic();
 }
 function formMsg(text, wrong) { $("ip-fmsg").textContent = text; $("ip-fmsg").classList.toggle("ip-wrong", !!wrong); }
 async function pasteLink() {
@@ -150,7 +260,7 @@ function submitLink() {
 }
 // keys in the link box: Enter (Go on the iPhone keyboard) plays it, Esc lets go of the box (then the arrow keys scroll again)
 $("ip-link").addEventListener("keydown", e => {
-  if (e.key === "Enter") { e.preventDefault(); submitLink(); }
+  if (e.key === "Enter") { e.preventDefault(); if (ipTop().name) submitName(...ipTop().nameFor); else submitLink(); }
   if (e.key === "Escape") { e.preventDefault(); $("ip-link").blur(); }
 });
 
@@ -166,6 +276,7 @@ const songAt = id => mySongs.findIndex(s => s.id === id);
 function songMenu(id) {
   return { title: songName(mySongs[songAt(id)]), items: () => songAt(id) < 0 ? [{ label: "Removed", dim: true }] : [
     { label: "Play", go: () => { songList = null; playSong(songAt(id)); ipOpen(nowScreen()); } },
+    { label: "Add to Playlist", more: true, go: () => ipOpen(addToMenu(songItem(mySongs[songAt(id)]))) },
     { label: "Album Art", more: true, go: () => ipOpen(artMenu(id)) },
     { label: "Remove from Phone", more: true, go: () => ipOpen(removeMenu(id)) }
   ] };
@@ -265,6 +376,16 @@ function ipTurn(step) {
     t.scrollTop += step * t.clientHeight / 6;
     if (t.scrollTop !== was) ipClick();
     return;
+  }
+  if (s.move && s.held >= 0) {                    // Move Songs: the picked-up song moves with the wheel
+    const x = playlistById(s.move), to = s.held + step;
+    if (!x || to < 0 || to >= x.items.length) return;
+    moveItem(x, s.held, to);
+    s.held = s.sel = to;
+    if (to < s.top) s.top = to;
+    if (to >= s.top + rowsOf(s)) s.top = to - rowsOf(s) + 1;
+    ipClick();
+    return renderMedia();
   }
   const n = s.items().length, sel = Math.min(n - 1, Math.max(0, s.sel + step));
   if (sel === s.sel) return;                      // the end of the list: no click, like the real one
@@ -402,8 +523,7 @@ function renderNow() {
     $("ip-album").textContent = file ? file.album || "" : "";
   }
   // "3 of 12": where this song is in the list being played (worked out every time: the same song can be in a new list)
-  const list = playingList();
-  $("ip-count").textContent = file ? (list.indexOf(songIndex) + 1) + " of " + list.length : what === "SoundCloud" ? "SoundCloud" : "";
+  $("ip-count").textContent = file || plActive() ? countText() : what === "SoundCloud" ? "SoundCloud" : "";
   const d = file ? audio.duration : 0, t = file ? audio.currentTime : 0;
   box.querySelector(".ip-pos").style.setProperty("--p", d ? t / d : 0);
   box.querySelector(".ip-pos").hidden = $("ip-times").hidden = !file;

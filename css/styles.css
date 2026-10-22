@@ -247,14 +247,14 @@
                      border:1px solid var(--line); background:var(--surface); color:var(--text); }
   .musicmsg { color:var(--muted); font-size:.85rem; }
   .musicmsg:empty { display:none; }
-  .musicnav button[hidden], .filecard[hidden], .played[hidden], .mymusic[hidden] { display:none; }
+  .musicnav button[hidden], .filecard[hidden], .played[hidden], .mymusic[hidden], .plists[hidden] { display:none; }
   .musicshuffle[aria-pressed="true"], .musicrepeat.on { border-color:var(--accent); color:var(--accent); }
   /* your own song: its cover, name, a progress bar you can drag, and the times */
   .filecard { display:flex; gap:12px; align-items:center; padding:10px; border-radius:10px; background:var(--surface); border:1px solid var(--line); text-align:left; }
   .filecard .cover { width:64px; height:64px; flex:none; border-radius:8px; overflow:hidden; display:grid; place-items:center;
                      font-size:1.6rem; color:var(--muted); background:linear-gradient(135deg, #2a2348, #13131C); }
   .filecard .cover img { width:100%; height:100%; object-fit:cover; }
-  .filecard .cover .atom, .mymusic .song .ic .atom { width:62%; height:62%; overflow:visible; }   /* a song with no picture: the atom */
+  .filecard .cover .atom, .mymusic .song .ic .atom, .plists .song .ic .atom { width:62%; height:62%; overflow:visible; }   /* a song with no picture: the atom */
   .fmeta { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
   .fmeta b, .fmeta .fartist { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .fmeta .fartist { color:var(--muted); font-size:.85rem; min-height:1.2em; }
@@ -271,11 +271,11 @@
             color:#f3e3a6; font-size:.8rem; text-align:left; }
   /* the two lists: your music on this phone, and what played this session */
   /* the two lists are dropdowns: My music on this phone, and Played this session */
-  .mymusic, .played { border:1px solid var(--line); border-radius:10px; background:var(--surface); text-align:left; }
-  .mymusic summary, .played summary { cursor:pointer; padding:10px 12px; font-size:.9rem; min-height:24px; }
-  .mymusic ol, .played ol { padding:0 6px 6px; }
-  .played ol, .mymusic ol { list-style:none; margin:0; display:flex; flex-direction:column; gap:4px; }
-  .played li, .mymusic li { display:flex; gap:4px; }
+  .mymusic, .played, .plists { border:1px solid var(--line); border-radius:10px; background:var(--surface); text-align:left; }
+  .mymusic summary, .played summary, .plists summary { cursor:pointer; padding:10px 12px; font-size:.9rem; min-height:24px; }
+  .mymusic ol, .played ol, .plists ol { padding:0 6px 6px; }
+  .played ol, .mymusic ol, .plists ol { list-style:none; margin:0; display:flex; flex-direction:column; gap:4px; }
+  .played li, .mymusic li, .plists li { display:flex; gap:4px; }
   .song { flex:1; min-width:0; display:flex; align-items:center; gap:10px; min-height:44px; padding:6px 10px; border-radius:10px;
           border:1px solid transparent; background:var(--surface); text-align:left; }
   .song:hover { border-color:var(--line); background:var(--raised); }
@@ -287,12 +287,18 @@
   .song.cur { border-color:rgba(123,108,255,.45); }
   .song.cur .ic { background:var(--accent-fill); color:#fff; }
   /* My music: each song's cover (or the atom) in a small square, and ⋯ opens what you can do with it (album art, remove) */
-  .mymusic .song .ic { width:32px; height:32px; border-radius:6px; font-size:.75rem; overflow:hidden; }
-  .mymusic .song .ic img { width:100%; height:100%; object-fit:cover; display:block; }
-  .mymusic .song:not(.cur) .ic:has(.atom) { background:linear-gradient(135deg, #2a2348, #13131C); }   /* same as the song card's */
+  .mymusic .song .ic, .plists .song .ic { width:32px; height:32px; border-radius:6px; font-size:.75rem; overflow:hidden; }
+  .mymusic .song .ic img, .plists .song .ic img { width:100%; height:100%; object-fit:cover; display:block; }
+  .mymusic .song:not(.cur) .ic:has(.atom), .plists .song:not(.cur) .ic:has(.atom) { background:linear-gradient(135deg, #2a2348, #13131C); }   /* same as the song card's */
   .songmore { flex:none; width:44px; padding:0; border-radius:10px; color:var(--muted); font-size:1.2rem; letter-spacing:1px; }
   .songmore[aria-expanded="true"] { border-color:rgba(123,108,255,.45); color:var(--text); }
-  .mymusic li.songacts { flex-wrap:wrap; gap:6px; padding:0 0 4px; }
+  .mymusic li.songacts, .plists li.songacts, .played li.songacts { flex-wrap:wrap; gap:6px; padding:0 0 4px; }
+  /* 🎶 Playlists: the playlist's name box, a short question or note, and the playlists to add a song to (✓ = it's in) */
+  .songacts .plname { flex:1 1 100%; min-width:0; padding:9px 12px; font-size:1rem; border-radius:10px;   /* 16px: iPhones don't zoom in */
+                      border:1px solid var(--line); background:var(--raised); color:var(--text); }
+  .songacts .plask { flex:1 1 100%; color:var(--muted); font-size:.85rem; padding:2px 4px; }
+  .songacts [data-pladd][aria-pressed="true"] { border-color:rgba(123,108,255,.55); color:var(--text); }
+  .songacts button[aria-expanded="true"] { border-color:rgba(123,108,255,.45); }
   .songacts button { flex:1 1 40%; min-width:0; min-height:40px; padding:6px 10px; border-radius:10px; font-size:.85rem; }
   .songacts .del { color:var(--muted); }
   /* the hidden photo picker for album art */
