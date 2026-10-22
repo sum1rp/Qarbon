@@ -1,5 +1,5 @@
 // Qarbon's built-in word packs, as text in the same CSV format as the files in the project folder
-// (beginner150.csv, level2-150.csv, level3.csv). They live in a script file so they also work offline and when
+// (beginner150.csv, level2-150.csv, level3.csv, level4.csv, level5.csv, level6.csv). They live in a script file so they also work offline and when
 // index.html is opened straight from the Mac (the browser won't let a page read those CSV files then).
 // If a CSV file changes, update its copy here too.
 const PACKS = {
@@ -613,5 +613,239 @@ avoir tort,to be wrong,expression,none,J'avais tort.,I was wrong.,A2;expressions
 faire attention,to pay attention / to be careful,expression,none,Fais attention aux voitures !,Watch out for the cars!,A2;expressions
 il vaut mieux,it's better to,expression,none,Il vaut mieux partir tôt.,It's better to leave early.,B1;expressions
 tout le monde,everyone,pronoun,none,Tout le monde est là.,Everyone is here.,A2;expressions
+`,
+  level4: `
+front,back,part_of_speech,gender,example_target,example_english,tags
+l'enjeu,stake / what's at stake,noun,m,L'enjeu de cette élection est énorme.,What's at stake in this election is huge.,B2
+le chômage,unemployment,noun,m,Le chômage a baissé cette année.,Unemployment went down this year.,B2
+la croissance,growth,noun,f,La croissance de l'entreprise est rapide.,The company's growth is fast.,B2
+le bilan,assessment / results,noun,m,Faisons le bilan de l'année.,Let's take stock of the year.,B2
+l'échec,failure,noun,m,Un échec n'est pas la fin du monde.,A failure isn't the end of the world.,B2
+la démarche,approach / step,noun,f,La démarche est simple : remplissez ce formulaire.,The process is simple: fill in this form.,B2
+le débat,debate,noun,m,Le débat a duré deux heures.,The debate lasted two hours.,B2
+la tendance,trend,noun,f,C'est la nouvelle tendance chez les jeunes.,It's the new trend among young people.,B2
+le rendement,yield / output,noun,m,Le rendement de ce placement est faible.,The return on this investment is low.,B2
+la pénurie,shortage,noun,f,Il y a une pénurie d'essence dans la région.,There is a fuel shortage in the region.,B2
+le gaspillage,waste,noun,m,Le gaspillage alimentaire est un vrai problème.,Food waste is a real problem.,B2
+la grève,strike,noun,f,Les trains ne roulent pas à cause de la grève.,The trains aren't running because of the strike.,B2
+le fonctionnement,way something works,noun,m,Je ne comprends pas le fonctionnement de cette machine.,I don't understand how this machine works.,B2
+le mode de vie,lifestyle,noun,m,Il a changé de mode de vie après sa maladie.,He changed his lifestyle after his illness.,B2
+la mondialisation,globalization,noun,f,La mondialisation a transformé l'économie.,Globalization has transformed the economy.,B2
+l'inégalité,inequality,noun,f,Les inégalités entre les régions augmentent.,Inequalities between regions are growing.,B2
+le témoignage,testimony / account,noun,m,Son témoignage a aidé la police.,Her testimony helped the police.,B2
+la preuve,proof / evidence,noun,f,Tu as une preuve de ce que tu dis ?,Do you have proof of what you're saying?,B2
+le soutien,support,noun,m,Merci pour ton soutien.,Thank you for your support.,B2
+la menace,threat,noun,f,Le changement climatique est une menace réelle.,Climate change is a real threat.,B2
+le défi,challenge,noun,m,Apprendre une langue est un beau défi.,Learning a language is a great challenge.,B2
+l'atout,asset / advantage,noun,m,Parler anglais est un atout pour ce poste.,Speaking English is an asset for this job.,B2
+la contrainte,constraint,noun,f,Le budget est notre principale contrainte.,The budget is our main constraint.,B2
+le compromis,compromise,noun,m,Ils ont fini par trouver un compromis.,They finally found a compromise.,B2
+aborder,to tackle / to approach,verb,none,Nous aborderons ce sujet demain.,We'll tackle this topic tomorrow.,B2
+atteindre,to reach,verb,none,Elle a atteint son objectif.,She reached her goal.,B2
+anticiper,to anticipate,verb,none,Il faut anticiper les problèmes.,We need to anticipate problems.,B2
+soutenir,to support,verb,none,Mes parents m'ont toujours soutenu.,My parents have always supported me.,B2
+s'engager,to commit,verb,none,Il s'est engagé à finir le projet.,He committed to finishing the project.,B2
+remettre en question,to call into question,verb,none,Cette découverte remet tout en question.,This discovery calls everything into question.,B2
+mettre en œuvre,to implement,verb,none,Le gouvernement va mettre en œuvre la réforme.,The government is going to implement the reform.,B2
+s'adapter,to adapt,verb,none,Les enfants s'adaptent vite.,Children adapt quickly.,B2
+renforcer,to strengthen,verb,none,Ce voyage a renforcé notre amitié.,This trip strengthened our friendship.,B2
+réduire,to reduce,verb,none,Il faut réduire nos dépenses.,We need to reduce our spending.,B2
+souligner,to underline / to stress,verb,none,Le rapport souligne l'importance de l'éducation.,The report stresses the importance of education.,B2
+constater,to notice / to note,verb,none,J'ai constaté une erreur dans la facture.,I noticed a mistake in the bill.,B2
+envisager,to consider,verb,none,Nous envisageons de déménager.,We're considering moving.,B2
+exiger,to demand,verb,none,Ce travail exige beaucoup de patience.,This job demands a lot of patience.,B2
+se méfier de,to distrust,verb,none,Méfie-toi des inconnus sur Internet.,Be wary of strangers on the Internet.,B2
+entraîner,to lead to / to train,verb,none,La pluie a entraîné des retards.,The rain led to delays.,B2
+susciter,to arouse / to spark,verb,none,Le film a suscité beaucoup de débats.,The film sparked a lot of debate.,B2
+accorder,to grant,verb,none,La banque lui a accordé un prêt.,The bank granted him a loan.,B2
+parvenir à,to manage to,verb,none,Il est parvenu à ouvrir la porte.,He managed to open the door.,B2
+tenir compte de,to take into account,verb,none,Il faut tenir compte de la météo.,We have to take the weather into account.,B2
+nuire à,to harm,verb,none,Le tabac nuit à la santé.,Tobacco harms your health.,B2
+se plaindre de,to complain about,verb,none,Les voisins se plaignent du bruit.,The neighbors complain about the noise.,B2
+dissuader,to dissuade,verb,none,Le prix m'a dissuadé d'acheter la voiture.,The price put me off buying the car.,B2
+revendiquer,to claim / to demand,verb,none,Les salariés revendiquent une hausse de salaire.,The employees are demanding a pay rise.,B2
+approfondir,to deepen,verb,none,Je voudrais approfondir mes connaissances en histoire.,I'd like to deepen my knowledge of history.,B2
+efficace,effective,adjective,none,Ce médicament est très efficace.,This medicine is very effective.,B2
+durable,sustainable / lasting,adjective,none,Ils veulent une solution durable.,They want a lasting solution.,B2
+fiable,reliable,adjective,none,Ma vieille voiture est encore fiable.,My old car is still reliable.,B2
+pertinent / pertinente,relevant,adjective,none,C'est une question très pertinente.,That's a very relevant question.,B2
+actuel / actuelle,current,adjective,none,Le président actuel est très populaire.,The current president is very popular.,B2
+inévitable,unavoidable,adjective,none,Le conflit semblait inévitable.,The conflict seemed unavoidable.,B2
+ambigu / ambiguë,ambiguous,adjective,none,Sa réponse était un peu ambiguë.,His answer was a bit ambiguous.,B2
+néfaste,harmful,adjective,none,Les écrans ont un effet néfaste sur le sommeil.,Screens have a harmful effect on sleep.,B2
+rentable,profitable,adjective,none,Ce petit restaurant est très rentable.,This little restaurant is very profitable.,B2
+flou / floue,vague / blurry,adjective,none,La photo est floue.,The photo is blurry.,B2
+souple,flexible,adjective,none,Mes horaires de travail sont souples.,My working hours are flexible.,B2
+exigeant / exigeante,demanding,adjective,none,Notre professeur est très exigeant.,Our teacher is very demanding.,B2
+enrichissant / enrichissante,enriching,adjective,none,Ce voyage a été très enrichissant.,This trip was very enriching.,B2
+précaire,precarious,adjective,none,Il a un emploi précaire.,He has a precarious job.,B2
+fiscal / fiscale,tax (related),adjective,none,Le gouvernement prépare une réforme fiscale.,The government is preparing a tax reform.,B2
+néanmoins,nevertheless,adverb,none,"C'était difficile, néanmoins nous avons réussi.","It was difficult; nevertheless, we succeeded.",B2
+en revanche,on the other hand,adverb,none,"Il ne parle pas espagnol ; en revanche, il parle italien.","He doesn't speak Spanish; on the other hand, he speaks Italian.",B2
+en outre,in addition,adverb,none,"L'hôtel est bien situé ; en outre, il n'est pas cher.","The hotel is well located; in addition, it's not expensive.",B2
+autrement dit,in other words,adverb,none,"Il est parti sans payer, autrement dit, il a volé.","He left without paying; in other words, he stole.",B2
+à condition que,provided that,conjunction,none,Je viendrai à condition que tu m'aides.,I'll come provided that you help me.,B2
+bien que,although,conjunction,none,"Bien qu'il pleuve, nous sortons.","Although it's raining, we're going out.",B2
+davantage,more,adverb,none,Tu devrais lire davantage.,You should read more.,B2
+désormais,from now on,adverb,none,"Désormais, le magasin ouvre à huit heures.","From now on, the shop opens at eight.",B2
+notamment,notably / in particular,adverb,none,"J'aime les fruits, notamment les fraises.","I like fruit, especially strawberries.",B2
+au fur et à mesure,as you go along,adverb,none,On apprend au fur et à mesure.,You learn as you go along.,B2
+quant à,as for,preposition,none,"Quant à moi, je reste ici.","As for me, I'm staying here.",B2
+`,
+  level5: `
+front,back,part_of_speech,gender,example_target,example_english,tags
+l'essor,boom / rise,noun,m,Le tourisme a connu un essor important.,Tourism has seen a major boom.,C1
+le clivage,divide / split,noun,m,Ce sujet révèle un clivage entre les générations.,This topic reveals a divide between generations.,C1
+la réticence,reluctance,noun,f,"Il a accepté, malgré quelques réticences.","He agreed, despite some reluctance.",C1
+la mutation,transformation,noun,f,Le secteur est en pleine mutation.,The sector is undergoing a complete transformation.,C1
+le fléau,scourge,noun,m,La corruption est un fléau pour le pays.,Corruption is a scourge for the country.,C1
+la lacune,gap (in knowledge),noun,f,J'ai des lacunes en grammaire.,I have gaps in my grammar.,C1
+l'aléa,hazard / risk,noun,m,Les aléas de la météo ont retardé les travaux.,The vagaries of the weather delayed the work.,C1
+le bien-fondé,validity,noun,m,Personne ne conteste le bien-fondé de cette décision.,No one disputes the validity of this decision.,C1
+la mise en œuvre,implementation,noun,f,La mise en œuvre du projet prendra un an.,Implementing the project will take a year.,C1
+le revers,setback,noun,m,L'équipe a subi un revers inattendu.,The team suffered an unexpected setback.,C1
+la dérive,drift / excess,noun,f,Il faut éviter les dérives des réseaux sociaux.,We must avoid the excesses of social media.,C1
+l'écueil,pitfall,noun,m,Le principal écueil est le manque de temps.,The main pitfall is the lack of time.,C1
+la conjoncture,economic situation,noun,f,La conjoncture économique est difficile.,The economic situation is difficult.,C1
+le désarroi,disarray / distress,noun,m,Sa lettre montrait un profond désarroi.,Her letter showed deep distress.,C1
+l'acharnement,relentlessness,noun,m,Il a travaillé avec acharnement.,He worked relentlessly.,C1
+la nuance,nuance,noun,f,Il faut apporter une nuance à cette idée.,This idea needs some nuance.,C1
+le recul,hindsight / step back,noun,m,"Avec le recul, j'ai fait le bon choix.","In hindsight, I made the right choice.",C1
+l'amalgame,lumping together,noun,m,Il ne faut pas faire d'amalgame.,We mustn't lump things together.,C1
+la retombée,fallout / spin-off,noun,f,Les retombées économiques du festival sont importantes.,The festival's economic spin-offs are significant.,C1
+le préalable,prerequisite,noun,m,La confiance est un préalable à toute négociation.,Trust is a prerequisite for any negotiation.,C1
+la portée,scope / reach,noun,f,Il n'a pas mesuré la portée de ses paroles.,He didn't realize the impact of his words.,C1
+l'engouement,craze / enthusiasm,noun,m,L'engouement pour le vélo ne faiblit pas.,The enthusiasm for cycling isn't fading.,C1
+le parti pris,bias,noun,m,Cet article est plein de partis pris.,This article is full of bias.,C1
+la sollicitude,care / concern,noun,f,Elle s'occupe de sa mère avec sollicitude.,She looks after her mother with great care.,C1
+entraver,to hinder,verb,none,La neige a entravé la circulation.,The snow hindered traffic.,C1
+pallier,to make up for,verb,none,Ce logiciel permet de pallier le manque de personnel.,This software makes up for the staff shortage.,C1
+étayer,to back up (an argument),verb,none,Il étaye son argument avec des chiffres.,He backs up his argument with figures.,C1
+appréhender,to dread / to grasp,verb,none,J'appréhende l'examen de demain.,I'm dreading tomorrow's exam.,C1
+se targuer de,to pride oneself on,verb,none,Il se targue de tout savoir.,He prides himself on knowing everything.,C1
+déplorer,to deplore,verb,none,Nous déplorons cette décision.,We deplore this decision.,C1
+préconiser,to recommend,verb,none,Les médecins préconisent plus de sport.,Doctors recommend more exercise.,C1
+entériner,to ratify,verb,none,Le conseil a entériné le nouveau budget.,The council ratified the new budget.,C1
+enrayer,to curb / to halt,verb,none,Il faut enrayer la hausse des prix.,We must curb the rise in prices.,C1
+dénoncer,to denounce,verb,none,Le journaliste a dénoncé le scandale.,The journalist denounced the scandal.,C1
+s'avérer,to turn out (to be),verb,none,La solution s'est avérée efficace.,The solution turned out to be effective.,C1
+se heurter à,to come up against,verb,none,Le projet se heurte à de nombreuses difficultés.,The project is coming up against many difficulties.,C1
+cerner,to pin down,verb,none,J'ai du mal à cerner le problème.,I'm having trouble pinning down the problem.,C1
+élaborer,to devise,verb,none,L'équipe a élaboré un nouveau plan.,The team devised a new plan.,C1
+déceler,to detect,verb,none,Le test a permis de déceler la maladie.,The test made it possible to detect the disease.,C1
+occulter,to obscure / to hide,verb,none,Ce succès ne doit pas occulter les problèmes.,This success mustn't hide the problems.,C1
+relativiser,to put into perspective,verb,none,Il faut relativiser : ce n'est qu'un match.,Put it in perspective: it's only a game.,C1
+s'insurger,to rise up against,verb,none,Les habitants s'insurgent contre le projet.,The residents are rising up against the project.,C1
+prôner,to advocate,verb,none,Ce parti prône la décentralisation.,This party advocates decentralization.,C1
+assouvir,to satisfy (a need),verb,none,Il voyage pour assouvir sa curiosité.,He travels to satisfy his curiosity.,C1
+éluder,to evade,verb,none,Le ministre a éludé la question.,The minister evaded the question.,C1
+endiguer,to contain / to stem,verb,none,Les autorités tentent d'endiguer l'épidémie.,The authorities are trying to contain the epidemic.,C1
+attiser,to stir up,verb,none,Ces paroles ont attisé la colère.,Those words stirred up anger.,C1
+fustiger,to castigate,verb,none,Le critique fustige ce film.,The critic castigates this film.,C1
+émaner,to emanate,verb,none,Une grande force émane de ce tableau.,Great strength emanates from this painting.,C1
+indéniable,undeniable,adjective,none,Elle a un talent indéniable.,She has undeniable talent.,C1
+sous-jacent / sous-jacente,underlying,adjective,none,Il faut comprendre les causes sous-jacentes.,We need to understand the underlying causes.,C1
+révolu / révolue,bygone,adjective,none,Cette époque est révolue.,That era is over.,C1
+prépondérant / prépondérante,predominant,adjective,none,L'État joue un rôle prépondérant.,The state plays a predominant role.,C1
+éphémère,short-lived,adjective,none,Le succès est parfois éphémère.,Success is sometimes short-lived.,C1
+laborieux / laborieuse,laborious,adjective,none,Le début de la réunion a été laborieux.,The start of the meeting was laborious.,C1
+hétéroclite,motley / mixed,adjective,none,Il a une collection d'objets hétéroclites.,He has a motley collection of objects.,C1
+saugrenu / saugrenue,absurd / odd,adjective,none,Quelle idée saugrenue !,What an absurd idea!,C1
+pérenne,lasting / perennial,adjective,none,L'association cherche un financement pérenne.,The association is looking for lasting funding.,C1
+dérisoire,derisory / trivial,adjective,none,Il a vendu sa maison pour une somme dérisoire.,He sold his house for a trivial sum.,C1
+lucide,clear-sighted,adjective,none,Il reste lucide sur ses chances.,He remains clear-sighted about his chances.,C1
+ostentatoire,ostentatious,adjective,none,Il mène une vie ostentatoire.,He lives an ostentatious life.,C1
+implicite,implicit,adjective,none,C'était une critique implicite.,It was an implicit criticism.,C1
+tributaire,dependent (on),adjective,none,L'agriculture est tributaire de la météo.,Farming is dependent on the weather.,C1
+vétuste,run-down / dilapidated,adjective,none,L'école est vétuste et doit être rénovée.,The school is run-down and must be renovated.,C1
+en l'occurrence,in this case,adverb,none,"Un membre de l'équipe, en l'occurrence Marie, s'en occupera.","A team member, in this case Marie, will handle it.",C1
+par ailleurs,moreover / otherwise,adverb,none,"Le film est long ; par ailleurs, il est très beau.",The film is long; it's also very beautiful.,C1
+de surcroît,what's more,adverb,none,"Il est en retard et, de surcroît, il a oublié ses clés.","He's late and, what's more, he forgot his keys.",C1
+en somme,in short,adverb,none,"En somme, tout s'est bien passé.","In short, everything went well.",C1
+a fortiori,all the more so,adverb,none,"Si c'est difficile pour un adulte, ça l'est a fortiori pour un enfant.","If it's hard for an adult, it's all the more so for a child.",C1
+quoi qu'il en soit,be that as it may,adverb,none,"Quoi qu'il en soit, je pars demain.","Be that as it may, I'm leaving tomorrow.",C1
+à l'instar de,like / following the example of,preposition,none,"À l'instar de son père, il est devenu médecin.","Like his father, he became a doctor.",C1
+en dépit de,despite,preposition,none,Ils sont sortis en dépit de la pluie.,They went out despite the rain.,C1
+eu égard à,in view of,preposition,none,"Eu égard à son âge, il a été dispensé.","In view of his age, he was exempted.",C1
+d'emblée,right away,adverb,none,J'ai su d'emblée qu'il mentait.,I knew right away that he was lying.,C1
+sciemment,knowingly,adverb,none,Il a menti sciemment.,He lied knowingly.,C1
+`,
+  level6: `
+front,back,part_of_speech,gender,example_target,example_english,tags
+l'apanage,privilege / preserve,noun,m,La patience n'est pas l'apanage des sages.,Patience is not the preserve of the wise.,C2
+la gageure,challenge / wager,noun,f,Finir ce livre en une semaine est une gageure.,Finishing this book in a week is quite a challenge.,C2
+l'atermoiement,procrastination,noun,m,"Après des mois d'atermoiements, ils ont signé.","After months of procrastination, they signed.",C2
+le leurre,decoy / illusion,noun,m,Cette promesse n'est qu'un leurre.,This promise is just an illusion.,C2
+la vacuité,emptiness,noun,f,Le discours frappait par sa vacuité.,The speech was striking in its emptiness.,C2
+l'opprobre,disgrace,noun,m,Il a jeté l'opprobre sur sa famille.,He brought disgrace on his family.,C2
+la billevesée,nonsense,noun,f,Ce ne sont que des billevesées.,That's just nonsense.,C2
+la concussion,embezzlement (by an official),noun,f,Le maire a été condamné pour concussion.,The mayor was convicted of embezzlement.,C2
+le palimpseste,palimpsest,noun,m,La ville est un palimpseste d'époques différentes.,The city is a palimpsest of different eras.,C2
+l'aréopage,assembly of experts,noun,m,Un aréopage de spécialistes a examiné le dossier.,An assembly of experts examined the file.,C2
+la forfaiture,abuse of office,noun,f,Le juge a été accusé de forfaiture.,The judge was accused of abuse of office.,C2
+le hiatus,gap / hiatus,noun,m,Il y a un hiatus entre ses paroles et ses actes.,There's a gap between his words and his actions.,C2
+l'ataraxie,serenity / ataraxia,noun,f,Il cherche l'ataraxie par la méditation.,He seeks serenity through meditation.,C2
+la logorrhée,verbal diarrhea,noun,f,Personne ne pouvait arrêter sa logorrhée.,No one could stop his endless flow of words.,C2
+le thuriféraire,flatterer,noun,m,Le ministre était entouré de ses thuriféraires.,The minister was surrounded by his flatterers.,C2
+l'acrimonie,bitterness,noun,f,Il a répondu avec acrimonie.,He replied with bitterness.,C2
+la déréliction,abandonment / despair,noun,f,Le roman décrit la déréliction d'un homme seul.,The novel describes the despair of a lonely man.,C2
+le sophisme,fallacy,noun,m,Son raisonnement repose sur un sophisme.,His reasoning rests on a fallacy.,C2
+la prévarication,breach of trust,noun,f,Le fonctionnaire a été accusé de prévarication.,The official was accused of breach of trust.,C2
+l'impéritie,incompetence,noun,f,La crise révèle l'impéritie des dirigeants.,The crisis reveals the incompetence of the leaders.,C2
+la mansuétude,leniency,noun,f,Le juge a fait preuve de mansuétude.,The judge showed leniency.,C2
+le paradigme,paradigm,noun,m,Nous assistons à un changement de paradigme.,We are witnessing a paradigm shift.,C2
+l'obsolescence,obsolescence,noun,f,L'obsolescence programmée est très critiquée.,Planned obsolescence is heavily criticized.,C2
+la pusillanimité,faint-heartedness,noun,f,Sa pusillanimité l'empêche d'agir.,His faint-heartedness stops him from acting.,C2
+obvier à,to obviate / to prevent,verb,none,Cette mesure vise à obvier à la pénurie.,This measure aims to prevent the shortage.,C2
+ourdir,to hatch (a plot),verb,none,Ils ont ourdi un complot contre le roi.,They hatched a plot against the king.,C2
+subodorer,to suspect,verb,none,Je subodore une mauvaise surprise.,I suspect a nasty surprise.,C2
+tergiverser,to beat around the bush,verb,none,Arrête de tergiverser et décide-toi !,Stop beating around the bush and make up your mind!,C2
+vilipender,to vilify,verb,none,La presse l'a vilipendé pendant des semaines.,The press vilified him for weeks.,C2
+s'enquérir de,to inquire about,verb,none,Elle s'est enquise de ta santé.,She inquired about your health.,C2
+compulser,to consult (documents),verb,none,L'historien compulse les archives.,The historian pores over the archives.,C2
+dilapider,to squander,verb,none,Il a dilapidé tout son héritage.,He squandered his entire inheritance.,C2
+abhorrer,to abhor,verb,none,J'abhorre l'hypocrisie.,I abhor hypocrisy.,C2
+se gausser de,to mock,verb,none,Ils se gaussent de ses erreurs.,They mock his mistakes.,C2
+louvoyer,to hedge / to tack,verb,none,Le ministre louvoie entre les partis.,The minister is hedging between the parties.,C2
+circonvenir,to circumvent / to win over,verb,none,Il a tenté de circonvenir les juges.,He tried to win over the judges.,C2
+conspuer,to boo,verb,none,Le public a conspué l'arbitre.,The crowd booed the referee.,C2
+exhumer,to unearth,verb,none,Les archéologues ont exhumé une statue.,The archaeologists unearthed a statue.,C2
+galvauder,to debase / to overuse,verb,none,Le mot « génie » est souvent galvaudé.,"The word ""genius"" is often overused.",C2
+s'arroger,to claim (wrongly),verb,none,Il s'est arrogé le droit de décider seul.,He claimed the right to decide alone.,C2
+phagocyter,to absorb / to swallow up,verb,none,La grande entreprise a phagocyté ses concurrents.,The big company swallowed up its competitors.,C2
+transcender,to transcend,verb,none,La musique transcende les frontières.,Music transcends borders.,C2
+invectiver,to hurl abuse at,verb,none,Le conducteur invectivait les piétons.,The driver was hurling abuse at pedestrians.,C2
+péricliter,to decline / to collapse,verb,none,Son commerce a périclité après la crise.,His business collapsed after the crisis.,C2
+se morfondre,to mope,verb,none,Il se morfond seul chez lui.,He's moping alone at home.,C2
+ressasser,to dwell on,verb,none,Arrête de ressasser le passé.,Stop dwelling on the past.,C2
+épiloguer,to go on about,verb,none,Inutile d'épiloguer sur cette défaite.,There's no point going on about this defeat.,C2
+acculer,to corner,verb,none,Ses dettes l'ont acculé à la faillite.,His debts drove him into bankruptcy.,C2
+dévoyer,to lead astray,verb,none,Ces jeunes ont été dévoyés par de mauvaises fréquentations.,These young people were led astray by bad company.,C2
+abscons / absconse,abstruse,adjective,none,Ce texte juridique est abscons.,This legal text is abstruse.,C2
+sibyllin / sibylline,cryptic,adjective,none,Il m'a laissé un message sibyllin.,He left me a cryptic message.,C2
+prolixe,wordy,adjective,none,L'auteur est un peu trop prolixe.,The author is a bit too wordy.,C2
+spécieux / spécieuse,specious,adjective,none,C'est un argument spécieux.,It's a specious argument.,C2
+oiseux / oiseuse,pointless,adjective,none,Évitons les discussions oiseuses.,Let's avoid pointless discussions.,C2
+inique,iniquitous / unjust,adjective,none,Cette loi est inique.,This law is unjust.,C2
+ineffable,ineffable,adjective,none,Il ressentit une joie ineffable.,He felt an ineffable joy.,C2
+apocryphe,apocryphal,adjective,none,Cette citation est apocryphe.,This quotation is apocryphal.,C2
+délétère,harmful / deleterious,adjective,none,L'ambiance au bureau est délétère.,The atmosphere at the office is toxic.,C2
+velléitaire,indecisive,adjective,none,C'est un homme velléitaire qui ne finit rien.,He's an indecisive man who never finishes anything.,C2
+idoine,appropriate,adjective,none,Nous avons trouvé la personne idoine.,We found the right person.,C2
+amène,affable,adjective,none,Il nous a accueillis de façon peu amène.,He welcomed us in a rather unfriendly way.,C2
+chimérique,fanciful,adjective,none,Ce projet me semble chimérique.,This project seems fanciful to me.,C2
+abject / abjecte,despicable,adjective,none,Son comportement est abject.,His behavior is despicable.,C2
+fallacieux / fallacieuse,fallacious,adjective,none,Il a été licencié sous un prétexte fallacieux.,He was fired on a false pretext.,C2
+nonobstant,notwithstanding,preposition,none,"Nonobstant les critiques, il a continué.","Notwithstanding the criticism, he carried on.",C2
+subrepticement,surreptitiously,adverb,none,Il a quitté la salle subrepticement.,He left the room surreptitiously.,C2
+derechef,once again,adverb,none,Il a frappé derechef à la porte.,He knocked at the door once again.,C2
+peu ou prou,more or less,adverb,none,Ils ont peu ou prou le même âge.,They're more or less the same age.,C2
+à l'envi,to one's heart's content,adverb,none,Les médias ont répété l'histoire à l'envi.,The media repeated the story over and over.,C2
+de facto,de facto,adverb,none,Il est devenu de facto le chef de l'équipe.,He became the de facto leader of the team.,C2
+a priori,at first sight,adverb,none,"A priori, le projet semble réalisable.","At first sight, the project seems feasible.",C2
+sine die,indefinitely,adverb,none,La réunion a été reportée sine die.,The meeting has been postponed indefinitely.,C2
+cahin-caha,after a fashion,adverb,none,Le projet avance cahin-caha.,The project is limping along.,C2
+in extremis,at the last minute,adverb,none,Il a attrapé le train in extremis.,He caught the train at the last minute.,C2
+à brûle-pourpoint,point-blank,adverb,none,Elle m'a posé la question à brûle-pourpoint.,She asked me the question point-blank.,C2
 `
 };

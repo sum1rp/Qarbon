@@ -1,0 +1,76 @@
+front,back,part_of_speech,gender,example_target,example_english,tags
+l'apanage,privilege / preserve,noun,m,La patience n'est pas l'apanage des sages.,Patience is not the preserve of the wise.,C2
+la gageure,challenge / wager,noun,f,Finir ce livre en une semaine est une gageure.,Finishing this book in a week is quite a challenge.,C2
+l'atermoiement,procrastination,noun,m,"Après des mois d'atermoiements, ils ont signé.","After months of procrastination, they signed.",C2
+le leurre,decoy / illusion,noun,m,Cette promesse n'est qu'un leurre.,This promise is just an illusion.,C2
+la vacuité,emptiness,noun,f,Le discours frappait par sa vacuité.,The speech was striking in its emptiness.,C2
+l'opprobre,disgrace,noun,m,Il a jeté l'opprobre sur sa famille.,He brought disgrace on his family.,C2
+la billevesée,nonsense,noun,f,Ce ne sont que des billevesées.,That's just nonsense.,C2
+la concussion,embezzlement (by an official),noun,f,Le maire a été condamné pour concussion.,The mayor was convicted of embezzlement.,C2
+le palimpseste,palimpsest,noun,m,La ville est un palimpseste d'époques différentes.,The city is a palimpsest of different eras.,C2
+l'aréopage,assembly of experts,noun,m,Un aréopage de spécialistes a examiné le dossier.,An assembly of experts examined the file.,C2
+la forfaiture,abuse of office,noun,f,Le juge a été accusé de forfaiture.,The judge was accused of abuse of office.,C2
+le hiatus,gap / hiatus,noun,m,Il y a un hiatus entre ses paroles et ses actes.,There's a gap between his words and his actions.,C2
+l'ataraxie,serenity / ataraxia,noun,f,Il cherche l'ataraxie par la méditation.,He seeks serenity through meditation.,C2
+la logorrhée,verbal diarrhea,noun,f,Personne ne pouvait arrêter sa logorrhée.,No one could stop his endless flow of words.,C2
+le thuriféraire,flatterer,noun,m,Le ministre était entouré de ses thuriféraires.,The minister was surrounded by his flatterers.,C2
+l'acrimonie,bitterness,noun,f,Il a répondu avec acrimonie.,He replied with bitterness.,C2
+la déréliction,abandonment / despair,noun,f,Le roman décrit la déréliction d'un homme seul.,The novel describes the despair of a lonely man.,C2
+le sophisme,fallacy,noun,m,Son raisonnement repose sur un sophisme.,His reasoning rests on a fallacy.,C2
+la prévarication,breach of trust,noun,f,Le fonctionnaire a été accusé de prévarication.,The official was accused of breach of trust.,C2
+l'impéritie,incompetence,noun,f,La crise révèle l'impéritie des dirigeants.,The crisis reveals the incompetence of the leaders.,C2
+la mansuétude,leniency,noun,f,Le juge a fait preuve de mansuétude.,The judge showed leniency.,C2
+le paradigme,paradigm,noun,m,Nous assistons à un changement de paradigme.,We are witnessing a paradigm shift.,C2
+l'obsolescence,obsolescence,noun,f,L'obsolescence programmée est très critiquée.,Planned obsolescence is heavily criticized.,C2
+la pusillanimité,faint-heartedness,noun,f,Sa pusillanimité l'empêche d'agir.,His faint-heartedness stops him from acting.,C2
+obvier à,to obviate / to prevent,verb,none,Cette mesure vise à obvier à la pénurie.,This measure aims to prevent the shortage.,C2
+ourdir,to hatch (a plot),verb,none,Ils ont ourdi un complot contre le roi.,They hatched a plot against the king.,C2
+subodorer,to suspect,verb,none,Je subodore une mauvaise surprise.,I suspect a nasty surprise.,C2
+tergiverser,to beat around the bush,verb,none,Arrête de tergiverser et décide-toi !,Stop beating around the bush and make up your mind!,C2
+vilipender,to vilify,verb,none,La presse l'a vilipendé pendant des semaines.,The press vilified him for weeks.,C2
+s'enquérir de,to inquire about,verb,none,Elle s'est enquise de ta santé.,She inquired about your health.,C2
+compulser,to consult (documents),verb,none,L'historien compulse les archives.,The historian pores over the archives.,C2
+dilapider,to squander,verb,none,Il a dilapidé tout son héritage.,He squandered his entire inheritance.,C2
+abhorrer,to abhor,verb,none,J'abhorre l'hypocrisie.,I abhor hypocrisy.,C2
+se gausser de,to mock,verb,none,Ils se gaussent de ses erreurs.,They mock his mistakes.,C2
+louvoyer,to hedge / to tack,verb,none,Le ministre louvoie entre les partis.,The minister is hedging between the parties.,C2
+circonvenir,to circumvent / to win over,verb,none,Il a tenté de circonvenir les juges.,He tried to win over the judges.,C2
+conspuer,to boo,verb,none,Le public a conspué l'arbitre.,The crowd booed the referee.,C2
+exhumer,to unearth,verb,none,Les archéologues ont exhumé une statue.,The archaeologists unearthed a statue.,C2
+galvauder,to debase / to overuse,verb,none,Le mot « génie » est souvent galvaudé.,"The word ""genius"" is often overused.",C2
+s'arroger,to claim (wrongly),verb,none,Il s'est arrogé le droit de décider seul.,He claimed the right to decide alone.,C2
+phagocyter,to absorb / to swallow up,verb,none,La grande entreprise a phagocyté ses concurrents.,The big company swallowed up its competitors.,C2
+transcender,to transcend,verb,none,La musique transcende les frontières.,Music transcends borders.,C2
+invectiver,to hurl abuse at,verb,none,Le conducteur invectivait les piétons.,The driver was hurling abuse at pedestrians.,C2
+péricliter,to decline / to collapse,verb,none,Son commerce a périclité après la crise.,His business collapsed after the crisis.,C2
+se morfondre,to mope,verb,none,Il se morfond seul chez lui.,He's moping alone at home.,C2
+ressasser,to dwell on,verb,none,Arrête de ressasser le passé.,Stop dwelling on the past.,C2
+épiloguer,to go on about,verb,none,Inutile d'épiloguer sur cette défaite.,There's no point going on about this defeat.,C2
+acculer,to corner,verb,none,Ses dettes l'ont acculé à la faillite.,His debts drove him into bankruptcy.,C2
+dévoyer,to lead astray,verb,none,Ces jeunes ont été dévoyés par de mauvaises fréquentations.,These young people were led astray by bad company.,C2
+abscons / absconse,abstruse,adjective,none,Ce texte juridique est abscons.,This legal text is abstruse.,C2
+sibyllin / sibylline,cryptic,adjective,none,Il m'a laissé un message sibyllin.,He left me a cryptic message.,C2
+prolixe,wordy,adjective,none,L'auteur est un peu trop prolixe.,The author is a bit too wordy.,C2
+spécieux / spécieuse,specious,adjective,none,C'est un argument spécieux.,It's a specious argument.,C2
+oiseux / oiseuse,pointless,adjective,none,Évitons les discussions oiseuses.,Let's avoid pointless discussions.,C2
+inique,iniquitous / unjust,adjective,none,Cette loi est inique.,This law is unjust.,C2
+ineffable,ineffable,adjective,none,Il ressentit une joie ineffable.,He felt an ineffable joy.,C2
+apocryphe,apocryphal,adjective,none,Cette citation est apocryphe.,This quotation is apocryphal.,C2
+délétère,harmful / deleterious,adjective,none,L'ambiance au bureau est délétère.,The atmosphere at the office is toxic.,C2
+velléitaire,indecisive,adjective,none,C'est un homme velléitaire qui ne finit rien.,He's an indecisive man who never finishes anything.,C2
+idoine,appropriate,adjective,none,Nous avons trouvé la personne idoine.,We found the right person.,C2
+amène,affable,adjective,none,Il nous a accueillis de façon peu amène.,He welcomed us in a rather unfriendly way.,C2
+chimérique,fanciful,adjective,none,Ce projet me semble chimérique.,This project seems fanciful to me.,C2
+abject / abjecte,despicable,adjective,none,Son comportement est abject.,His behavior is despicable.,C2
+fallacieux / fallacieuse,fallacious,adjective,none,Il a été licencié sous un prétexte fallacieux.,He was fired on a false pretext.,C2
+nonobstant,notwithstanding,preposition,none,"Nonobstant les critiques, il a continué.","Notwithstanding the criticism, he carried on.",C2
+subrepticement,surreptitiously,adverb,none,Il a quitté la salle subrepticement.,He left the room surreptitiously.,C2
+derechef,once again,adverb,none,Il a frappé derechef à la porte.,He knocked at the door once again.,C2
+peu ou prou,more or less,adverb,none,Ils ont peu ou prou le même âge.,They're more or less the same age.,C2
+à l'envi,to one's heart's content,adverb,none,Les médias ont répété l'histoire à l'envi.,The media repeated the story over and over.,C2
+de facto,de facto,adverb,none,Il est devenu de facto le chef de l'équipe.,He became the de facto leader of the team.,C2
+a priori,at first sight,adverb,none,"A priori, le projet semble réalisable.","At first sight, the project seems feasible.",C2
+sine die,indefinitely,adverb,none,La réunion a été reportée sine die.,The meeting has been postponed indefinitely.,C2
+cahin-caha,after a fashion,adverb,none,Le projet avance cahin-caha.,The project is limping along.,C2
+in extremis,at the last minute,adverb,none,Il a attrapé le train in extremis.,He caught the train at the last minute.,C2
+à brûle-pourpoint,point-blank,adverb,none,Elle m'a posé la question à brûle-pourpoint.,She asked me the question point-blank.,C2

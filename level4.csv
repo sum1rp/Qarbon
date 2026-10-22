@@ -1,0 +1,76 @@
+front,back,part_of_speech,gender,example_target,example_english,tags
+l'enjeu,stake / what's at stake,noun,m,L'enjeu de cette élection est énorme.,What's at stake in this election is huge.,B2
+le chômage,unemployment,noun,m,Le chômage a baissé cette année.,Unemployment went down this year.,B2
+la croissance,growth,noun,f,La croissance de l'entreprise est rapide.,The company's growth is fast.,B2
+le bilan,assessment / results,noun,m,Faisons le bilan de l'année.,Let's take stock of the year.,B2
+l'échec,failure,noun,m,Un échec n'est pas la fin du monde.,A failure isn't the end of the world.,B2
+la démarche,approach / step,noun,f,La démarche est simple : remplissez ce formulaire.,The process is simple: fill in this form.,B2
+le débat,debate,noun,m,Le débat a duré deux heures.,The debate lasted two hours.,B2
+la tendance,trend,noun,f,C'est la nouvelle tendance chez les jeunes.,It's the new trend among young people.,B2
+le rendement,yield / output,noun,m,Le rendement de ce placement est faible.,The return on this investment is low.,B2
+la pénurie,shortage,noun,f,Il y a une pénurie d'essence dans la région.,There is a fuel shortage in the region.,B2
+le gaspillage,waste,noun,m,Le gaspillage alimentaire est un vrai problème.,Food waste is a real problem.,B2
+la grève,strike,noun,f,Les trains ne roulent pas à cause de la grève.,The trains aren't running because of the strike.,B2
+le fonctionnement,way something works,noun,m,Je ne comprends pas le fonctionnement de cette machine.,I don't understand how this machine works.,B2
+le mode de vie,lifestyle,noun,m,Il a changé de mode de vie après sa maladie.,He changed his lifestyle after his illness.,B2
+la mondialisation,globalization,noun,f,La mondialisation a transformé l'économie.,Globalization has transformed the economy.,B2
+l'inégalité,inequality,noun,f,Les inégalités entre les régions augmentent.,Inequalities between regions are growing.,B2
+le témoignage,testimony / account,noun,m,Son témoignage a aidé la police.,Her testimony helped the police.,B2
+la preuve,proof / evidence,noun,f,Tu as une preuve de ce que tu dis ?,Do you have proof of what you're saying?,B2
+le soutien,support,noun,m,Merci pour ton soutien.,Thank you for your support.,B2
+la menace,threat,noun,f,Le changement climatique est une menace réelle.,Climate change is a real threat.,B2
+le défi,challenge,noun,m,Apprendre une langue est un beau défi.,Learning a language is a great challenge.,B2
+l'atout,asset / advantage,noun,m,Parler anglais est un atout pour ce poste.,Speaking English is an asset for this job.,B2
+la contrainte,constraint,noun,f,Le budget est notre principale contrainte.,The budget is our main constraint.,B2
+le compromis,compromise,noun,m,Ils ont fini par trouver un compromis.,They finally found a compromise.,B2
+aborder,to tackle / to approach,verb,none,Nous aborderons ce sujet demain.,We'll tackle this topic tomorrow.,B2
+atteindre,to reach,verb,none,Elle a atteint son objectif.,She reached her goal.,B2
+anticiper,to anticipate,verb,none,Il faut anticiper les problèmes.,We need to anticipate problems.,B2
+soutenir,to support,verb,none,Mes parents m'ont toujours soutenu.,My parents have always supported me.,B2
+s'engager,to commit,verb,none,Il s'est engagé à finir le projet.,He committed to finishing the project.,B2
+remettre en question,to call into question,verb,none,Cette découverte remet tout en question.,This discovery calls everything into question.,B2
+mettre en œuvre,to implement,verb,none,Le gouvernement va mettre en œuvre la réforme.,The government is going to implement the reform.,B2
+s'adapter,to adapt,verb,none,Les enfants s'adaptent vite.,Children adapt quickly.,B2
+renforcer,to strengthen,verb,none,Ce voyage a renforcé notre amitié.,This trip strengthened our friendship.,B2
+réduire,to reduce,verb,none,Il faut réduire nos dépenses.,We need to reduce our spending.,B2
+souligner,to underline / to stress,verb,none,Le rapport souligne l'importance de l'éducation.,The report stresses the importance of education.,B2
+constater,to notice / to note,verb,none,J'ai constaté une erreur dans la facture.,I noticed a mistake in the bill.,B2
+envisager,to consider,verb,none,Nous envisageons de déménager.,We're considering moving.,B2
+exiger,to demand,verb,none,Ce travail exige beaucoup de patience.,This job demands a lot of patience.,B2
+se méfier de,to distrust,verb,none,Méfie-toi des inconnus sur Internet.,Be wary of strangers on the Internet.,B2
+entraîner,to lead to / to train,verb,none,La pluie a entraîné des retards.,The rain led to delays.,B2
+susciter,to arouse / to spark,verb,none,Le film a suscité beaucoup de débats.,The film sparked a lot of debate.,B2
+accorder,to grant,verb,none,La banque lui a accordé un prêt.,The bank granted him a loan.,B2
+parvenir à,to manage to,verb,none,Il est parvenu à ouvrir la porte.,He managed to open the door.,B2
+tenir compte de,to take into account,verb,none,Il faut tenir compte de la météo.,We have to take the weather into account.,B2
+nuire à,to harm,verb,none,Le tabac nuit à la santé.,Tobacco harms your health.,B2
+se plaindre de,to complain about,verb,none,Les voisins se plaignent du bruit.,The neighbors complain about the noise.,B2
+dissuader,to dissuade,verb,none,Le prix m'a dissuadé d'acheter la voiture.,The price put me off buying the car.,B2
+revendiquer,to claim / to demand,verb,none,Les salariés revendiquent une hausse de salaire.,The employees are demanding a pay rise.,B2
+approfondir,to deepen,verb,none,Je voudrais approfondir mes connaissances en histoire.,I'd like to deepen my knowledge of history.,B2
+efficace,effective,adjective,none,Ce médicament est très efficace.,This medicine is very effective.,B2
+durable,sustainable / lasting,adjective,none,Ils veulent une solution durable.,They want a lasting solution.,B2
+fiable,reliable,adjective,none,Ma vieille voiture est encore fiable.,My old car is still reliable.,B2
+pertinent / pertinente,relevant,adjective,none,C'est une question très pertinente.,That's a very relevant question.,B2
+actuel / actuelle,current,adjective,none,Le président actuel est très populaire.,The current president is very popular.,B2
+inévitable,unavoidable,adjective,none,Le conflit semblait inévitable.,The conflict seemed unavoidable.,B2
+ambigu / ambiguë,ambiguous,adjective,none,Sa réponse était un peu ambiguë.,His answer was a bit ambiguous.,B2
+néfaste,harmful,adjective,none,Les écrans ont un effet néfaste sur le sommeil.,Screens have a harmful effect on sleep.,B2
+rentable,profitable,adjective,none,Ce petit restaurant est très rentable.,This little restaurant is very profitable.,B2
+flou / floue,vague / blurry,adjective,none,La photo est floue.,The photo is blurry.,B2
+souple,flexible,adjective,none,Mes horaires de travail sont souples.,My working hours are flexible.,B2
+exigeant / exigeante,demanding,adjective,none,Notre professeur est très exigeant.,Our teacher is very demanding.,B2
+enrichissant / enrichissante,enriching,adjective,none,Ce voyage a été très enrichissant.,This trip was very enriching.,B2
+précaire,precarious,adjective,none,Il a un emploi précaire.,He has a precarious job.,B2
+fiscal / fiscale,tax (related),adjective,none,Le gouvernement prépare une réforme fiscale.,The government is preparing a tax reform.,B2
+néanmoins,nevertheless,adverb,none,"C'était difficile, néanmoins nous avons réussi.","It was difficult; nevertheless, we succeeded.",B2
+en revanche,on the other hand,adverb,none,"Il ne parle pas espagnol ; en revanche, il parle italien.","He doesn't speak Spanish; on the other hand, he speaks Italian.",B2
+en outre,in addition,adverb,none,"L'hôtel est bien situé ; en outre, il n'est pas cher.","The hotel is well located; in addition, it's not expensive.",B2
+autrement dit,in other words,adverb,none,"Il est parti sans payer, autrement dit, il a volé.","He left without paying; in other words, he stole.",B2
+à condition que,provided that,conjunction,none,Je viendrai à condition que tu m'aides.,I'll come provided that you help me.,B2
+bien que,although,conjunction,none,"Bien qu'il pleuve, nous sortons.","Although it's raining, we're going out.",B2
+davantage,more,adverb,none,Tu devrais lire davantage.,You should read more.,B2
+désormais,from now on,adverb,none,"Désormais, le magasin ouvre à huit heures.","From now on, the shop opens at eight.",B2
+notamment,notably / in particular,adverb,none,"J'aime les fruits, notamment les fraises.","I like fruit, especially strawberries.",B2
+au fur et à mesure,as you go along,adverb,none,On apprend au fur et à mesure.,You learn as you go along.,B2
+quant à,as for,preposition,none,"Quant à moi, je reste ici.","As for me, I'm staying here.",B2

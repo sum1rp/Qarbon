@@ -1,0 +1,76 @@
+front,back,part_of_speech,gender,example_target,example_english,tags
+l'essor,boom / rise,noun,m,Le tourisme a connu un essor important.,Tourism has seen a major boom.,C1
+le clivage,divide / split,noun,m,Ce sujet révèle un clivage entre les générations.,This topic reveals a divide between generations.,C1
+la réticence,reluctance,noun,f,"Il a accepté, malgré quelques réticences.","He agreed, despite some reluctance.",C1
+la mutation,transformation,noun,f,Le secteur est en pleine mutation.,The sector is undergoing a complete transformation.,C1
+le fléau,scourge,noun,m,La corruption est un fléau pour le pays.,Corruption is a scourge for the country.,C1
+la lacune,gap (in knowledge),noun,f,J'ai des lacunes en grammaire.,I have gaps in my grammar.,C1
+l'aléa,hazard / risk,noun,m,Les aléas de la météo ont retardé les travaux.,The vagaries of the weather delayed the work.,C1
+le bien-fondé,validity,noun,m,Personne ne conteste le bien-fondé de cette décision.,No one disputes the validity of this decision.,C1
+la mise en œuvre,implementation,noun,f,La mise en œuvre du projet prendra un an.,Implementing the project will take a year.,C1
+le revers,setback,noun,m,L'équipe a subi un revers inattendu.,The team suffered an unexpected setback.,C1
+la dérive,drift / excess,noun,f,Il faut éviter les dérives des réseaux sociaux.,We must avoid the excesses of social media.,C1
+l'écueil,pitfall,noun,m,Le principal écueil est le manque de temps.,The main pitfall is the lack of time.,C1
+la conjoncture,economic situation,noun,f,La conjoncture économique est difficile.,The economic situation is difficult.,C1
+le désarroi,disarray / distress,noun,m,Sa lettre montrait un profond désarroi.,Her letter showed deep distress.,C1
+l'acharnement,relentlessness,noun,m,Il a travaillé avec acharnement.,He worked relentlessly.,C1
+la nuance,nuance,noun,f,Il faut apporter une nuance à cette idée.,This idea needs some nuance.,C1
+le recul,hindsight / step back,noun,m,"Avec le recul, j'ai fait le bon choix.","In hindsight, I made the right choice.",C1
+l'amalgame,lumping together,noun,m,Il ne faut pas faire d'amalgame.,We mustn't lump things together.,C1
+la retombée,fallout / spin-off,noun,f,Les retombées économiques du festival sont importantes.,The festival's economic spin-offs are significant.,C1
+le préalable,prerequisite,noun,m,La confiance est un préalable à toute négociation.,Trust is a prerequisite for any negotiation.,C1
+la portée,scope / reach,noun,f,Il n'a pas mesuré la portée de ses paroles.,He didn't realize the impact of his words.,C1
+l'engouement,craze / enthusiasm,noun,m,L'engouement pour le vélo ne faiblit pas.,The enthusiasm for cycling isn't fading.,C1
+le parti pris,bias,noun,m,Cet article est plein de partis pris.,This article is full of bias.,C1
+la sollicitude,care / concern,noun,f,Elle s'occupe de sa mère avec sollicitude.,She looks after her mother with great care.,C1
+entraver,to hinder,verb,none,La neige a entravé la circulation.,The snow hindered traffic.,C1
+pallier,to make up for,verb,none,Ce logiciel permet de pallier le manque de personnel.,This software makes up for the staff shortage.,C1
+étayer,to back up (an argument),verb,none,Il étaye son argument avec des chiffres.,He backs up his argument with figures.,C1
+appréhender,to dread / to grasp,verb,none,J'appréhende l'examen de demain.,I'm dreading tomorrow's exam.,C1
+se targuer de,to pride oneself on,verb,none,Il se targue de tout savoir.,He prides himself on knowing everything.,C1
+déplorer,to deplore,verb,none,Nous déplorons cette décision.,We deplore this decision.,C1
+préconiser,to recommend,verb,none,Les médecins préconisent plus de sport.,Doctors recommend more exercise.,C1
+entériner,to ratify,verb,none,Le conseil a entériné le nouveau budget.,The council ratified the new budget.,C1
+enrayer,to curb / to halt,verb,none,Il faut enrayer la hausse des prix.,We must curb the rise in prices.,C1
+dénoncer,to denounce,verb,none,Le journaliste a dénoncé le scandale.,The journalist denounced the scandal.,C1
+s'avérer,to turn out (to be),verb,none,La solution s'est avérée efficace.,The solution turned out to be effective.,C1
+se heurter à,to come up against,verb,none,Le projet se heurte à de nombreuses difficultés.,The project is coming up against many difficulties.,C1
+cerner,to pin down,verb,none,J'ai du mal à cerner le problème.,I'm having trouble pinning down the problem.,C1
+élaborer,to devise,verb,none,L'équipe a élaboré un nouveau plan.,The team devised a new plan.,C1
+déceler,to detect,verb,none,Le test a permis de déceler la maladie.,The test made it possible to detect the disease.,C1
+occulter,to obscure / to hide,verb,none,Ce succès ne doit pas occulter les problèmes.,This success mustn't hide the problems.,C1
+relativiser,to put into perspective,verb,none,Il faut relativiser : ce n'est qu'un match.,Put it in perspective: it's only a game.,C1
+s'insurger,to rise up against,verb,none,Les habitants s'insurgent contre le projet.,The residents are rising up against the project.,C1
+prôner,to advocate,verb,none,Ce parti prône la décentralisation.,This party advocates decentralization.,C1
+assouvir,to satisfy (a need),verb,none,Il voyage pour assouvir sa curiosité.,He travels to satisfy his curiosity.,C1
+éluder,to evade,verb,none,Le ministre a éludé la question.,The minister evaded the question.,C1
+endiguer,to contain / to stem,verb,none,Les autorités tentent d'endiguer l'épidémie.,The authorities are trying to contain the epidemic.,C1
+attiser,to stir up,verb,none,Ces paroles ont attisé la colère.,Those words stirred up anger.,C1
+fustiger,to castigate,verb,none,Le critique fustige ce film.,The critic castigates this film.,C1
+émaner,to emanate,verb,none,Une grande force émane de ce tableau.,Great strength emanates from this painting.,C1
+indéniable,undeniable,adjective,none,Elle a un talent indéniable.,She has undeniable talent.,C1
+sous-jacent / sous-jacente,underlying,adjective,none,Il faut comprendre les causes sous-jacentes.,We need to understand the underlying causes.,C1
+révolu / révolue,bygone,adjective,none,Cette époque est révolue.,That era is over.,C1
+prépondérant / prépondérante,predominant,adjective,none,L'État joue un rôle prépondérant.,The state plays a predominant role.,C1
+éphémère,short-lived,adjective,none,Le succès est parfois éphémère.,Success is sometimes short-lived.,C1
+laborieux / laborieuse,laborious,adjective,none,Le début de la réunion a été laborieux.,The start of the meeting was laborious.,C1
+hétéroclite,motley / mixed,adjective,none,Il a une collection d'objets hétéroclites.,He has a motley collection of objects.,C1
+saugrenu / saugrenue,absurd / odd,adjective,none,Quelle idée saugrenue !,What an absurd idea!,C1
+pérenne,lasting / perennial,adjective,none,L'association cherche un financement pérenne.,The association is looking for lasting funding.,C1
+dérisoire,derisory / trivial,adjective,none,Il a vendu sa maison pour une somme dérisoire.,He sold his house for a trivial sum.,C1
+lucide,clear-sighted,adjective,none,Il reste lucide sur ses chances.,He remains clear-sighted about his chances.,C1
+ostentatoire,ostentatious,adjective,none,Il mène une vie ostentatoire.,He lives an ostentatious life.,C1
+implicite,implicit,adjective,none,C'était une critique implicite.,It was an implicit criticism.,C1
+tributaire,dependent (on),adjective,none,L'agriculture est tributaire de la météo.,Farming is dependent on the weather.,C1
+vétuste,run-down / dilapidated,adjective,none,L'école est vétuste et doit être rénovée.,The school is run-down and must be renovated.,C1
+en l'occurrence,in this case,adverb,none,"Un membre de l'équipe, en l'occurrence Marie, s'en occupera.","A team member, in this case Marie, will handle it.",C1
+par ailleurs,moreover / otherwise,adverb,none,"Le film est long ; par ailleurs, il est très beau.",The film is long; it's also very beautiful.,C1
+de surcroît,what's more,adverb,none,"Il est en retard et, de surcroît, il a oublié ses clés.","He's late and, what's more, he forgot his keys.",C1
+en somme,in short,adverb,none,"En somme, tout s'est bien passé.","In short, everything went well.",C1
+a fortiori,all the more so,adverb,none,"Si c'est difficile pour un adulte, ça l'est a fortiori pour un enfant.","If it's hard for an adult, it's all the more so for a child.",C1
+quoi qu'il en soit,be that as it may,adverb,none,"Quoi qu'il en soit, je pars demain.","Be that as it may, I'm leaving tomorrow.",C1
+à l'instar de,like / following the example of,preposition,none,"À l'instar de son père, il est devenu médecin.","Like his father, he became a doctor.",C1
+en dépit de,despite,preposition,none,Ils sont sortis en dépit de la pluie.,They went out despite the rain.,C1
+eu égard à,in view of,preposition,none,"Eu égard à son âge, il a été dispensé.","In view of his age, he was exempted.",C1
+d'emblée,right away,adverb,none,J'ai su d'emblée qu'il mentait.,I knew right away that he was lying.,C1
+sciemment,knowingly,adverb,none,Il a menti sciemment.,He lied knowingly.,C1

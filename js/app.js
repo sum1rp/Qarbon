@@ -134,7 +134,10 @@ $("file").addEventListener("change", async e => {
 const BUILT_IN = [
   { id: "beginner150", name: "Level 1",      blurb: "The 150 most useful words to start with" },
   { id: "level2",      name: "Level 2",      blurb: "The next 150 useful words" },
-  { id: "level3",      name: "Level 3",      blurb: "300 words for everyday life (A2–B1)" }
+  { id: "level3",      name: "Level 3",      blurb: "300 words for everyday life (A2–B1)" },
+  { id: "level4",      name: "Level 4",      blurb: "75 upper-intermediate words: news, work, ideas (B2)" },
+  { id: "level5",      name: "Level 5",      blurb: "75 advanced words for reading and debate (C1)" },
+  { id: "level6",      name: "Level 6",      blurb: "75 rare, literary words: the Nebulas and Black Holes (C2)" }
 ];
 let stack = null;   // the stack you're studying (null = all cards)
 
