@@ -128,7 +128,10 @@ function finishPhase() {
   if (wasFocus && state.readingBook) askChapter(false);   // reading a book? ask how far you got
 }
 
-$("timer").addEventListener("toggle", () => { if (cardShowing()) fitCard(); });   // opening it pushes the card down, so re-fit
+// opening the timer under the Review card: scroll down so its buttons show above the answer buttons
+$("timer").addEventListener("toggle", () => {
+  if ($("timer").open) $("tcontrols").scrollIntoView({ block: "nearest", behavior: "smooth" });
+});
 $("tstart").onclick = $("fstart").onclick = () => ticking ? pauseTimer() : startTimer();
 $("treset").onclick = $("freset").onclick = resetTimer;
 $("fskip").onclick = skipPhase;

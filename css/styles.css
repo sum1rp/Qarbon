@@ -56,7 +56,7 @@
            transition:opacity .45s ease, transform .45s ease; -webkit-tap-highlight-color:transparent;
            --w:min(150px, 38vw, 22svh); }
   .slide.on { opacity:1; pointer-events:auto; transform:none; }
-  .slide[data-mode="hole"] { --w:min(200px, 50vw, 28svh); }   /* the black hole is the biggest */
+  .slide[data-mode="solar"] { --w:min(200px, 50vw, 28svh); }   /* the Solar System, the first world, is the biggest */
   .slide:focus-visible { outline:none; }
   .slide:focus-visible .wname { text-decoration:underline; text-underline-offset:4px; }
   .slide .body { position:relative; display:block; width:var(--w); height:var(--w); border-radius:50%; margin-bottom:22px; }
@@ -66,12 +66,12 @@
   .carousel .arrow { position:relative; z-index:2; width:44px; height:44px; flex:none; padding:0; border-radius:50%; border:1px solid var(--line);
            background:rgba(13,13,20,.6); color:var(--text); font-size:1.5rem; line-height:1; margin:0 6px; }
   .carousel .arrow:hover { background:var(--raised); }
-  /* the dots underneath: one per world, the black hole's drawn hollow */
-  .dots { display:flex; gap:10px; justify-content:center; margin:6px 0 10px; }
-  .dots button { width:8px; height:8px; padding:0; border-radius:50%; border:none; background:rgba(255,255,255,.25);
-                 transition:background .3s, transform .3s; }
-  .dots button.hole { background:none; box-shadow:0 0 0 1.5px rgba(255,255,255,.35) inset; }
-  .dots button[aria-current="true"] { background:#fff; transform:scale(1.3); }
+  /* the dots underneath: one per world. Each button is a big invisible 32px target with the small dot drawn in its middle,
+     and the row takes a finger sliding along it (touch-action:none, so the page doesn't scroll instead) */
+  .dots { display:flex; justify-content:center; margin:0 0 4px; touch-action:none; -webkit-tap-highlight-color:transparent; }
+  .dots button { width:32px; height:32px; padding:0; border:none; border-radius:50%; background:none; display:grid; place-items:center; }
+  .dots button::after { content:""; width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.25); transition:background .3s, transform .3s; }
+  .dots button[aria-current="true"]::after { background:#fff; transform:scale(1.3); }
   /* tapping a world: it rushes toward you while everything else fades */
   .slide.go .body { transform:scale(5); opacity:0; transition:transform .7s cubic-bezier(.5,0,.75,0), opacity .6s; }
   #home.launching .welcome, #home.launching .sub, #home.launching .slide.go .wname, #home.launching .slide.go .wsub,
@@ -85,17 +85,13 @@
      after the page, and iPhone Safari works out an animation's "-50% of its own height" once, when the animation starts:
      with no height yet that was 0, so the Tower of Babel sat half its height too low (build 57 fix) */
   .world canvas, .world svg { position:absolute; pointer-events:none; }
-  /* Black hole: Sagittarius A* in polarized light, faded at its edge and turning once every 2 minutes like its gas */
-  #w-hole .photo { width:118%; -webkit-mask:radial-gradient(closest-side, #000 62%, transparent); mask:radial-gradient(closest-side, #000 62%, transparent);
-                   animation:holeturn 120s linear infinite; }
-  @keyframes holeturn { from { transform:translate(-50%, -50%) rotate(0); } to { transform:translate(-50%, -50%) rotate(-360deg); } }
   /* Review: the Earth. The still photo shows until the live globe (a canvas, a bit bigger for its glow) is ready */
   #w-earth .photo { mix-blend-mode:normal; border-radius:50%; clip-path:circle(49.5%); }
   #w-earth.live .photo { display:none; }
   #w-earth canvas { left:50%; top:50%; width:112%; height:112%; transform:translate(-50%, -50%); }
   /* Decks: the Big Dipper, drawn on a canvas a bit wider than the world so the handle fits */
   #w-dipper canvas { left:-25%; top:-12%; width:150%; height:124%; }
-  /* Practice: the Moon (an SVG: NASA's full Moon with tonight's shadow masked off) */
+  /* Reading: the Moon (an SVG: NASA's full Moon with tonight's shadow masked off) */
   #w-moon svg { inset:0; width:100%; height:100%; overflow:visible; filter:drop-shadow(0 0 18px rgba(220,225,255,.18)); }
   /* B.A.R. Exam: the Sun, with a soft glow around it */
   #w-sun .photo { width:108%; -webkit-mask:radial-gradient(closest-side, #000 86%, transparent); mask:radial-gradient(closest-side, #000 86%, transparent);
@@ -126,10 +122,6 @@
                    background:#fff; box-shadow:0 0 10px 4px rgba(200,230,255,.9); animation:beat 1.6s ease-out infinite; }
   @keyframes ping { from { transform:scale(.4); opacity:1; } to { transform:scale(3.4); opacity:0; } }
   @keyframes beat { 0% { opacity:1; transform:scale(1.4); } 25% { opacity:.55; transform:scale(1); } 100% { opacity:.55; } }
-  /* Reading: the Helix Nebula, slowly breathing */
-  #w-helix .photo { width:128%; -webkit-mask:radial-gradient(closest-side, #000 60%, transparent); mask:radial-gradient(closest-side, #000 60%, transparent);
-                    animation:breathe-in 14s ease-in-out infinite alternate; }
-  @keyframes breathe-in { from { transform:translate(-50%, -50%) scale(1); } to { transform:translate(-50%, -50%) scale(1.05); } }
   /* Translate: Bruegel's Tower of Babel, a painting (not on black, so no "screen" blending: its edge fades out instead),
      slowly drifting up as if you were looking up at it. "Hello" in 14 languages turns around it once every 90 s */
   #w-babel .photo { width:104%; mix-blend-mode:normal; border-radius:50%;
@@ -139,7 +131,7 @@
   #w-babel .ring { position:absolute; left:-22%; top:-22%; width:144%; height:144%; pointer-events:none; animation:swirl 90s linear infinite; }
   #w-babel .ring svg { inset:0; width:100%; height:100%; overflow:visible; }
   #w-babel .ring text { fill:rgba(225,215,255,.55); font:500 9.5px system-ui, sans-serif; letter-spacing:.4px; text-anchor:middle; }
-  @media (prefers-reduced-motion: reduce) { #w-hole .photo, #w-crab .pulse, #w-crab .glint, #w-helix .photo, #w-babel .photo, #w-babel .ring { animation:none; } }
+  @media (prefers-reduced-motion: reduce) { #w-crab .pulse, #w-crab .glint, #w-babel .photo, #w-babel .ring { animation:none; } }
   /* short screens (iPhone SE): a little tighter */
   @media (max-height: 620px) {
     #homelogo { font-size:2.8rem; margin-top:4px; }
@@ -218,7 +210,7 @@
   #boot.err { background:rgba(255,80,100,.18); border-color:rgba(255,100,120,.8); color:#ffd0d6; }
 
   /* ---------- timer ---------- */
-  #timer { width:100%; max-width:340px; margin-bottom:14px; box-sizing:border-box;
+  #timer { width:100%; max-width:340px; margin-top:14px; box-sizing:border-box;
            border:1px solid var(--line); border-radius:18px; background:var(--raised); }
   /* closed: one line with the time in the middle, the phase on its left and the arrow on its right */
   #timer summary { list-style:none; cursor:pointer; display:grid; grid-template-columns:1fr auto 1fr;
@@ -229,9 +221,8 @@
   #timer[open] .arrow { transform:rotate(180deg); }
   /* open: the controls appear underneath */
   #tcontrols { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; padding:4px 12px 10px; }
-  /* music panels: one in the timer dropdown, one on the Focus page. Both use the same player. */
+  /* the music panel under the Qpod (js/music.js). It uses the one player. */
   .musicpanel, .musicbody { display:flex; flex-direction:column; gap:8px; }
-  #timer .musicpanel { padding:8px 12px 12px; border-top:1px solid var(--line); }
   .musicpanel .label { color:var(--muted); font-size:.85rem; }
   /* the slot is an empty space the size of the player; the real player is laid on top of it (see placePlayer) */
   .playerslot { width:100%; display:none; }
@@ -328,16 +319,6 @@
   #fcustom label { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.8rem; text-align:left; }
   #fcustom input { font-size:1rem; padding:8px 10px; border-radius:10px; border:1px solid var(--line);
                    background:var(--surface); color:var(--text); }
-  /* the music dropdown at the top of Focus: looks like the small timer dropdown. Closed, one line: ♪ what's playing ▾ */
-  .focusmusic { width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:18px; background:var(--raised); text-align:left; gap:0; }
-  .focusmusic summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; min-height:44px; padding:0 14px; }
-  .focusmusic summary::-webkit-details-marker { display:none; }
-  .focusmusic .note { color:var(--accent); flex:none; }
-  #focusnow { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  #focusnow.empty { color:var(--muted); }
-  .focusmusic .arrow { color:var(--muted); flex:none; transition:transform .2s; }
-  .focusmusic[open] .arrow { transform:rotate(180deg); }
-  .focusmusic .musicbody { padding:12px; border-top:1px solid var(--line); }
   #fmsg { color:var(--muted); font-size:.9rem; min-height:1.2em; margin:0; }
   .homebtn { margin-top:4px; min-height:44px; border-radius:999px; }
   .homerow { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
@@ -621,7 +602,16 @@
   /* ---------- packs and the binder (js/collection.js) ---------- */
   .qcard { --mx:50%; --my:35%; }
   /* "Today's pack is ready" above the Review card: a little pack + what's in it */
-  #packbanner { display:flex; align-items:center; gap:12px; width:100%; max-width:340px; box-sizing:border-box; margin-top:10px; padding:10px 12px;
+  /* the row above the card: the pack banner, then Binder and List (two small square buttons). With no banner, they share the row */
+  #packrow { display:flex; gap:8px; width:100%; max-width:340px; margin-top:10px; }
+  #packrow[hidden] { display:none; }
+  #decklinks { display:flex; gap:8px; flex:none; }
+  #decklinks button { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; width:54px; min-height:44px;
+                      padding:6px 4px; font-size:.78rem; border-radius:14px; color:var(--text); }
+  #decklinks span { font-size:1.05rem; line-height:1; }
+  #packbanner[hidden] + #decklinks { flex:1; }
+  #packbanner[hidden] + #decklinks button { flex:1; flex-direction:row; gap:8px; font-size:.9rem; }
+  #packbanner { display:flex; align-items:center; gap:12px; flex:1; min-width:0; box-sizing:border-box; padding:10px 12px;
                 text-align:left; border-radius:14px; border:1px solid rgba(123,108,255,.55); color:var(--text);
                 background:linear-gradient(120deg, rgba(123,108,255,.28), rgba(159,230,255,.10) 60%, rgba(255,216,240,.14)); }
   #packbanner .pk-icon { width:30px; height:42px; flex:none; border-block:3px solid #d3d5df; background:radial-gradient(circle at 50% 45%, rgba(123,108,255,.5), transparent 60%), #05050b; box-shadow:0 2px 8px rgba(0,0,0,.5); }
@@ -752,6 +742,9 @@
   #decklistview.binding #filters, #decklistview.binding #deckactions, #decklistview.binding #decksummary, #decklistview.binding #decklist { display:none; }
   #binder { display:flex; flex-direction:column; gap:14px; }
   #binder[hidden] { display:none; }
+  /* the personal binder (your own cards): the logo atom where a world's photo would be */
+  .bd-atom { display:inline-grid; place-items:center; width:22px; height:22px; vertical-align:middle; }
+  .bd-atom svg { width:22px; height:22px; }
   .bd-head { display:flex; flex-direction:column; gap:10px; padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
   .bd-big { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; color:var(--muted); font-size:.9rem; }
   .bd-big b { font-size:1.6rem; color:var(--text); font-variant-numeric:tabular-nums; }
@@ -960,6 +953,7 @@
   /* ---------- swiping the card ---------- */
   /* pan-y: up/down drags still scroll the page, sideways drags are ours */
   #scene { touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:pointer; }
+  #scene.upswipe { touch-action:none; }   /* before the answer shows: a swipe up on the card shows it (js/cards.js) */
   #scene[data-swipe="good"] .face  { box-shadow:0 0 0 3px #2fbf9b, 0 6px 24px rgba(0,0,0,.5); }
   #scene[data-swipe="again"] .face { box-shadow:0 0 0 3px #ff6b6b, 0 6px 24px rgba(0,0,0,.5); }
 
@@ -968,7 +962,8 @@
     body { padding:calc(10px + env(safe-area-inset-top)) 16px 16px; }
     #study { padding-bottom:94px; }   /* room so the fixed buttons never cover the settings */
     h1 { font-size:1.3rem; margin-bottom:6px; }
-    #timer { margin-bottom:8px; }
+    #timer { margin-top:0; }
+    #tcontrols { scroll-margin-bottom:100px; }   /* opening the timer scrolls its buttons clear of the fixed answer buttons */
     #timer summary { min-height:44px; padding:0 14px; }
     #modebar { margin-bottom:8px; }
     #status { margin:0; }
@@ -1351,7 +1346,6 @@ body:has(#study:not([hidden]) > #media.ip-full:not([hidden])) #study > :not(#med
 #media .ipod[data-skin="clear"] .ip-screen { box-shadow:0 0 0 .3cqw rgba(255,255,255,.3); }
 #media .ipod[data-skin="clear"] .ip-wheel, #media .ipod[data-skin="clear"] .ip-wheel .ip-center { box-shadow:0 0 0 .3cqw rgba(255,255,255,.4); }
 /* in Media the timer dropdown (under the Mode menu) is only the timer: the music panel is under the iPod */
-#study.inmedia #timer .musicpanel { display:none; }
 
 /* ---------- the mini Qpod and Space full screen (js/media.js) ---------- */
 /* the mini Qpod: the color list's mini Clear iPod drawn twice as big, with a dark screen showing the Qarbon atom.

@@ -5,7 +5,7 @@
 let storageOK = true;
 try { localStorage.setItem("_qtest", "1"); localStorage.removeItem("_qtest"); } catch (e) { storageOK = false; }
 
-const FRESH = { cards: [], decks: [], playlists: [], music: "", directions: {}, books: [], readingBook: "", stackId: "", newPerDay: 10, newDate: "", newDone: 0, packDate: "", journey: 0, voice: "female", sessions: 0, timerMode: "pomodoro" };
+const FRESH = { cards: [], decks: [], playlists: [], music: "", directions: {}, books: [], readingBook: "", stackId: "", newPerDay: 10, newDate: "", newDone: 0, packDate: "", packCount: 0, journey: 0, voice: "female", sessions: 0, timerMode: "pomodoro" };
 
 // where you stopped reading a book: { ch: chapter (from 0), y: how far down it (0 to 1) } or { page } for a PDF
 function cleanPlace(p) {
@@ -124,9 +124,11 @@ function clean(data) {
   const del = s.deleted && typeof s.deleted === "object" ? s.deleted : {};
   s.deleted = Object.fromEntries(Object.entries(del).filter(([k, v]) => /^(card|deck|playlist|book):/.test(k) && Number(v) > 0).map(([k, v]) => [k, Number(v)]));
   s.settingsT = Number(s.settingsT) || 0;
-  s.newPerDay = PER_DAY_CHOICES.includes(Number(s.newPerDay)) ? Number(s.newPerDay) : 10;
+  s.newPerDay = PER_DAY_CHOICES.includes(Number(s.newPerDay)) ? Number(s.newPerDay) : 10;   // (not used since build 63: packs are always 10)
   s.newDone = Number(s.newDone) || 0;
-  s.packDate = typeof s.packDate === "string" ? s.packDate : "";   // the day you last opened your daily pack
+  s.packDate = typeof s.packDate === "string" ? s.packDate : "";   // the day you last opened a pack
+  s.packCount = Number.isInteger(s.packCount) && s.packCount > 0 ? s.packCount : 0;   // how many packs you opened that day (at most 3)
+  if (s.packDate && !s.packCount) s.packCount = 1;   // saves from before build 63 only kept the day of the daily pack
   // the Solar System (js/collection.js): the furthest world open to your packs, 0 = Earth … 11 = Black Hole. Once open, it stays open.
   s.journey = Number.isInteger(s.journey) && s.journey >= 0 && s.journey <= 11 ? s.journey : 0;
   s.sessions = Number(s.sessions) || 0;
@@ -161,7 +163,7 @@ function snapshot(s) {
   s.playlists.forEach(p => add("playlist:" + p.id, p));
   s.books.forEach(b => add("book:" + b.id, b));
   out.settings = JSON.stringify(settingsOf(s));
-  out.counters = JSON.stringify([s.sessions, s.newDate, s.newDone, s.packDate, s.journey]);   // not stamped, but worth syncing
+  out.counters = JSON.stringify([s.sessions, s.newDate, s.newDone, s.packDate, s.packCount, s.journey]);   // not stamped, but worth syncing
   return out;
 }
 let snap = {};   // the fingerprints at the last save
@@ -315,6 +317,8 @@ function mergeStates(a, b) {   // a = this device, b = online (both already clea
     newDate: later.newDate,                        // new cards started today: the bigger count, if it's the same day
     newDone: a.newDate === b.newDate ? Math.max(a.newDone, b.newDone) : later.newDone,
     packDate: (a.packDate || "") > (b.packDate || "") ? a.packDate : b.packDate,  // the daily pack: opened on either device counts
+    packCount: a.packDate === b.packDate ? Math.max(a.packCount, b.packCount)      // packs opened that day: the bigger count,
+             : (a.packDate || "") > (b.packDate || "") ? a.packCount : b.packCount,  // or the later day's
     journey: Math.max(a.journey || 0, b.journey || 0)                            // the Solar System: the furthest world reached on either device
   };
 }

@@ -1,8 +1,8 @@
 // Qarbon · js/music.js: the music player. YouTube / SoundCloud links, and your own music files.
 // The script files run in the order index.html lists them, and share one set of variables.
 //
-// There are three music panels (in the small timer dropdown, in ⏱ Focus, and under the 🎧 Media iPod) but only ONE player:
-//   - a YouTube or SoundCloud link plays in an iframe inside #playerhost, laid over whichever panel is showing
+// Music is chosen in one panel, under the 🎧 Media Qpod (build 63: it used to be in the timer dropdown and ⏱ Focus too), and there's ONE player:
+//   - a YouTube or SoundCloud link plays in an iframe inside #playerhost, laid over the slot that's showing (or parked off-screen)
 //     (placePlayer). It's never moved into a panel, because moving an iframe reloads it and restarts the music.
 //   - your own files play in the one <audio id="songaudio">; the panels only show its controls.
 // musicKind says which one is in use: "link" or "file".
@@ -168,7 +168,6 @@ function renderMusic() {
   // ⏮ ⏭ go through: the playlist (YouTube/SoundCloud), your files, or the Played list
   const pl = plActive();
   const hasNav = !!pl || (m && m.playlist) || (file && mySongs.length > 1) || (!file && played.length > 1);
-  $("timer").classList.toggle("hasmusic", !!(m || file));
   musicPanels().forEach(p => {
     p.querySelector(".playerslot").className = "playerslot" + (m ? (m.kind === "YouTube" ? " yt" : " sc") : "");
     p.querySelector(".filecard").hidden = !file;
@@ -234,10 +233,6 @@ function renderMusic() {
              (adding ? `<li class="songacts plpick">${chooser()}</li>` : "");
     }).join("");
   });
-  // the closed ⏱ Focus dropdown shows what's playing
-  const now = nowTitle();
-  $("focusnow").textContent = now || "Add music";
-  $("focusnow").classList.toggle("empty", !now);
   updateProgress();
   musicWatchers.forEach(f => f());
 }

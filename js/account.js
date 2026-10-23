@@ -89,13 +89,13 @@ async function signIn(create) {
 function syncedPart() {
   return { v: 1, cards: state.cards, decks: state.decks, playlists: state.playlists, books: state.books, deleted: state.deleted,
            settings: settingsOf(state), settingsT: state.settingsT, sessions: state.sessions,
-           newDate: state.newDate, newDone: state.newDone, packDate: state.packDate, journey: state.journey };
+           newDate: state.newDate, newDone: state.newDone, packDate: state.packDate, packCount: state.packCount, journey: state.journey };
 }
 
 // tidy up the online copy the same way a loaded save is tidied (see clean)
 function cleanRemote(d) {
   return clean({ ...(d.settings || {}), cards: d.cards, decks: d.decks, playlists: d.playlists, books: d.books, deleted: d.deleted,
-                 settingsT: d.settingsT, sessions: d.sessions, newDate: d.newDate, newDone: d.newDone, packDate: d.packDate, journey: d.journey });
+                 settingsT: d.settingsT, sessions: d.sessions, newDate: d.newDate, newDone: d.newDone, packDate: d.packDate, packCount: d.packCount, journey: d.journey });
 }
 
 // put a merged result into this device's save. Existing cards and books are updated in place (not
@@ -122,7 +122,7 @@ function applyMerged(m) {
   state.playlists = reuse(state.playlists, m.playlists, p => p.id);
   state.books = reuse(state.books, m.books, b => b.id);
   state.deleted = m.deleted;
-  Object.assign(state, m.settings, { settingsT: m.settingsT, sessions: m.sessions, newDate: m.newDate, newDone: m.newDone, packDate: m.packDate, journey: m.journey });
+  Object.assign(state, m.settings, { settingsT: m.settingsT, sessions: m.sessions, newDate: m.newDate, newDone: m.newDone, packDate: m.packDate, packCount: m.packCount, journey: m.journey });
   if (!state.books.some(b => b.id === state.readingBook)) state.readingBook = "";
   save(true);   // quiet: these came from syncing
   // keep the screen in step with what arrived
@@ -131,7 +131,6 @@ function applyMerged(m) {
     if (d) { stack.words = new Set(d.words); stack.name = d.name; } else stack = null;
   }
   if (JSON.stringify(settingsOf(state)) !== before) {
-    $("perday").value = String(state.newPerDay);
     fillVoices();
     if (!ticking) syncTimerUI();
     showMusic(false);
@@ -230,7 +229,6 @@ $("restore").addEventListener("change", async e => {
   syncTimerUI();
   showMusic(false);
   showReadbar();
-  $("perday").value = String(state.newPerDay);
   setMode("daily");
   $("msg").textContent = "Restored " + state.cards.length + " card(s) from backup";
 });

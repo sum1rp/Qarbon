@@ -3,28 +3,29 @@
 // The cards themselves (worlds, mastery, the silver edge) are in js/cards.js ("collectible cards"); their looks are in css/styles.css.
 
 // ================= packs: what's in them =================
-// Today's pack is always 10 cards. Packs you open after it have "Cards per extra pack" cards (⚙, state.newPerDay).
+// A pack is always 10 cards: today's pack, then up to 2 extra packs a day (state.packCount, on the day state.packDate), then more tomorrow.
 // A pack takes the deck's next cards you haven't seen (in deck order: the most useful words first),
 // and shows them easiest first, so the hardest world comes last.
 // About 1 daily pack in 10 swaps its last card for a "rare pull": a Level 6 word (a Nebula or a Black Hole).
-const DAILY_PACK = 10, RARE_ODDS = 0.1;
+const PACK_SIZE = 10, PACKS_PER_DAY = 3, RARE_ODDS = 0.1;
 
-// cards a pack can deal: not seen yet, and on a world that's open (built-in words follow the Solar System; your own cards are never locked)
+// cards a pack can deal: built-in words not seen yet, on a world that's open (they follow the Solar System).
+// Your own cards are never in packs (they come straight into Review, see isOwn in js/cards.js) and never locked.
 function worldOpen(c) {
-  if (!wordWorld) sortWorlds();   // (js/cards.js) which world each built-in word is on
-  return !wordWorld.has(wordKey(c)) || WORLDS.indexOf(worldOf(c)) <= state.journey;
+  return isOwn(c) || WORLDS.indexOf(worldOf(c)) <= state.journey;
 }
-const unseenCards = () => stackCards().filter(c => active(c) && !inBinder(c) && worldOpen(c));
+const unseenCards = () => stackCards().filter(c => active(c) && !inBinder(c) && !isOwn(c) && worldOpen(c));
 // cards of this deck that wait on a world you haven't reached yet
 const lockedCards = () => stackCards().filter(c => active(c) && !inBinder(c) && !worldOpen(c));
-const dailyOpened = () => state.packDate === today();
+const packsOpened = () => state.packDate === today() ? state.packCount : 0;   // packs opened today
+const packsUsedUp = () => packsOpened() >= PACKS_PER_DAY && unseenCards().length > 0;   // cards left, but that's 3 packs today
 
 // the pack you can open now: { daily: true or false, size }, or null when every card of this deck is in your binder
+// or you've opened today's 3 packs
 function packReady() {
   const left = unseenCards().length;
-  if (!left) return null;
-  const daily = !dailyOpened();
-  return { daily, size: Math.min(daily ? DAILY_PACK : state.newPerDay, left) };
+  if (!left || packsOpened() >= PACKS_PER_DAY) return null;
+  return { daily: !packsOpened(), size: Math.min(PACK_SIZE, left) };
 }
 
 // a rare pull: a Level 6 word you haven't seen. If it isn't one of your cards yet, only that one word is added.
@@ -79,6 +80,9 @@ const cardBackHTML = tier => '<div class="qcard pk-back" data-tier="' + tier + '
 //   Level 1 = Earth rising, Level 6 = the black hole, the other levels = their easiest world large and their hardest world small,
 //   your own decks and "All my cards" = just the sky.
 let packSkyURL = "";   // drawn once, the first time a pack opens
+// the big pack pictures have sharper copies (1000–1500 px) in img/pack/, loaded only when a pack opens; others use the card photo
+const PACK_PICS = ["earth", "hole", "venus", "mercury", "saturn", "neptune"];
+const packPic = id => PACK_PICS.includes(id) ? "img/pack/" + id + ".jpg" : WORLDS.find(w => w.id === id).img;
 
 // which pictures this deck's pack shows: { bg, big, small } (big/small = worlds from WORLDS in js/cards.js)
 function packBackground() {
@@ -122,7 +126,7 @@ function packSky(w, h) {
 
 function packHTML(name, size, look) {
   if (!packSkyURL) packSkyURL = packSky(300, 420);
-  const pic = look.bg === "earth" ? "img/earth.jpg" : look.bg === "hole" ? "img/sgr-a.jpg" : look.bg === "pair" ? look.big.img : "";
+  const pic = look.bg === "earth" || look.bg === "hole" ? packPic(look.bg) : look.bg === "pair" ? packPic(look.big.id) : "";
   return '<div class="pk-pack" data-bg="' + look.bg + '" role="button" tabindex="0" aria-label="Open the pack">' +
     '<div class="pk-crimp top"></div><div class="pk-tear"></div><div class="pk-cut"></div>' +
     '<div class="pk-body"><img class="pk-sky" alt="" src="' + packSkyURL + '">' +
@@ -148,12 +152,7 @@ function openPack() {
     rare = pullRare();
     if (rare) cards[cards.length - 1] = rare;   // the card it replaces stays for your next pack
   }
-  // the cards are in your binder from now on, even if you skip the opening
-  const t = today();
-  cards.forEach(c => { c.got = t; });
-  if (rare) rare.pulled = true;
-  if (ready.daily) state.packDate = t;
-  save();
+  // nothing is used yet: Cancel puts the pack back sealed. The cards go into your binder when you tear it (tearPack)
   cards.sort(easiestFirst);
   if (rare) cards.push(cards.splice(cards.indexOf(rare), 1)[0]);   // the rare always comes last
   pk = { cards, i: -1, rare, busy: false };
@@ -162,16 +161,25 @@ function openPack() {
   $("pk-stage").innerHTML = packHTML(stack ? stack.name : "All my cards", cards.length, packBackground());
   $("pk-count").textContent = ready.daily ? "Today's pack" : "Another pack";
   $("pk-hint").textContent = "Slide along the top of the pack to tear it open";
-  $("pk-close").textContent = "Skip ✕";
+  $("pk-close").textContent = "Cancel";
+  $("pk-close").hidden = false;
   $("packview").hidden = false;
   document.documentElement.classList.add("packing");
   $("pk-stage").querySelector(".pk-pack").focus({ preventScroll: true });
 }
 
-// tap the sealed pack: the top seal flies off, then the first card comes up
+// the pack is torn: its cards are in your binder from now on, and it counts as one of today's packs.
+// From here you go through to the end (no Cancel; Close comes back on the last screen).
 function tearPack() {
   if (!pk || pk.busy) return;
   pk.busy = true;
+  const t = today();
+  pk.cards.forEach(c => { c.got = t; });
+  if (pk.rare) pk.rare.pulled = true;
+  state.packCount = packsOpened() + 1;
+  state.packDate = t;
+  save();
+  $("pk-close").hidden = true;
   $("pk-stage").querySelector(".pk-pack").classList.add("open");
   setTimeout(() => { pk.busy = false; showPackCard(0); }, pkStill ? 0 : 850);
 }
@@ -231,14 +239,17 @@ function packDone() {
   $("pk-stage").hidden = true;
   $("pk-count").textContent = $("pk-hint").textContent = "";
   $("pk-close").textContent = "Close ✕";
+  $("pk-close").hidden = false;
   const n = pk.cards.length;
   $("pk-title").textContent = n + " new card" + (n === 1 ? " is" : "s are") + " in your binder" + (pk.rare ? ", one of them rare" : "");
   $("pk-grid").innerHTML = pk.cards.map(c => cardHTML(c, 0, "mini", c === pk.rare ? "★ rare" : "")).join("");
   const more = packReady();
   $("pk-another").hidden = !more;
   if (more) $("pk-another").textContent = "Open another pack (" + more.size + ")";
-  $("pk-nudge").textContent = more ? "Extra packs are fine. Each one adds " + more.size + " words to your reviews over the next days, so a few a week is plenty. Their size is “Cards per extra pack” in ⚙."
-                                   : "That's every card in this deck. Your binder is full!";
+  const left = PACKS_PER_DAY - packsOpened();
+  $("pk-nudge").textContent = more ? "Extra packs are fine: " + left + " more today. Each one adds " + more.size + " words to your reviews over the next days."
+                            : packsUsedUp() ? "That's " + PACKS_PER_DAY + " packs today. More packs tomorrow!"
+                            : "That's every card you can open in this deck for now.";
   $("pk-done").hidden = false;
   $("pk-study").focus({ preventScroll: true });
 }
@@ -335,34 +346,45 @@ $("pk-stage").addEventListener("pointermove", e => {
 $("pk-close").onclick = closePack;
 $("pk-study").onclick = closePack;
 $("pk-another").onclick = openPack;
-document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("packview").hidden) closePack(); });
+// Esc = Cancel (before tearing) or Close (at the end), like the button
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("packview").hidden && !$("pk-close").hidden) closePack(); });
 
 // "Today's pack is ready" above the Review card (called by render() in js/cards.js).
 // Extra packs only show once you're done with today's cards.
 // When this deck's next cards wait on a world you haven't reached, it says so instead (tap = the Solar System).
 function packBanner() {
+  $("packrow").hidden = mode !== "daily";   // Binder and List show in Review only (not in Practice)
   const b = $("packbanner"), ready = mode === "daily" && packReady();
   const done = !current && !queue.length;
-  const locked = mode === "daily" && !ready && done && lockedCards().length;
+  const locked = mode === "daily" && !ready && done && !packsUsedUp() && lockedCards().length;
   b.hidden = !(ready && (ready.daily || done)) && !locked;
   b.dataset.locked = locked ? "1" : "";
   if (b.hidden) return;
   b.classList.toggle("extra", !ready || !ready.daily);
-  if (locked) {   // e.g. "🔒 Nebula's cards open when you reach Neptune" · "You're at Earth: 12% of 80% Familiar"
-    const next = Math.min(...lockedCards().map(c => WORLDS.indexOf(worldOf(c))));
+  if (locked) {   // e.g. "🔒 Venus opens when you reach the Moon" · "You're at Earth: 12% of 80% Familiar"
     const here = WORLDS[state.journey], st = worldStats(state.journey);
-    $("pb-title").textContent = "🔒 " + named(WORLDS[next], true) + "'s cards open when you reach " + named(WORLDS[next - 1]);
+    $("pb-title").textContent = "🔒 " + lockedLine();
     $("pb-sub").textContent = "You're at " + named(here) + ": " + Math.round(st.fam / st.total * 100) + "% of 80% Familiar · tap for your Solar System";
     return;
   }
   $("pb-title").textContent = ready.daily ? "Today's pack is ready" : "Open another pack";
-  $("pb-sub").textContent = (stack ? stack.name : "All my cards") + " · " + ready.size + " new cards · " + (ready.daily ? "tap to open" : "adds to your reviews");
+  $("pb-sub").textContent = ready.size + " new cards · " + (ready.daily ? "tap to open" : "adds to your reviews");   // (the deck's name is in the line above)
 }
 $("packbanner").onclick = () => { if ($("packbanner").dataset.locked) setMode("solar"); else openPack(); };
+// Binder and List beside it: this deck in 🗂 Decks, on that tab (Decks always opens on the binder, so List switches after)
+$("rv-binder").onclick = () => { setMode("deck"); scrollTo(0, 0); };
+$("rv-list").onclick = () => { setMode("deck"); showBinder(false); scrollTo(0, 0); };
+
+// "Venus opens when you reach the Moon": the first locked world of this deck, and the world you need to reach before it
+function lockedLine() {
+  const next = Math.min(...lockedCards().map(c => WORLDS.indexOf(worldOf(c))));
+  return named(WORLDS[next], true) + " opens when you reach " + named(WORLDS[next - 1]);
+}
 
 // what the empty Review card says when you're done (render() in js/cards.js)
 function packDoneText() {
-  if ($("packbanner").dataset.locked) return "Done for today! Keep reviewing to reach " + named(WORLDS[state.journey]) + ".";
+  if ($("packbanner").dataset.locked) return "Done for today! " + lockedLine() + ".";
+  if (packsUsedUp()) return "Done for today! That's " + PACKS_PER_DAY + " packs: more tomorrow.";
   return packReady().daily ? "Your new words are in today's pack, above." : "Done for today! Open another pack above, or try “Practice”.";
 }
 
@@ -389,8 +411,11 @@ const num3 = n => "#" + String(n).padStart(3, "0");
 function renderBinder() {
   if (!binderOn) return;
   const dir = dirsOf(stack)[0];
-  const numbered = stackCards().slice().sort(easiestFirst);
+  // the course's cards (built-in words), numbered easiest first; your own cards go in a personal binder at the end
+  const numbered = stackCards().filter(c => !isOwn(c)).sort(easiestFirst);
+  const own = stackCards().filter(isOwn);   // in the order you added them
   const numberOf = new Map(numbered.map((c, i) => [c, i + 1]));
+  if (!numbered.length) { renderPersonal(own, dir); return; }   // one of your own decks: only the personal binder
   const got = numbered.filter(inBinder);
   const worlds = WORLDS.filter(w => numbered.some(c => worldOf(c) === w));
   const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
@@ -403,11 +428,11 @@ function renderBinder() {
     h += '<div class="bd-world"><img alt="" src="' + w.img + '"><div><div class="bd-row"><span>' + w.name + '</span><span>' + n + ' / ' + all.length + '</span></div>' +
          '<div class="bd-bar"><i style="width:' + pct(n, all.length) + '%"></i></div></div><span>' + pct(n, all.length) + '%</span></div>';
   });
-  h += '</div><div class="bd-filters">' + [["all", "All"], ...worlds.map(w => [w.id, w.name]), ["got", "Collected"]]
+  h += '</div><div class="bd-filters">' + [["all", "All"], ...worlds.map(w => [w.id, w.name]), ["got", "Collected"], ...(own.length ? [["own", "Personal"]] : [])]
     .map(([id, name]) => '<button data-bf="' + id + '" aria-pressed="' + (binderFilter === id) + '">' + esc(name) + '</button>').join("") + '</div>';
 
   worlds.forEach(w => {
-    if (binderFilter !== "all" && binderFilter !== "got" && binderFilter !== w.id) return;
+    if (binderFilter !== "all" && binderFilter !== "got" && binderFilter !== w.id) return;   // (also skips them all for "own")
     let list = numbered.filter(c => worldOf(c) === w);
     const first = numberOf.get(list[0]), lastN = numberOf.get(list[list.length - 1]);
     if (binderFilter === "got") list = list.filter(inBinder);
@@ -427,6 +452,7 @@ function renderBinder() {
       rares.map((c, i) => '<button data-rare="' + i + '" aria-label="' + esc(c.front) + ', rare pull">' + cardHTML(c, masteryOf(c, dir), "mini", "rare") + '</button>').join("") + '</div></div>';
   }
   if (!got.length) h += '<p class="bd-note">Your binder fills up as you open packs: go to Review and open today\'s pack.</p>';
+  if (own.length && (binderFilter === "all" || binderFilter === "own")) h += personalHTML(own, dir);
   $("binder").innerHTML = h;
 
   $("binder").querySelectorAll("[data-bf]").forEach(b => { b.onclick = () => { binderFilter = b.dataset.bf; renderBinder(); }; });
@@ -434,7 +460,7 @@ function renderBinder() {
   if (more) more.onclick = () => { binderAll = true; renderBinder(); };
   $("binder").querySelectorAll(".bd-pockets > button").forEach(b => {
     b.onclick = () => {
-      const c = b.dataset.rare ? rares[b.dataset.rare] : numbered[b.dataset.card - 1];
+      const c = b.dataset.rare ? rares[b.dataset.rare] : b.dataset.own ? own[b.dataset.own] : numbered[b.dataset.card - 1];
       $("bd-zoom").innerHTML = cardHTML(c, masteryOf(c, dir), "big");
       $("bd-zoom").hidden = false;
     };
@@ -456,6 +482,29 @@ const SOLAR_SIZES = [86, 56, 78, 66, 58, 104, 110, 80, 80, 112, 96, 96];   // ea
 const bestStep = c => Math.max(masteryOf(c, "fr"), c.rev ? masteryOf(c, "en") : 0);   // its best direction
 
 // how far along a world is: { total, got (in your binder), fam (Familiar or better), mas (Mastered) }
+// the personal binder: your own cards, every one showing (nothing to collect: they come into Review by themselves)
+function personalHTML(own, dir) {
+  const started = own.filter(inBinder).length;
+  return '<div class="bd-sec bd-personal"><h3><span class="bd-atom">' + atomSVG(6.5) + '</span>Personal binder <span>· your own cards · ' +
+    started + ' of ' + own.length + ' in Review so far</span></h3><div class="bd-pockets">' +
+    own.map((c, i) => '<button data-own="' + i + '" aria-label="' + esc(c.front) + ', ' + MASTERY[masteryOf(c, dir)] + '">' +
+      cardHTML(c, masteryOf(c, dir), "mini", String(i + 1)) + '</button>').join("") + '</div></div>';
+}
+// one of your own decks: the binder is only the personal binder, with its own little summary on top
+function renderPersonal(own, dir) {
+  const mastered = own.filter(c => masteryOf(c, dir) === 4).length, pct = own.length ? Math.round(mastered / own.length * 100) : 0;
+  $("binder").innerHTML = '<div class="bd-head"><div class="bd-big"><b>' + own.length + '</b><span>cards · ' + mastered + ' mastered · ' +
+    OWN_PER_DAY + ' new a day come into Review</span></div><div class="bd-bar"><i style="width:' + pct + '%"></i></div></div>' +
+    (own.length ? personalHTML(own, dir) : '<p class="bd-note">No cards in this deck yet.</p>');
+  $("binder").querySelectorAll(".bd-pockets > button").forEach(b => {
+    b.onclick = () => {
+      const c = own[b.dataset.own];
+      $("bd-zoom").innerHTML = cardHTML(c, masteryOf(c, dir), "big");
+      $("bd-zoom").hidden = false;
+    };
+  });
+}
+
 function worldStats(i) {
   if (!worldWords) sortWorlds();
   const mine = new Map(state.cards.map(c => [wordKey(c), c]));

@@ -1,15 +1,14 @@
-// Qarbon · js/worlds.js: the seven worlds on the home screen, made from real things.
+// Qarbon · js/worlds.js: the worlds on the home screen, made from real things.
 // The script files run in the order index.html lists them, and share one set of variables.
 //
-//   Black hole  Sagittarius A*, the black hole at the center of our galaxy (Event Horizon Telescope photo)
+//   Solar System the logo atom as a sun, with real planet photos circling it (drawn here, below)
 //   Review      the Earth, live: NASA maps on a turning globe, lit where the Sun really is right now
-//   Decks       the Big Dipper, drawn from real star positions
-//   Practice    the Moon in tonight's real phase
+//   Media       the logo atom wearing headphones · Decks the Big Dipper, drawn from real star positions
+//   Translate   Bruegel's Tower of Babel · Reading the Moon in tonight's real phase · Focus the Crab Nebula (Hubble photo)
 //   B.A.R. Exam the Sun (Solar Dynamics Observatory; it goes supernova when you tap it, in the styles)
-//   Focus       the Crab Nebula · Reading the Helix Nebula (Hubble photos)
 //
-// The photos are in img/. Only the black hole's loads right away (it's the first world you see);
-// the others load just after the home screen appears, so starting the app isn't slower.
+// The Solar System (the first world you see) is drawn right away; the photos of the others load
+// just after the home screen appears, so starting the app isn't slower.
 
 const stillMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -249,8 +248,6 @@ function setUpWorlds() {
   document.querySelectorAll(".world img[data-src]").forEach(img => { img.src = img.dataset.src; img.removeAttribute("data-src"); });
   $("w-moon").innerHTML = moonSVG();
   $("w-media").innerHTML = mediaWorldSVG();
-  $("w-solar").innerHTML = solarWorldSVG();
-  if (stillMotion) $("w-solar").querySelector("svg").pauseAnimations();   // less motion: the planets stay where they are
   const dipper = document.createElement("canvas");
   $("w-dipper").appendChild(dipper);
   liveWorlds.push([$("w-dipper"), t => drawDipper(dipper, t)]);
@@ -281,6 +278,10 @@ function worldsLoop(t) {
   }
   requestAnimationFrame(worldsLoop);
 }
+// the Solar System is the first world you see, so it's drawn at once (its planet photos load with it)
+$("w-solar").innerHTML = solarWorldSVG();
+if (stillMotion) $("w-solar").querySelector("svg").pauseAnimations();   // less motion: the planets stay where they are
+
 // start once the page has finished loading (so the photos don't slow down the first screen)
 function startWorlds() {
   setUpWorlds();

@@ -611,7 +611,7 @@ $("readsave").onclick = () => {
 showReadbar();
 // ‹ goes home, unless the mini Qpod brought you into the Qpod: then back to where you were (see miniTap in js/media.js)
 $("gohome").onclick = () => { if (mode === "media" && miniFrom) miniBack(); else show("home"); };
-$("logo").onclick = () => show("home");   // tapping the Qarbon logo also takes you back to the black hole
+$("logo").onclick = () => show("home");   // tapping the Qarbon logo also takes you back home
 
 // ================= the in-app reader =================
 // Two kinds: a book's built-in text (like Siddhartha), chapter by chapter, or a PDF you attached to a book.

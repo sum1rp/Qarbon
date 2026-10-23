@@ -26,32 +26,32 @@
   <section id="home">
     <h1 class="welcome">Welcome to <span id="homelogo" class="qlogo spin" role="img" aria-label="Qarbon"></span></h1>   <!-- the logo is drawn in here by the script -->
     <p class="sub">Knowledge that connects us all</p>
-    <!-- the carousel: one world at a time. Swipe, tap ‹ ›, or use the arrow keys; tap the world to enter it.
-         It starts on the black hole and wraps around after Reading. -->
+    <!-- the carousel: one world at a time. Swipe, tap ‹ ›, use the arrow keys, or tap or drag along the dots; tap the world to enter it.
+         It starts on the Solar System and wraps around after B.A.R. Exam. -->
     <div class="carousel">
       <button class="arrow" id="prevworld" aria-label="Previous world">‹</button>
       <div class="stage" id="stage" aria-roledescription="carousel">
         <!-- the worlds are real things (drawn or filled in by js/worlds.js; photos in img/).
-             The black hole opens Review on your last deck. Each photo waits in data-src until the home screen is up. -->
-        <!-- the black hole: Sagittarius A*, at the center of our galaxy (Event Horizon Telescope) -->
-        <button class="slide on" data-mode="hole">
-          <span class="body world" id="w-hole" aria-hidden="true"><img class="photo" alt="" src="img/sgr-a.jpg"></span>
-          <span class="wname">Black hole</span><span class="wsub" id="ws-hole"></span>
+             The Solar System comes first (it's your map), then Review. Each photo waits in data-src until the home screen is up. -->
+        <!-- 🪐 Solar System: Qarbon's own little solar system, worlds circling the logo atom (solarWorldSVG in js/worlds.js) -->
+        <button class="slide on" data-mode="solar">
+          <span class="body world" id="w-solar" aria-hidden="true"></span>
+          <span class="wname">Solar System</span><span class="wsub" id="ws-solar"></span>
         </button>
         <!-- 🃏 Review: the Earth, live (a still photo until the live globe is ready) -->
         <button class="slide" data-mode="daily">
           <span class="body world" id="w-earth" aria-hidden="true"><img class="photo" alt="" data-src="img/earth.jpg"></span>
           <span class="wname">Review</span><span class="wsub" id="ws-daily"></span>
         </button>
+        <!-- 🎧 Media: the Qarbon atom wearing headphones (drawn by mediaWorldSVG in js/worlds.js) -->
+        <button class="slide" data-mode="media">
+          <span class="body world" id="w-media" aria-hidden="true"></span>
+          <span class="wname">Qarbon Media Player</span><span class="wsub"></span>
+        </button>
         <!-- 🗂 Decks: the Big Dipper, separate stars joined into a shape -->
         <button class="slide" data-mode="deck">
           <span class="body world" id="w-dipper" aria-hidden="true"></span>
           <span class="wname">Decks</span><span class="wsub" id="ws-deck"></span>
-        </button>
-        <!-- 🪐 Solar System: Qarbon's own little solar system, worlds circling the logo atom (solarWorldSVG in js/worlds.js) -->
-        <button class="slide" data-mode="solar">
-          <span class="body world" id="w-solar" aria-hidden="true"></span>
-          <span class="wname">Solar System</span><span class="wsub" id="ws-solar"></span>
         </button>
         <!-- 🌐 Translate: Bruegel's Tower of Babel (the story of where languages came from), with "hello" in 14 languages
              turning around it. Each word sits at its own even spot on the circle (startOffset = its middle, every 1/14 of the
@@ -76,31 +76,21 @@
             </svg></span></span>
           <span class="wname">Translate</span><span class="wsub"></span>
         </button>
-        <!-- 🔁 Practice: the Moon, in tonight's phase -->
-        <button class="slide" data-mode="practice">
+        <!-- 📖 Reading: the Moon, in tonight's phase (reading by moonlight) -->
+        <button class="slide" data-mode="reading">
           <span class="body world" id="w-moon" aria-hidden="true"></span>
-          <span class="wname">Practice</span><span class="wsub" id="ws-practice"></span>
-        </button>
-        <!-- 🔥 B.A.R. Exam: the Sun (NASA's Solar Dynamics Observatory). Tap it and it goes supernova, then the exam opens.
-             .shock is the blast wave and .flash the burst of light (see "supernova" in the styles) -->
-        <button class="slide" data-mode="burn">
-          <span class="body world" id="w-sun" aria-hidden="true"><img class="photo" alt="" data-src="img/sun.jpg"><span class="shock"></span><span class="flash"></span></span>
-          <span class="wname">B.A.R. Exam</span><span class="wsub"></span>
+          <span class="wname">Reading</span><span class="wsub" id="ws-reading"></span>
         </button>
         <!-- ⏱ Focus: the Crab Nebula, with the pulsar at its heart pulsing on a steady rhythm like a timer -->
         <button class="slide" data-mode="focus">
           <span class="body world" id="w-crab" aria-hidden="true"><img class="photo" alt="" data-src="img/crab-nebula.jpg"><span class="pulse"></span><span class="glint"></span></span>
           <span class="wname">Focus</span><span class="wsub"></span>
         </button>
-        <!-- 🎧 Media: the Qarbon atom wearing headphones (drawn by mediaWorldSVG in js/worlds.js) -->
-        <button class="slide" data-mode="media">
-          <span class="body world" id="w-media" aria-hidden="true"></span>
-          <span class="wname">Qarbon Media Player</span><span class="wsub"></span>
-        </button>
-        <!-- 📖 Reading: the Helix Nebula -->
-        <button class="slide" data-mode="reading">
-          <span class="body world" id="w-helix" aria-hidden="true"><img class="photo" alt="" data-src="img/helix-nebula.jpg"></span>
-          <span class="wname">Reading</span><span class="wsub" id="ws-reading"></span>
+        <!-- 🔥 B.A.R. Exam: the Sun (NASA's Solar Dynamics Observatory). Tap it and it goes supernova, then the exam opens.
+             .shock is the blast wave and .flash the burst of light (see "supernova" in the styles) -->
+        <button class="slide" data-mode="burn">
+          <span class="body world" id="w-sun" aria-hidden="true"><img class="photo" alt="" data-src="img/sun.jpg"><span class="shock"></span><span class="flash"></span></span>
+          <span class="wname">B.A.R. Exam</span><span class="wsub"></span>
         </button>
       </div>
       <button class="arrow" id="nextworld" aria-label="Next world">›</button>
@@ -125,8 +115,8 @@
     <div class="howsec">
       <h3>Getting started</h3>
       <ul>
-        <li>The home screen shows one world at a time, starting with the black hole. It moves on to the next world by itself every 5 seconds, like a little tour. Touching it pauses the tour; leave it alone for 10 seconds and it carries on (not with Reduce Motion on). Swipe left or right to move between them yourself (on a computer: the ‹ › buttons or the arrow keys). <b>Review</b> is the Earth, <b>Decks</b> the Big Dipper, <b>Translate</b> the Tower of Babel, <b>Practice</b> the Moon, <b>B.A.R. Exam</b> the Sun (tap it and watch), <b>Focus</b> the Crab Nebula, <b>Qarbon Media Player</b> the Qarbon atom wearing headphones, and <b>Reading</b> the Helix Nebula. Tap a world to go straight there. The black hole opens Review on your last deck. The small line under each world shows cards due, your deck, tonight's Moon, or the books you're reading.</li>
-        <li>They're all real: the black hole is <b>Sagittarius A*</b>, the one at the center of our galaxy, as photographed by the Event Horizon Telescope. The Earth is live: it turns, and it's lit where the Sun really is right now, with city lights on the night side. The Moon shows <b>tonight's actual phase</b>, and the stars behind everything are the real night sky (see <b>Space images</b> below).</li>
+        <li>The home screen shows one world at a time, starting with the Solar System. It moves on to the next world by itself every 5 seconds, like a little tour. Touching it pauses the tour; leave it alone for 10 seconds and it carries on (not with Reduce Motion on). Swipe left or right to move between them yourself, or tap a dot (or slide your finger along the dots) to jump (on a computer: the ‹ › buttons or the arrow keys). In order: the <b>Solar System</b> (your map, the Qarbon atom with planets around it), <b>Review</b> the Earth, <b>Qarbon Media Player</b> the atom wearing headphones, <b>Decks</b> the Big Dipper, <b>Translate</b> the Tower of Babel, <b>Reading</b> the Moon, <b>Focus</b> the Crab Nebula and <b>B.A.R. Exam</b> the Sun (tap it and watch). Tap a world to go straight there. The small line under each world shows where you are on the map, cards due, your deck, or the books you're reading (or tonight's Moon). <b>Practice</b> is in the Mode menu.</li>
+        <li>They're all real: the planets are NASA photos, and the Earth is live: it turns, and it's lit where the Sun really is right now, with city lights on the night side. The Moon shows <b>tonight's actual phase</b>, and the stars behind everything are the real night sky (see <b>Space images</b> below).</li>
         <li>The app opens on the deck you used last (Level 1 the first time).</li>
         <li>Pick what you're doing from the <b>Mode</b> menu at the top: <b>🃏 Review</b>, <b>🗂 Decks</b>, <b>🔁 Practice</b>, <b>🔥 B.A.R. Exam</b>, <b>⏱ Focus</b>, <b>📖 Reading</b>, <b>🌐 Translate</b> or <b>🎧 Qarbon Media Player</b>.</li>
         <li>Built-in stacks: <b>Level 1</b> (the 150 most useful words), <b>Level 2</b> (150 more) and <b>Level 3</b> (300 words for everyday life: home, city, travel, work, health, feelings; levels A2–B1), then <b>Level 4</b> (B2), <b>Level 5</b> (C1) and <b>Level 6</b> (C2), 75 harder words each, where the rare cards live. <b>All my cards</b> has everything.</li>
@@ -134,19 +124,20 @@
         <li><b>Make your own deck:</b> in Decks → Switch ▾, tap <b>+ New deck from a CSV file</b>, pick the file and name it. It stays saved. A word that's in two decks shares one set of progress.</li>
         <li>Your own decks have <b>✎</b> to rename them and <b>🗑</b> to delete them. Deleting a deck keeps its cards in All my cards.</li>
         <li><b>CSV format:</b> the first row needs <b>front</b> (French) and <b>back</b> (English). Optional columns: part_of_speech, gender (m, f or m/f), example_target, example_english, tags (levels like A1, A2, B1, B2, separated by <b>;</b>).</li>
-        <li>On the study page, <b>‹</b> (top left) or the <b>Qarbon</b> logo goes back to the black hole, <b>⚙</b> opens the settings, and <b>?</b> opens this page.</li>
+        <li>On the study page, <b>‹</b> (top left) or the <b>Qarbon</b> logo goes back home, <b>⚙</b> opens the settings, and <b>?</b> opens this page.</li>
       </ul>
     </div>
 
     <div class="howsec">
       <h3>Review</h3>
       <ul>
-        <li>Shows the cards due today, plus the new words from the packs you've opened.</li>
-        <li><b>Today's pack:</b> new words come in a pack of 10 each day. Tap "Today's pack is ready" above the card, tap the pack to tear it open, then tap to turn over each card. The hardest world comes last, face down. About 1 daily pack in 10 has a <b>rare pull</b>: a Nebula or Black Hole word from Level 6.</li>
-        <li><b>More packs:</b> when you're done for the day you can open another pack. Each one adds to your reviews over the next days. Its size is <b>Cards per extra pack</b> in ⚙.</li>
+        <li>Shows the cards due today, plus the new words from the packs you've opened. <b>Binder</b> and <b>List</b> (beside the pack) open this deck in 🗂 Decks.</li>
+        <li><b>Today's pack:</b> new words come in a pack of 10 each day. Tap "Today's pack is ready" above the card, slide your finger along the top of the pack to tear it open, then swipe each card away. <b>Cancel</b> puts the pack back, still sealed, as long as you haven't torn it; once it's torn you go through to the end. The hardest world comes last, face down. About 1 daily pack in 10 has a <b>rare pull</b>: a Nebula or Black Hole word from Level 6.</li>
+        <li><b>More packs:</b> when you're done for the day you can open another pack of 10, up to 3 packs a day; then more tomorrow. Each one adds to your reviews over the next days.</li>
+        <li><b>Your own cards</b> (your CSV decks, + Add card, Translate) skip the packs and come straight into Review like an Anki deck: 10 new ones a day per deck. They live in their own <b>personal binder</b>, not the course's worlds, and never count on the Solar System map.</li>
         <li><b>Flip:</b> tap the card, tap <b>Show answer</b>, or press Space/Enter. Tap again to peek back at the front.</li>
         <li><b>Rate it:</b> Again, Hard, Good or Easy (keys 1 to 4). The small text under each button is when you'll see the card next.</li>
-        <li><b>Swipe</b> right for Good, left for Again (after flipping).</li>
+        <li><b>Swipe up</b> on the card to show the answer, then <b>swipe</b> right for Good, left for Again.</li>
         <li><b>Again</b> brings the card back a few cards later today, and again tomorrow.</li>
         <li><b>Scheduling works like Anki:</b> every card has an "ease" (starts at 2.5). Good multiplies the wait by it. Hard grows the wait a little and lowers the ease. Easy jumps further and raises it. Again resets the card to 1 day. Words you find hard come back more often.</li>
         <li>🔊 says the word or the example sentence. The color band along the top of the card (and the word-type label) shows the word type: noun green, verb pink, adjective orange, adverb purple, pronoun blue.</li>
@@ -211,9 +202,9 @@
     <div class="howsec">
       <h3>⏱ Focus (timer and music for any studying)</h3>
       <ul>
-        <li>Choose <b>⏱ Focus</b> in the Mode menu (or <b>⤢ Focus page</b> in the small timer dropdown). The Mode menu takes you straight back to Review or anything else.</li>
-        <li>At the top is the <b>♪ music dropdown</b>: closed, it shows what's playing; tap it for the player and your lists. Then a big clock with a ring that empties as time passes. <b>Start/Pause</b>, <b>Reset</b>, and <b>Skip</b> (jump to the break, or back to focus; a skipped focus session isn't counted). On a computer, Space starts and pauses.</li>
-        <li>It's the <b>same timer and music</b> as the flashcards' dropdown: start it here, go study cards, and it keeps going.</li>
+        <li>Choose <b>⏱ Focus</b> in the Mode menu (or <b>⤢ Focus page</b> in the small timer under the Review card). The Mode menu takes you straight back to Review or anything else.</li>
+        <li>A big clock with a ring that empties as time passes. <b>Start/Pause</b>, <b>Reset</b>, and <b>Skip</b> (jump to the break, or back to focus; a skipped focus session isn't counted). On a computer, Space starts and pauses.</li>
+        <li>It's the <b>same timer</b> as the small one under the Review card: start it here, go study cards, and it keeps going. Music is in <b>🎧 Qarbon Media Player</b>.</li>
       </ul>
     </div>
 
@@ -256,11 +247,11 @@
     <div class="howsec">
       <h3>Timer and music</h3>
       <ul>
-        <li>Tap the time at the top to open the small timer, or choose ⏱ Focus in the Mode menu for the big one.</li>
+        <li>Tap the time under the Review card to open the small timer, or choose ⏱ Focus in the Mode menu for the big one. Opening it doesn't shrink the card: scroll down a little for its buttons.</li>
         <li>Styles: <b>Pomodoro 25/5</b> (a 15 min break every 4th time), <b>Long Pomodoro 50/10</b> (a 30 min break every 3rd time), <b>52/17</b>, <b>Deep work 90/20</b>, <b>15 min</b>, <b>30 min</b>, <b>1 hour</b>, or <b>Custom</b>.</li>
         <li><b>Custom</b> (set in ⏱ Focus): choose the focus, break and long-break lengths, and after how many focus sessions the long break comes.</li>
         <li>A chime plays when time is up, and the next part waits for you to press Start. Finished focus sessions are counted.</li>
-        <li><b>Music:</b> paste a <b>YouTube</b> or <b>SoundCloud</b> link and press Play. It keeps playing when you close the panel or switch pages (a ♪ shows next to the time). <b>Remove music</b> clears it.</li>
+        <li><b>Music</b> lives in <b>🎧 Qarbon Media Player</b> (the panel under the Qpod): paste a <b>YouTube</b> or <b>SoundCloud</b> link and press Play. It keeps playing when you switch pages, and the mini Qpod floats at the side. <b>Remove music</b> clears it.</li>
         <li><b>Your own songs:</b> <b>📁 Choose music files</b> opens the Files app (On My iPhone, iCloud Drive, Downloads). Pick one or several: MP3, M4A, AAC and WAV work best. Their name, artist and cover come from the file. They're kept <b>on this device</b> (not synced, too big) under <b>My music on this phone</b>, each with its cover. <b>⋯</b> next to a song: <b>🖼</b> picks album art for it (or its whole album), <b>↺</b> goes back to the original, <b>✕ Remove song</b> removes it. Songs from Apple Music can't be used: Apple doesn't let websites read them.</li>
         <li>Your own songs play in Qarbon's player: a progress bar you can drag, ⏮ ❚❚ ⏭, 🔀 shuffle and 🔁 repeat (tap again for 🔂, repeat one song). Their name and buttons also show on the lock screen.</li>
         <li><b>🕘 Played this session</b> (a dropdown, just above Remove music): the last 10 songs, newest first. Tap one to play it again. It's forgotten when you close Qarbon.</li>
@@ -293,7 +284,6 @@
       <h3>Saving and backups</h3>
       <ul>
         <li>Progress saves automatically, <b>in this browser on this device</b>. Your phone and your Mac keep separate progress.</li>
-        <li>In <b>⚙</b> settings: <b>Cards per extra pack</b> sets how many new words an extra pack has (today's pack is always 10).</li>
         <li><b>Export backup</b> (in ⚙) downloads a file with all your cards, progress, decks and settings. <b>Restore backup</b> replaces your progress with a backup (it asks first). Use these to move progress between devices.</li>
         <li>Private browsing windows can block saving. Qarbon shows a warning if that happens.</li>
       </ul>
@@ -308,8 +298,9 @@
         <li><b>Moon:</b> NASA's Scientific Visualization Studio (full Moon, from Lunar Reconnaissance Orbiter data). The phase is worked out from the date (Meeus' formula).</li>
         <li><b>Big Dipper:</b> the real positions, brightness and colors of its stars, plus Alcor.</li>
         <li><b>Sun:</b> NASA's Solar Dynamics Observatory (in extreme ultraviolet light, 304 Å, October 2026).</li>
-        <li><b>Crab Nebula</b> (Hubble's mosaic, 2005) and <b>Helix Nebula</b> (Hubble): NASA, ESA, STScI.</li>
-        <li><b>Card worlds</b> (all public domain, via Wikimedia Commons): <b>Mercury</b> NASA / Johns Hopkins APL / Carnegie Institution (MESSENGER); <b>Venus</b> NASA (Mariner 10); <b>Mars</b> NASA / USGS (Viking); <b>Jupiter</b> NASA, ESA, A. Simon (Hubble, 2014); <b>Saturn</b> NASA / JPL / Space Science Institute (Cassini, 2008); <b>Uranus</b> NASA / JPL (Voyager 2); <b>Neptune</b> NASA / JPL (Voyager 2, processed by Aster Cowart). Earth, the Moon, the Sun, the Crab Nebula and Sagittarius A* are the photos above.</li>
+        <li><b>Crab Nebula</b> (Hubble's mosaic, 2005) and <b>Helix Nebula</b> (Hubble, in the Qpod's Space visualizer): NASA, ESA, STScI.</li>
+        <li><b>Pack pictures:</b> sharper copies of the card photos below, and for Level 1 the <b>Blue Marble</b> (the Earth seen from Apollo 17, 7 December 1972; NASA / Apollo 17 crew). Public domain, via Wikimedia Commons; the black hole via ESO.</li>
+        <li><b>Card worlds</b> (all public domain, via Wikimedia Commons): <b>Mercury</b> NASA / Johns Hopkins APL / Carnegie Institution (MESSENGER); <b>Venus</b> NASA / JPL-Caltech (Mariner 10); <b>Mars</b> NASA / USGS (Viking); <b>Jupiter</b> NASA, ESA, A. Simon (Hubble, 2014); <b>Saturn</b> NASA / JPL / Space Science Institute (Cassini, 2008); <b>Uranus</b> NASA / JPL (Voyager 2); <b>Neptune</b> NASA / JPL (Voyager 2, processed by Aster Cowart). Earth, the Moon, the Sun, the Crab Nebula and Sagittarius A* are the photos above.</li>
         <li><b>Tower of Babel</b> (not from space, but it's where the story says languages came from): Pieter Bruegel the Elder's painting, about 1563, Museum Boijmans Van Beuningen, Rotterdam. Public domain, via Wikimedia Commons (Google Art Project).</li>
       </ul>
     </div>
@@ -331,16 +322,13 @@
   <main id="study" hidden>
   <header id="studyhead">
     <button id="gohome" aria-label="Back to home" title="Back to home">‹</button>
-    <h1><button id="logo" title="Back to the black hole" aria-label="Qarbon: back to the home screen"></button></h1>
+    <h1><button id="logo" title="Back to home" aria-label="Qarbon: back to the home screen"></button></h1>
     <button id="gosettings" aria-label="Settings" title="Settings">⚙</button>
     <button id="gohelp" aria-label="How to use Qarbon" title="How to use Qarbon">?</button>
   </header>
 
   <!-- settings: hidden until you tap ⚙ -->
   <div id="settings" hidden>
-    <label>Cards per extra pack
-      <select id="perday"><option>10</option><option>20</option><option>30</option></select>
-    </label>
     <label>Card direction (this stack) <select id="direction"></select></label>
     <label>Voice <select id="voice"></select></label>
     <!-- the cards' holo shine can follow the phone's tilt (iPhone asks permission once); this device only -->
@@ -388,34 +376,9 @@
     <span class="arrow" aria-hidden="true">▾</span>
   </div>
 
-  <!-- <details> is a built-in dropdown panel: tap the <summary> line to open or close it -->
-  <details id="timer">
-    <summary><span id="phase">Focus</span><span id="time">25:00</span><span class="arrow">▾</span></summary>
-    <div id="tcontrols">
-    <select id="tmode" title="Timer style"></select>   <!-- the styles are filled in by the script -->
-    <button id="tstart">Start</button>
-    <button id="treset">Reset</button>
-    <span id="sessions"></span>
-    <button id="openfocus" title="Open the Focus page">⤢ Focus page</button>
-    </div>
-    <!-- music: paste a YouTube or SoundCloud link to play it while you study.
-         It keeps playing when this panel is closed. -->
-    <div class="musicpanel">
-      <div class="label">♪ Music while you study</div>
-      <div class="musicbody"></div>   <!-- the player, buttons and lists: filled in by js/music.js -->
-    </div>
-  </details>
-
-  <!-- ===== ⏱ Focus mode: the study timer and music, for any kind of studying =====
-       It's the same timer and the same music as in the timer dropdown above. -->
+  <!-- ===== ⏱ Focus mode: the study timer, for any kind of studying =====
+       It's the same timer as the small timer dropdown at the bottom of Review. Music lives in 🎧 Qarbon Media Player. -->
   <section id="focus" hidden>
-
-    <!-- music, as a dropdown like the small timer: closed, it shows what's playing, so Focus is mostly the big clock.
-         The music keeps playing when it's closed (the player is parked off-screen, see placePlayer in js/music.js). -->
-    <details class="musicpanel focusmusic" id="focusmusic">
-      <summary><span class="note" aria-hidden="true">♪</span><span id="focusnow">Add music</span><span class="arrow" aria-hidden="true">▾</span></summary>
-      <div class="musicbody"></div>
-    </details>
 
     <!-- "How far did you get?": after a focus session, or when you tap Done reading -->
     <div id="readcheck" hidden>
@@ -644,7 +607,7 @@
         <span class="ip-arrow" aria-hidden="true">▾</span></summary>
       <div class="ip-colorlist" id="ip-colorlist" role="radiogroup" aria-label="Qpod color"></div>
     </details>
-    <!-- the music panel: the same as in the timer dropdown and Focus (filled in by js/music.js), out in the open here.
+    <!-- the music panel (filled in by js/music.js): the only place music is chosen, besides the Qpod's own menus.
          Its YouTube video shows in the iPod's screen instead; SoundCloud (too wide for the screen) plays in this panel. -->
     <div class="musicpanel ip-music" id="ip-music">
       <div class="label">♪ Music</div>
@@ -655,8 +618,15 @@
 
   <div id="cardview">
     <div id="status"></div>
-    <!-- "Today's pack is ready" (or "Open another pack" when you're done): opens the pack (js/collection.js) -->
-    <button id="packbanner" hidden><span class="pk-icon"></span><span><b id="pb-title"></b><small id="pb-sub"></small></span></button>
+    <!-- "Today's pack is ready" (or "Open another pack" when you're done): opens the pack (js/collection.js).
+         Beside it, Binder and List open this deck in 🗂 Decks on that tab (only in Review) -->
+    <div id="packrow">
+      <button id="packbanner" hidden><span class="pk-icon"></span><span><b id="pb-title"></b><small id="pb-sub"></small></span></button>
+      <div id="decklinks">
+        <button id="rv-binder" title="Your cards in this deck, by world"><span aria-hidden="true">🃏</span>Binder</button>
+        <button id="rv-list" title="Every card in this deck, as a list"><span aria-hidden="true">☰</span>List</button>
+      </div>
+    </div>
     <div id="scene">
       <!-- "⬆ le magasin · Known" for a moment when an answer moves a word up a step -->
       <div id="levelup" hidden></div>
@@ -705,6 +675,18 @@
       <button id="good" hidden title="Key 3">Good<small></small></button>
       <button id="easy" hidden title="Key 4">Easy<small></small></button>
     </div>
+
+    <!-- the small timer, at the bottom of Review. <details> is a built-in dropdown panel: tap the <summary> line to open or close it -->
+    <details id="timer">
+      <summary><span id="phase">Focus</span><span id="time">25:00</span><span class="arrow">▾</span></summary>
+      <div id="tcontrols">
+      <select id="tmode" title="Timer style"></select>   <!-- the styles are filled in by the script -->
+      <button id="tstart">Start</button>
+      <button id="treset">Reset</button>
+      <span id="sessions"></span>
+      <button id="openfocus" title="Open the Focus page">⤢ Focus page</button>
+      </div>
+    </details>
   </div>
 
   <div id="deckview" hidden>

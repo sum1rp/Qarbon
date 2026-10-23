@@ -68,9 +68,6 @@ document.addEventListener("keydown", e => {
   }
 });
 
-$("perday").value = String(state.newPerDay);
-$("perday").onchange = e => { state.newPerDay = Number(e.target.value); save(); refresh(); };
-
 // ================= import a CSV pack =================
 // turns CSV text into cards and adds the ones you don't already have.
 // Returns how it went: { added, dupes, bad }, or { error } if the file can't be used.
@@ -176,7 +173,7 @@ function openStacks() {
   $("deckpicker").open = true;
 }
 
-// the black hole opens the app on the deck you used last (Level 1 the first time)
+// opening the app from home starts on the deck you used last (Level 1 the first time)
 function openApp() {
   const all = allStacks();
   chooseStack(all.find(s => s.id === state.stackId) || all[0]);
@@ -243,7 +240,7 @@ function deleteDeck(id) {
 // switch to a deck. stay = true when you picked it in the Decks tab (you stay there); otherwise Review opens
 function chooseStack(s, stay) {
   stack = s.words ? s : null;
-  state.stackId = s.id;   // remembered, so the black hole opens this deck next time
+  state.stackId = s.id;   // remembered, so the app opens this deck next time
   save();
   $("msg").textContent = "";
   if (s.text) {   // built-in pack: add any of its words you don't have yet
@@ -293,35 +290,51 @@ $("direction").onchange = e => {
   refresh();   // rebuild today's review with the new direction
 };
 
-// the small lines under the worlds: cards due, the deck you're on, tonight's Moon, books you're reading
+// the small lines under the worlds: where you are on the map, cards due, the deck you're on, books you're reading
 function worldInfo() {
   const all = allStacks(), s = all.find(x => x.id === state.stackId) || all[0], t = today();
   const cards = s.words ? state.cards.filter(c => s.words.has(wordKey(c))) : state.cards;
   const due = cards.filter(c => active(c) && dirsOf(s).some(d => { const x = sideOf(c, d); return x.reviews > 0 && x.due <= t; })).length;
-  $("ws-hole").textContent = "Dive in · " + s.name;
   // today's pack, if it's still sealed (js/collection.js)
-  const packWaiting = state.packDate !== t && cards.some(c => active(c) && !inBinder(c));
+  const packWaiting = !packsOpened() && cards.some(c => active(c) && !inBinder(c) && !isOwn(c) && worldOpen(c));
   $("ws-daily").textContent = [due ? due + " due" : "", packWaiting ? "today's pack is ready" : ""].filter(Boolean).join(" · ");
   $("ws-deck").textContent = s.name;
   $("ws-solar").textContent = "At " + named(WORLDS[state.journey]);   // where you are on the trip (js/collection.js)
-  $("ws-practice").textContent = moonLine();   // tonight's Moon (js/worlds.js)
+  // under the Moon: the books you're reading, else tonight's Moon ("Waxing gibbous · 73% lit tonight", js/worlds.js)
   const reading = state.books.filter(b => !isFinished(b)).length;
-  $("ws-reading").textContent = reading ? reading + (reading === 1 ? " book" : " books") : "";
+  $("ws-reading").textContent = reading ? reading + (reading === 1 ? " book" : " books") : moonLine();
 }
 
 // ----- the home carousel: one world at a time -----
 const slides = [...document.querySelectorAll(".slide")];
-let world = 0;          // which slide is showing (0 = the black hole)
+let world = 0;          // which slide is showing (0 = the Solar System)
 let launching = false;  // true while a world is zooming toward you, so taps and swipes wait
 
-// the dots underneath: one per world (the black hole's is drawn hollow)
-$("worlddots").innerHTML = slides.map((s, i) =>
-  `<button class="${i ? "" : "hole"}" aria-label="${s.querySelector(".wname").textContent}"></button>`).join("");
+// the dots underneath: one per world. Each dot is a big invisible button (easy to hit) with a small dot drawn in it.
+$("worlddots").innerHTML = slides.map(s => `<button aria-label="${s.querySelector(".wname").textContent}"></button>`).join("");
 const worldDots = [...$("worlddots").children];
-worldDots.forEach((d, i) => { d.onclick = () => { pauseTour(); goWorld(i, i > world ? 1 : -1); }; });
+// tap a dot, or slide your finger along the row: the world under your finger shows as you go
+let dotDrag = null;   // which finger is sliding along the dots
+function dotAt(x) {   // the dot nearest to x (a spot on the screen, left to right)
+  const d = worldDots.map(b => { const r = b.getBoundingClientRect(); return Math.abs(r.left + r.width / 2 - x); });
+  return d.indexOf(Math.min(...d));
+}
+function goDot(x) { const i = dotAt(x); if (i !== world) goWorld(i, i > world ? 1 : -1); }
+$("worlddots").addEventListener("pointerdown", e => {
+  pauseTour();
+  dotDrag = e.pointerId;
+  $("worlddots").setPointerCapture(e.pointerId);   // keep following the finger even past the row's ends
+  goDot(e.clientX);
+});
+$("worlddots").addEventListener("pointermove", e => { if (dotDrag === e.pointerId) goDot(e.clientX); });
+const dotUp = e => { if (dotDrag === e.pointerId) { dotDrag = null; pauseTour(); } };
+$("worlddots").addEventListener("pointerup", dotUp);
+$("worlddots").addEventListener("pointercancel", dotUp);
+// on a keyboard, Enter on a dot (keyboard clicks have detail 0; taps are handled above)
+worldDots.forEach((d, i) => { d.onclick = e => { if (e.detail === 0) { pauseTour(); goWorld(i, i > world ? 1 : -1); } }; });
 
 // show world i. dir = 1: it slides in from the right (going forward), -1: from the left (going back).
-// Going past Reading wraps back to the black hole, and the other way round.
+// Going past the last world wraps back to the first, and the other way round.
 function goWorld(i, dir) {
   if (launching) return;
   i = (i + slides.length) % slides.length;
@@ -386,7 +399,7 @@ stage.addEventListener("pointercancel", () => { swipeX = null; goWorld(world, 1)
 // Enter or Space on the world (a mouse click or a tap is handled by pointerup above; keyboard clicks have detail 0)
 slides.forEach(s => s.addEventListener("click", e => { if (e.detail === 0) enterWorld(); }));
 
-// back on the home screen: always start on the black hole
+// back on the home screen: always start on the Solar System
 function resetWorlds() {
   slides.forEach(s => { s.classList.remove("go"); s.style.transition = s.style.transform = s.style.opacity = ""; });
   goWorld(0, 1);
@@ -404,7 +417,7 @@ function startTour() {
   if (calm()) return;
   tourTimer = setInterval(() => {
     if ($("home").hidden) return stopTour();                  // you left home: it starts again when you're back
-    if (launching || swipeX !== null || document.hidden) return;   // a world is opening, a finger is down, or the page is hidden
+    if (launching || swipeX !== null || dotDrag !== null || document.hidden) return;   // a world is opening, a finger is down, or the page is hidden
     goWorld(world + 1, 1);
   }, TOUR_STEP);
 }
@@ -429,11 +442,10 @@ function enterWorld() {
     $("home").classList.remove("launching");
     document.documentElement.classList.remove("zooming");
     launching = false;
-    openApp();   // opens Review on your last deck (that's all the black hole does)…
+    openApp();   // opens Review on your last deck…
     const m = s.dataset.mode;   // …then switches to the world you tapped
-    if (m === "practice") startPractice(stackCards().filter(active));
-    else if (m === "burn") startBurn();
-    else if (m !== "daily" && m !== "hole") setMode(m);
+    if (m === "burn") startBurn();
+    else if (m !== "daily") setMode(m);
   }, wait);
 }
 

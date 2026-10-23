@@ -31,10 +31,18 @@ function shuffle(a) {
 
 // a card is in your binder once you've seen it: from a pack (c.got), or studied before packs existed
 const inBinder = c => !!c.got || c.reviews > 0 || !!(c.rev && c.rev.reviews > 0);
+// your own cards (any word that isn't in the built-in Levels) work like an Anki deck: no packs, they come straight into
+// Review, OWN_PER_DAY new ones a day per deck (c.got = the day one came in), and they live in a personal binder
+const OWN_PER_DAY = 10;
+const isOwn = c => { if (!wordWorld) sortWorlds(); return !wordWorld.has(wordKey(c)); };
 
 function dailyList() {
   const t = today();
   if (state.newDate !== t) { state.newDate = t; state.newDone = 0; }
+  // your own cards come in by themselves: up to OWN_PER_DAY new ones today, in the order you added them
+  const own = stackCards().filter(c => active(c) && isOwn(c));
+  let room = OWN_PER_DAY - own.filter(c => c.got === t).length;
+  own.forEach(c => { if (room > 0 && !inBinder(c)) { c.got = t; room--; } });
   const dirs = dirsOf(stack);
   // new words come from the packs you've opened (js/collection.js): the cards in your binder you haven't studied yet,
   // plus a rare you pulled today (it may belong to another deck, like Level 6)
@@ -108,9 +116,6 @@ function render() {
   $("media").hidden = mode !== "media";
   $("translate").hidden = mode !== "translate";
   $("solar").hidden = mode !== "solar";
-  $("timer").hidden = mode === "focus";   // in ⏱ Focus the big clock replaces the small timer dropdown
-  // in 🎧 Media the timer dropdown is only the timer: the music panel is under the iPod (see "#study.inmedia" in the styles)
-  $("study").classList.toggle("inmedia", mode === "media");
   $("burnview").hidden = mode !== "burn";
   $("modeselect").value = mode;           // the Mode menu always shows where you are
   if (typeof miniQpod === "function") miniQpod();   // the mini Qpod (js/media.js) shows in the other modes while music is loaded
@@ -139,6 +144,7 @@ function render() {
   $("show").hidden = !current || revealed;
   $("buttons").hidden = !current;
   $("card").classList.toggle("flipped", revealed);
+  setUpSwipe();
   fitCard();
   startShine();
 
@@ -174,11 +180,12 @@ function render() {
   dressCard(current, currentDir);
 }
 
-// phones: tell the CSS how much room the top bars and bottom buttons take, so the card fills the rest
+// phones: tell the CSS how much room the top bars, the bottom buttons and the closed timer under the card take, so the card
+// fills the rest. Only the timer's closed line counts: opening it makes the page longer instead of the card smaller.
 function fitCard() {
   const r = document.documentElement.style;
   r.setProperty("--above", Math.round($("scene").getBoundingClientRect().top + scrollY + 8) + "px");
-  r.setProperty("--below", ($("buttons").offsetHeight + 8) + "px");
+  r.setProperty("--below", ($("buttons").offsetHeight + $("timer").querySelector("summary").offsetHeight + 18) + "px");
 }
 window.addEventListener("resize", () => { if (cardShowing()) fitCard(); });
 
@@ -604,7 +611,7 @@ function rate(grade) {
   save(); next();
 }
 
-// ================= card gestures: tap to flip, swipe right = Good, swipe left = Again =================
+// ================= card gestures: tap to flip, swipe up = show the answer, then swipe right = Good, left = Again =================
 // They live on the card only, so scrolling in the Deck tab (which has no card) is never affected.
 const scene = $("scene");
 let drag = null, flying = false;
@@ -625,7 +632,7 @@ function flip() {
 scene.addEventListener("pointerdown", e => {
   if (!current || flying || e.target.closest(".speak")) return;
   e.preventDefault();   // stops a mouse drag from highlighting text on the page
-  drag ={ id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, sideways: false };
+  drag = { id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, dy: 0, sideways: false, up: false };
 });
 
 scene.addEventListener("pointermove", e => {
@@ -635,12 +642,28 @@ scene.addEventListener("pointermove", e => {
     drag.sideways = true;
     scene.setPointerCapture(e.pointerId);
   }
-  if (drag.sideways && revealed) { drag.dx = dx; slide(dx, false); }   // no swiping before you've seen the answer
+  if (drag.sideways && revealed) { drag.dx = dx; slide(dx, false); }   // no swiping sideways before you've seen the answer
+  // before the answer shows: pushing the card up lifts it a little, and letting go far enough up shows the answer
+  if (!revealed && !drag.sideways && !drag.up && dy < -10 && Math.abs(dy) > Math.abs(dx)) {
+    drag.up = true;
+    scene.setPointerCapture(e.pointerId);
+  }
+  if (drag.up) {
+    drag.dy = Math.min(0, dy);
+    scene.style.transition = "none";
+    scene.style.transform = "translateY(" + drag.dy * .35 + "px)";
+  }
 });
 
 scene.addEventListener("pointerup", e => {
   if (!drag || e.pointerId !== drag.id) return;
   const d = drag; drag = null;
+  if (d.up) {   // a swipe up: settle back, and show the answer if it went far enough (50px)
+    scene.style.transition = "transform .25s ease";
+    scene.style.transform = "";
+    if (d.dy < -50) flip();
+    return;
+  }
   if (!d.sideways && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 10) { flip(); return; }
   if (!revealed) return;
   if (Math.abs(d.dx) < Math.min(100, scene.offsetWidth * 0.3)) { slide(0, true); return; }   // not far enough: snap back
@@ -660,3 +683,6 @@ scene.addEventListener("pointerup", e => {
 });
 
 scene.addEventListener("pointercancel", () => { drag = null; if (!flying) slide(0, true); });
+// a swipe up needs the browser to leave up-and-down moves on the card to us: that's only switched on while the answer
+// is hidden (#scene.upswipe in the styles). Once it shows, up and down scroll the page again.
+function setUpSwipe() { $("scene").classList.toggle("upswipe", !!current && !revealed); }
