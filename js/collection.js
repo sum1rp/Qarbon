@@ -9,7 +9,14 @@
 // About 1 daily pack in 10 swaps its last card for a "rare pull": a Level 6 word (a Nebula or a Black Hole).
 const DAILY_PACK = 10, RARE_ODDS = 0.1;
 
-const unseenCards = () => stackCards().filter(c => active(c) && !inBinder(c));
+// cards a pack can deal: not seen yet, and on a world that's open (built-in words follow the Solar System; your own cards are never locked)
+function worldOpen(c) {
+  if (!wordWorld) sortWorlds();   // (js/cards.js) which world each built-in word is on
+  return !wordWorld.has(wordKey(c)) || WORLDS.indexOf(worldOf(c)) <= state.journey;
+}
+const unseenCards = () => stackCards().filter(c => active(c) && !inBinder(c) && worldOpen(c));
+// cards of this deck that wait on a world you haven't reached yet
+const lockedCards = () => stackCards().filter(c => active(c) && !inBinder(c) && !worldOpen(c));
 const dailyOpened = () => state.packDate === today();
 
 // the pack you can open now: { daily: true or false, size }, or null when every card of this deck is in your binder
@@ -132,6 +139,7 @@ let pk = null;   // the pack being opened: { cards, i (the card showing, -1 = st
 const pkStill = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function openPack() {
+  journeyCheck(true);   // a world reached since the last answer opens before the pack is dealt
   const ready = packReady();
   if (!ready) return;
   const cards = unseenCards().slice(0, ready.size);
@@ -331,16 +339,32 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("packvi
 
 // "Today's pack is ready" above the Review card (called by render() in js/cards.js).
 // Extra packs only show once you're done with today's cards.
+// When this deck's next cards wait on a world you haven't reached, it says so instead (tap = the Solar System).
 function packBanner() {
-  const ready = mode === "daily" && packReady();
-  const showIt = !!ready && (ready.daily || (!current && !queue.length));
-  $("packbanner").hidden = !showIt;
-  if (!showIt) return;
-  $("packbanner").classList.toggle("extra", !ready.daily);
+  const b = $("packbanner"), ready = mode === "daily" && packReady();
+  const done = !current && !queue.length;
+  const locked = mode === "daily" && !ready && done && lockedCards().length;
+  b.hidden = !(ready && (ready.daily || done)) && !locked;
+  b.dataset.locked = locked ? "1" : "";
+  if (b.hidden) return;
+  b.classList.toggle("extra", !ready || !ready.daily);
+  if (locked) {   // e.g. "🔒 Nebula's cards open when you reach Neptune" · "You're at Earth: 12% of 80% Familiar"
+    const next = Math.min(...lockedCards().map(c => WORLDS.indexOf(worldOf(c))));
+    const here = WORLDS[state.journey], st = worldStats(state.journey);
+    $("pb-title").textContent = "🔒 " + named(WORLDS[next], true) + "'s cards open when you reach " + named(WORLDS[next - 1]);
+    $("pb-sub").textContent = "You're at " + named(here) + ": " + Math.round(st.fam / st.total * 100) + "% of 80% Familiar · tap for your Solar System";
+    return;
+  }
   $("pb-title").textContent = ready.daily ? "Today's pack is ready" : "Open another pack";
   $("pb-sub").textContent = (stack ? stack.name : "All my cards") + " · " + ready.size + " new cards · " + (ready.daily ? "tap to open" : "adds to your reviews");
 }
-$("packbanner").onclick = openPack;
+$("packbanner").onclick = () => { if ($("packbanner").dataset.locked) setMode("solar"); else openPack(); };
+
+// what the empty Review card says when you're done (render() in js/cards.js)
+function packDoneText() {
+  if ($("packbanner").dataset.locked) return "Done for today! Keep reviewing to reach " + named(WORLDS[state.journey]) + ".";
+  return packReady().daily ? "Your new words are in today's pack, above." : "Done for today! Open another pack above, or try “Practice”.";
+}
 
 // ================= the binder =================
 // In Decks mode, Binder shows the deck as collectible cards, grouped by world and numbered (easiest first).
@@ -419,3 +443,120 @@ function renderBinder() {
 // the big card closes with a tap anywhere, or Esc
 $("bd-zoom").onclick = () => { $("bd-zoom").hidden = true; };
 document.addEventListener("keydown", e => { if (e.key === "Escape") $("bd-zoom").hidden = true; });
+
+// ================= the Solar System: your trip from Earth to the Black Hole =================
+// The 12 worlds in a row, two per built-in deck (Level 1 = Earth and the Moon … Level 6 = a Nebula and the Black Hole).
+// The cards are the only source of truth: a world is reached when 80% of its built-in cards are Familiar or better
+// (their review wait has grown to several days, see masteryOf in js/cards.js). Reaching a world opens the next one to your packs.
+// state.journey = the furthest open world (it stays open, even if you forget some cards later).
+const REACH = .8;
+// a world's name in a sentence: "the Moon", "the Sun", "the Nebula", "the Black Hole", but "Earth", "Mars" (cap = at the start of a sentence)
+const named = (w, cap) => ["moon", "sun", "nebula", "hole"].includes(w.id) ? (cap ? "The " : "the ") + w.name : w.name;
+const SOLAR_SIZES = [86, 56, 78, 66, 58, 104, 110, 80, 80, 112, 96, 96];   // each world's size on the map, roughly true to life
+const bestStep = c => Math.max(masteryOf(c, "fr"), c.rev ? masteryOf(c, "en") : 0);   // its best direction
+
+// how far along a world is: { total, got (in your binder), fam (Familiar or better), mas (Mastered) }
+function worldStats(i) {
+  if (!worldWords) sortWorlds();
+  const mine = new Map(state.cards.map(c => [wordKey(c), c]));
+  const st = { total: worldWords[i].length, got: 0, fam: 0, mas: 0 };
+  worldWords[i].forEach(w => {
+    const c = mine.get(w);
+    if (!c || !inBinder(c)) return;
+    st.got++;
+    const m = bestStep(c);
+    if (m >= 2) st.fam++;
+    if (m >= 4) st.mas++;
+  });
+  return st;
+}
+const reached = i => { const st = worldStats(i); return st.total > 0 && st.fam >= Math.ceil(st.total * REACH); };
+
+// open the next worlds you've earned. quiet = no message (when the app starts). Returns true if a world opened.
+function journeyCheck(quiet) {
+  const from = state.journey;
+  while (state.journey < WORLDS.length - 1 && reached(state.journey)) state.journey++;
+  if (state.journey === from) return false;
+  save();
+  if (!quiet) {   // "⬆ Earth reached! The Moon is open" for a few seconds above the card
+    const el = $("levelup");
+    el.textContent = "🪐 " + named(WORLDS[state.journey - 1], true) + " reached! " + named(WORLDS[state.journey], true) + " is open in your packs";
+    el.hidden = false;
+    el.classList.remove("show"); void el.offsetWidth; el.classList.add("show");
+    clearTimeout(noteLevelUp.timer);
+    noteLevelUp.timer = setTimeout(() => { el.hidden = true; }, 3200);
+  }
+  return true;
+}
+journeyCheck(true);   // cards you studied before the Solar System existed count from the start
+
+let solarPick = -1, solarSkyURL = "";
+const CEFR_OF_LEVEL = ["A1", "A1–A2", "A2–B1", "B2", "C1", "C2"];
+const deckOfLevel = n => allStacks().find(s => s.id === BUILT_IN[n].id);
+
+function renderSolar() {
+  journeyCheck(true);   // so the map and "You are here" always agree with the cards
+  const stats = WORLDS.map((w, i) => worldStats(i));
+  const isReached = i => stats[i].total > 0 && stats[i].fam >= Math.ceil(stats[i].total * REACH);
+  const here = state.journey;
+  if (solarPick < 0) solarPick = here;
+  const STEP = 150, PAD = 90, H = 300, width = PAD * 2 + STEP * (WORLDS.length - 1);
+  const pos = WORLDS.map((w, i) => ({ x: PAD + i * STEP, y: H / 2 + 14 + Math.sin(i * 1.05) * 34 }));
+  const strip = $("sol-strip");
+  strip.style.width = width + "px";
+  if (!solarSkyURL) { solarSkyURL = packSky(width, H); strip.style.backgroundImage = "url(" + solarSkyURL + ")"; }
+  // the route: a smooth curve through the worlds, gold up to where you are, dashed beyond
+  let d = "M" + pos[0].x + " " + pos[0].y;
+  for (let i = 1; i < pos.length; i++) { const a = pos[i - 1], b = pos[i], mx = (a.x + b.x) / 2; d += " C" + mx + " " + a.y + " " + mx + " " + b.y + " " + b.x + " " + b.y; }
+  let h = '<svg class="sol-route" viewBox="0 0 ' + width + ' ' + H + '" preserveAspectRatio="none"><defs><clipPath id="sol-done"><rect width="' + pos[here].x + '" height="' + H + '"/></clipPath></defs>' +
+    '<path d="' + d + '" class="sol-ahead"/><path d="' + d + '" class="sol-past" clip-path="url(#sol-done)"/></svg>';
+  BUILT_IN.forEach((b, n) => {
+    const a = pos[n * 2].x, z = pos[n * 2 + 1].x, done = isReached(n * 2) && isReached(n * 2 + 1);
+    h += '<div class="sol-lvl' + (done ? " done" : "") + '" style="left:' + (a - 48) + 'px;width:' + (z - a + 96) + 'px">' + esc(b.name) + ' · ' + CEFR_OF_LEVEL[n] + (done ? " ✓" : "") + '</div>';
+  });
+  WORLDS.forEach((w, i) => {
+    const st = stats[i], own = st.total ? st.fam / st.total : 0, circ = 2 * Math.PI * 50, size = SOLAR_SIZES[i];
+    const state_ = isReached(i) ? "reached" : i === here ? "current" : i < here ? "open" : "locked";
+    h += '<button class="sol-world ' + state_ + (solarPick === i ? " sel" : "") + '" data-i="' + i + '" style="left:' + pos[i].x + 'px;top:' + pos[i].y + 'px" aria-label="' + w.name + ', ' + Math.round(own * 100) + '% Familiar' + (state_ === "locked" ? ", not open yet" : "") + '">' +
+      '<span class="sol-orb" style="width:' + size + 'px;height:' + size + 'px">' + (i === here && state_ !== "reached" ? '<span class="sol-here">You are here</span>' : '') +
+      '<img alt="" src="' + w.img + '"><svg class="sol-ring" viewBox="0 0 108 108"><circle class="bg" cx="54" cy="54" r="50"/>' +
+      '<circle class="got" cx="54" cy="54" r="50" stroke-dasharray="' + (own * circ).toFixed(1) + ' ' + circ.toFixed(1) + '"/></svg>' +
+      (state_ === "reached" ? '<span class="sol-badge">✓</span>' : state_ === "locked" ? '<span class="sol-badge lock">🔒</span>' : '') + '</span>' +
+      '<span class="sol-nm">' + w.name + '</span><span class="sol-pc">' + Math.round(own * 100) + '%</span></button>';
+  });
+  strip.innerHTML = h;
+  strip.querySelectorAll(".sol-world").forEach(b => { b.onclick = () => { solarPick = Number(b.dataset.i); renderSolar(); }; });
+  const done = WORLDS.filter((w, i) => isReached(i)).length;
+  $("sol-where").innerHTML = done === WORLDS.length ? "Every world reached. You made it to the Black Hole!"
+    : "You're at <b>" + named(WORLDS[here]) + "</b> · Level " + (Math.floor(here / 2) + 1) + " · " + done + " of 12 worlds reached";
+  solarPanel(solarPick, stats[solarPick], isReached(solarPick));
+  if (!renderSolar.scrolled) {   // the first time: bring your world into view
+    renderSolar.scrolled = true;
+    const t = $("sol-track");
+    requestAnimationFrame(() => { t.scrollLeft = pos[here].x - t.clientWidth / 2; });
+  }
+}
+
+function solarPanel(i, st, isReached) {
+  const w = WORLDS[i], n = Math.floor(i / 2), deck = deckOfLevel(n), here = state.journey;
+  const pct = v => Math.round(v * 100) + "%";
+  const bar = (v, goal) => '<div class="sol-bar"><i style="width:' + Math.min(100, v * 100) + '%"></i>' + (goal ? '<span class="goal"></span>' : '') + '</div>';
+  const need = Math.max(0, Math.ceil(st.total * REACH) - st.fam);
+  const note = isReached ? "<b>Reached.</b> " + pct(st.fam / st.total) + " of its cards are Familiar or better." + (i < WORLDS.length - 1 ? " " + named(WORLDS[i + 1], true) + " is open." : "")
+    : i === here ? "<b>You are here.</b> Get " + need + " more card" + (need === 1 ? "" : "s") + " to Familiar (80%) to reach " + named(w) + (i < WORLDS.length - 1 ? " and open " + named(WORLDS[i + 1]) : "") + ". Keep opening packs and reviewing."
+    : i < here ? "<b>Open.</b> " + need + " more card" + (need === 1 ? "" : "s") + " to Familiar to reach it."
+    : "<b>Not open yet.</b> Its cards come in packs once you reach " + named(WORLDS[i - 1]) + ". You can still browse " + deck.name + " in Decks.";
+  $("sol-panel").innerHTML =
+    '<div class="sol-ph"><img alt="" src="' + w.img + '"><div><b>' + w.name + '</b><span>' + esc(deck.name) + ' · ' + CEFR_OF_LEVEL[n] + ' · ' + st.total + ' cards</span></div></div>' +
+    '<div class="sol-stat"><span>Collected</span>' + bar(st.got / st.total) + '<span>' + st.got + '</span></div>' +
+    '<div class="sol-stat"><span>Familiar or better</span>' + bar(st.fam / st.total, true) + '<span>' + pct(st.fam / st.total) + '</span></div>' +
+    '<div class="sol-stat"><span>Mastered</span>' + bar(st.mas / st.total) + '<span>' + st.mas + '</span></div>' +
+    '<p class="sol-note">' + note + '</p>' +
+    '<div class="sol-acts"><button id="sol-study">Study ' + esc(deck.name) + '</button><button id="sol-binder">Binder</button>' + (st.got ? '<button id="sol-practice">Practice</button>' : '') + '</div>';
+  $("sol-study").onclick = () => chooseStack(deck);
+  $("sol-binder").onclick = () => { chooseStack(deck, true); binderFilter = w.id; renderBinder(); };
+  if (st.got) $("sol-practice").onclick = () => {
+    chooseStack(deck, true);
+    startPractice(stackCards().filter(c => active(c) && inBinder(c) && worldOf(c) === w));
+  };
+}

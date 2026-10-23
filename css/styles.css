@@ -784,6 +784,62 @@
   #bd-zoom[hidden] { display:none; }
   #bd-zoom .qcard { position:relative; width:min(300px, 86vw); aspect-ratio:340/440; }
 
+  /* ---------- 🪐 the Solar System (js/collection.js): the 12 worlds in a row on the real sky ---------- */
+  #solar { width:100%; max-width:560px; display:flex; flex-direction:column; gap:8px; }
+  #sol-where { margin:0; font-size:.9rem; color:var(--muted); } #sol-where b { color:var(--text); }
+  #sol-track { overflow-x:auto; overflow-y:hidden; border-radius:16px; border:1px solid var(--line); scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; }
+  #sol-track::-webkit-scrollbar { height:0; }
+  #sol-strip { position:relative; height:300px; background:#030306 0 0 / 100% 100% no-repeat; }
+  .sol-route { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+  .sol-route path { fill:none; }
+  .sol-ahead { stroke:rgba(255,255,255,.22); stroke-width:2; stroke-dasharray:3 7; }
+  .sol-past { stroke:#ffd447; stroke-width:2.5; filter:drop-shadow(0 0 4px rgba(255,212,71,.8)); }
+  .sol-lvl { position:absolute; top:12px; height:22px; display:flex; align-items:center; justify-content:center; font-size:.68rem; letter-spacing:.14em; text-transform:uppercase;
+             color:var(--muted); border:1px solid rgba(255,255,255,.18); border-bottom:0; border-radius:8px 8px 0 0; }
+  .sol-lvl.done { color:var(--text); border-color:rgba(255,212,71,.55); }
+  .sol-world { position:absolute; transform:translate(-50%, -50%); display:flex; flex-direction:column; align-items:center; gap:6px;
+               background:none; border:0; padding:0; cursor:pointer; scroll-snap-align:center; }
+  .sol-world:hover { --btn-bg:none; }
+  .sol-orb { position:relative; border-radius:50%; }
+  .sol-orb img { width:100%; height:100%; object-fit:contain; border-radius:50%; display:block; }
+  .sol-ring { position:absolute; inset:-9px; width:calc(100% + 18px); height:calc(100% + 18px); transform:rotate(-90deg); overflow:visible; }
+  .sol-ring circle { fill:none; stroke-width:3.5; stroke-linecap:round; }
+  .sol-ring .bg { stroke:rgba(255,255,255,.12); }
+  .sol-ring .got { stroke:var(--accent); filter:drop-shadow(0 0 4px var(--accent)); }
+  .sol-world.reached .sol-ring .got { stroke:#ffd447; filter:drop-shadow(0 0 4px rgba(255,212,71,.8)); }
+  .sol-world.locked .sol-orb img { filter:grayscale(.75) brightness(.45); }
+  .sol-nm { font-size:.78rem; font-weight:600; white-space:nowrap; color:var(--text); text-shadow:0 1px 6px #000; }
+  .sol-world.locked .sol-nm { color:var(--muted); }
+  .sol-world.sel .sol-nm { text-decoration:underline; text-underline-offset:3px; }
+  .sol-pc { font-size:.68rem; color:var(--muted); font-variant-numeric:tabular-nums; margin-top:-4px; }
+  .sol-badge { position:absolute; right:-6px; bottom:-4px; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+               font-size:.7rem; font-weight:700; background:#ffd447; color:#2a2000; box-shadow:0 0 0 2px #050509; }
+  .sol-badge.lock { background:#1b1b26; font-size:.62rem; }
+  .sol-here { position:absolute; left:50%; bottom:calc(100% + 16px); transform:translateX(-50%); white-space:nowrap; font-size:.66rem; font-weight:700; letter-spacing:.12em;
+              text-transform:uppercase; padding:3px 9px; border-radius:999px; color:#fff; background:var(--accent-fill); box-shadow:0 0 14px rgba(123,108,255,.7); }
+  .sol-world.current .sol-orb { animation:solpulse 2.2s ease-in-out infinite; }
+  @keyframes solpulse { 0%, 100% { box-shadow:0 0 18px 2px rgba(123,108,255,.45); } 50% { box-shadow:0 0 34px 8px rgba(123,108,255,.75); } }
+  .sol-hint { margin:0; text-align:center; font-size:.75rem; color:var(--muted); }
+  #sol-panel { padding:14px; border-radius:16px; border:1px solid var(--line); background:var(--surface); display:flex; flex-direction:column; gap:10px; }
+  .sol-ph { display:flex; gap:12px; align-items:center; }
+  .sol-ph img { width:46px; height:46px; border-radius:50%; object-fit:contain; background:#000; }
+  .sol-ph b { font-size:1.1rem; display:block; } .sol-ph span { color:var(--muted); font-size:.85rem; }
+  .sol-stat { display:grid; grid-template-columns:96px 1fr 44px; gap:8px; align-items:center; font-size:.82rem; font-variant-numeric:tabular-nums; }
+  .sol-stat span:first-child { color:var(--muted); } .sol-stat span:last-child { text-align:right; }
+  .sol-bar { position:relative; height:7px; border-radius:4px; background:rgba(255,255,255,.08); overflow:hidden; }
+  .sol-bar i { position:absolute; top:0; bottom:0; left:0; border-radius:4px; background:linear-gradient(90deg, var(--accent-fill), var(--accent)); }
+  .sol-bar .goal { position:absolute; top:0; bottom:0; left:80%; width:2px; background:#ffd447; }
+  .sol-note { margin:0; font-size:.85rem; color:var(--muted); } .sol-note b { color:var(--text); }
+  .sol-acts { display:flex; flex-wrap:wrap; gap:8px; }
+  .sol-acts button { padding:9px 14px; font-size:.9rem; }
+  #sol-study { background:linear-gradient(135deg,var(--accent-fill),var(--accent-fill-2)); color:#fff; border:none; font-weight:600; }
+  @media (prefers-reduced-motion: reduce) { .sol-world.current .sol-orb { animation:none; box-shadow:0 0 24px 4px rgba(123,108,255,.6); } }
+  /* its home world: worlds circling the logo atom (solarWorldSVG in js/worlds.js) */
+  #w-solar svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+  #w-solar image { mix-blend-mode:screen; }   /* the photos' black space disappears into the sky */
+  #w-solar .sw-atom { transform-origin:100px 100px; animation:swirl 30s linear infinite; }
+  @media (prefers-reduced-motion: reduce) { #w-solar .sw-atom { animation:none; } }
+
   /* ---------- buttons ---------- */
   #buttons { display:flex; gap:12px; }
   button, select, input[type="search"] { font-size:1rem; padding:10px 20px; border-radius:10px;

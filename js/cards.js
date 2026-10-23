@@ -60,7 +60,7 @@ function dailyList() {
 function setMode(m, list) {
   if (m === "deck" && mode !== "deck") showBinder(true);   // Decks opens on the binder; List is one tap away (js/collection.js)
   mode = m;
-  if (m === "deck" || m === "focus" || m === "reading" || m === "media" || m === "translate") { render(); return; }
+  if (m === "deck" || m === "focus" || m === "reading" || m === "media" || m === "translate" || m === "solar") { render(); return; }
   if (m === "daily") queue = dailyList();
   if (m === "practice") {
     queue = shuffle(list.flatMap(c => dirsOf(stack).map(dir => ({ c, dir }))));
@@ -107,6 +107,7 @@ function render() {
   $("reading").hidden = mode !== "reading";
   $("media").hidden = mode !== "media";
   $("translate").hidden = mode !== "translate";
+  $("solar").hidden = mode !== "solar";
   $("timer").hidden = mode === "focus";   // in ⏱ Focus the big clock replaces the small timer dropdown
   // in 🎧 Media the timer dropdown is only the timer: the music panel is under the iPod (see "#study.inmedia" in the styles)
   $("study").classList.toggle("inmedia", mode === "media");
@@ -118,6 +119,7 @@ function render() {
   if (mode === "reading") { renderBooks(); return; }
   if (mode === "media") { renderMedia(); return; }
   if (mode === "translate") { renderTranslate(); return; }
+  if (mode === "solar") { renderSolar(); return; }   // 🪐 the Solar System map (js/collection.js)
   if (mode === "burn" || mode === "focus") return;   // these draw their own screens
 
   if (typeof packBanner === "function") packBanner();   // "Today's pack is ready" above the card (js/collection.js)
@@ -145,8 +147,7 @@ function render() {
     $("front").textContent = practicing
       ? "Practice complete! " + practice.right + " of " + practice.total + " right on the first try"
       : !stackCards().length ? "No cards here yet. Tap ‹ to pick a stack."
-      : !$("packbanner").hidden && !packReady().daily ? "Done for today! Open another pack above, or try “Practice”."
-      : !$("packbanner").hidden ? "Your new words are in today's pack, above." : "Done for today! Try “Practice” to keep going.";
+      : !$("packbanner").hidden ? packDoneText() : "Done for today! Try “Practice” to keep going.";
     $("answer").textContent = $("example").textContent = "";
     $("type1").textContent = $("type2").textContent = "";
     $("newbadge").hidden = $("gender").hidden = $("dirbadge").hidden = true;
@@ -182,8 +183,9 @@ function fitCard() {
 window.addEventListener("resize", () => { if (cardShowing()) fitCard(); });
 
 // ================= collectible cards: rarity, mastery and the holo shine =================
-// Every word is a world on a trip out from Earth. Each level covers two worlds: its easier half and its harder half
-// (A1 = Earth, then the Moon; A2 = Venus, then Mars; ...). The rare cards come last: C2 words are Nebulas and Black Holes.
+// Every word is a world on a trip out from Earth. Each built-in deck covers two worlds: its easier half and its harder half
+// (Level 1 = Earth, then the Moon; Level 2 = Venus, then Mars; ...). The rare cards come last: Level 6 words are Nebulas and Black Holes.
+// The Solar System mode (js/collection.js) is this trip as a map.
 // The real photos are in img/ (NASA, public domain; credits on the how-to page). Each world has its own foil colors (css/styles.css).
 // steps = the review wait in days for Familiar, Known and Mastered: easy words master fast, only Black Holes take 60 days.
 const WORLDS = [
@@ -217,31 +219,32 @@ function difficulty(front) {
 // compare two words by difficulty; words that tie are put in alphabetical order, so each level splits exactly in half
 const harderThan = (a, b) => a.d - b.d || (a.w < b.w ? -1 : a.w > b.w ? 1 : 0);
 
-// where each level splits into its two halves: the middle difficulty of that level's words.
-// Worked out from the built-in packs (so a word's world never changes when you add cards); a level with no
-// built-in words (B2, C1, C2 for now) uses your own cards at that level instead.
-let worldCuts = null, worldCutsFor = -1;
-function levelCut(level) {
-  if (!worldCuts || worldCutsFor !== state.cards.length) {
-    const byLevel = {};
-    const add = (front, tags) => { const l = levelOf({ tags }) || "A1"; (byLevel[l] = byLevel[l] || []).push({ d: difficulty(front), w: front }); };
-    BUILT_IN.forEach(b => {
-      const rows = parseCSV(PACKS[b.id]), head = rows[0];
-      rows.slice(1).forEach(r => add(r[head.indexOf("front")], r[head.indexOf("tags")]));
+// which world each built-in word belongs to, worked out once from js/packs.js: its deck (the first one it's in),
+// then the easier or harder half of that deck, split at the middle difficulty (so each deck splits exactly in half).
+// worldWords = the built-in words (lowercase) of each world, in the order of WORLDS: what the Solar System counts.
+let wordWorld = null, worldWords = null, deckCuts = [];
+function sortWorlds() {
+  wordWorld = new Map(); worldWords = WORLDS.map(() => []);
+  BUILT_IN.forEach((b, n) => {
+    const rows = parseCSV(PACKS[b.id]), col = rows[0].map(h => h.trim().toLowerCase()).indexOf("front");
+    const words = rows.slice(1).map(r => (r[col] || "").trim()).filter(w => w && !wordWorld.has(w.toLowerCase()));
+    const sorted = words.map(w => ({ d: difficulty(w), w })).sort(harderThan);
+    deckCuts[n] = sorted[Math.floor(sorted.length / 2)];
+    sorted.forEach((x, i) => {
+      const w = n * 2 + (i >= Math.floor(sorted.length / 2) ? 1 : 0);
+      wordWorld.set(x.w.toLowerCase(), WORLDS[w]);
+      worldWords[w].push(x.w.toLowerCase());
     });
-    const builtIn = new Set(Object.keys(byLevel));
-    state.cards.forEach(c => { if (!builtIn.has(levelOf(c) || "A1")) add(c.front, c.tags); });
-    worldCuts = {};
-    for (const l in byLevel) { const d = byLevel[l].sort(harderThan); worldCuts[l] = d[Math.floor(d.length / 2)]; }
-    worldCutsFor = state.cards.length;
-  }
-  return worldCuts[level];
+  });
 }
 
 function worldOf(c) {
-  const level = levelOf(c) || "A1";
-  const harder = harderThan({ d: difficulty(c.front), w: c.front }, levelCut(level)) >= 0;
-  return WORLDS[LEVEL_ORDER.indexOf(level) * 2 + (harder ? 1 : 0)];
+  if (!wordWorld) sortWorlds();
+  const built = wordWorld.get(wordKey(c));
+  if (built) return built;
+  // your own cards: their level tag picks the deck's worlds (A1 → Level 1's, A2 → Level 2's … C2 → Level 6's)
+  const n = Math.max(0, LEVEL_ORDER.indexOf(levelOf(c) || "A1"));
+  return WORLDS[n * 2 + (harderThan({ d: difficulty(c.front), w: c.front }, deckCuts[n]) >= 0 ? 1 : 0)];
 }
 
 // mastery step 0–4 for one direction of a card: New until you get it right once (Learning),
@@ -595,6 +598,7 @@ function rate(grade) {
   const step = masteryOf(current, currentDir);
   applyGrade(side, grade);
   noteLevelUp(current, currentDir, step);
+  journeyCheck();   // did that answer reach a world? Then the next one opens (js/collection.js)
   if (wasNew) state.newDone++;
   if (grade === 1) againSoon();
   save(); next();

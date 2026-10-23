@@ -303,6 +303,7 @@ function worldInfo() {
   const packWaiting = state.packDate !== t && cards.some(c => active(c) && !inBinder(c));
   $("ws-daily").textContent = [due ? due + " due" : "", packWaiting ? "today's pack is ready" : ""].filter(Boolean).join(" · ");
   $("ws-deck").textContent = s.name;
+  $("ws-solar").textContent = "At " + named(WORLDS[state.journey]);   // where you are on the trip (js/collection.js)
   $("ws-practice").textContent = moonLine();   // tonight's Moon (js/worlds.js)
   const reading = state.books.filter(b => !isFinished(b)).length;
   $("ws-reading").textContent = reading ? reading + (reading === 1 ? " book" : " books") : "";

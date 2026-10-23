@@ -48,6 +48,11 @@
           <span class="body world" id="w-dipper" aria-hidden="true"></span>
           <span class="wname">Decks</span><span class="wsub" id="ws-deck"></span>
         </button>
+        <!-- 🪐 Solar System: Qarbon's own little solar system, worlds circling the logo atom (solarWorldSVG in js/worlds.js) -->
+        <button class="slide" data-mode="solar">
+          <span class="body world" id="w-solar" aria-hidden="true"></span>
+          <span class="wname">Solar System</span><span class="wsub" id="ws-solar"></span>
+        </button>
         <!-- 🌐 Translate: Bruegel's Tower of Babel (the story of where languages came from), with "hello" in 14 languages
              turning around it. Each word sits at its own even spot on the circle (startOffset = its middle, every 1/14 of the
              way round), so the spacing never depends on how wide a phone draws the letters; the <span> around it is what turns -->
@@ -161,6 +166,15 @@
         <li><b>Suspend</b> a card to stop it coming up in Review, Practice and Burn (it shows as "suspended" in the list). Unsuspend it any time.</li>
         <li><b>Delete</b> removes a card and its progress. Words from the built-in stacks (Level 1, Level 2, Level 3) can be suspended but not deleted.</li>
         <li><b>+ Add card</b> makes a new card. In your own deck it goes into that deck; otherwise it goes into All my cards.</li>
+      </ul>
+    </div>
+
+    <div class="howsec">
+      <h3>🪐 Solar System</h3>
+      <ul>
+        <li>Your French as a trip out from Earth to the Black Hole: two worlds per level (Level 1 = Earth and the Moon, Level 2 = Venus and Mars … Level 6 = a Nebula and the Black Hole). Swipe the map sideways, tap a world for its progress.</li>
+        <li><b>Reaching a world:</b> 80% of its cards at <b>Familiar</b> or better (you've remembered them across a few days). Then the next world opens.</li>
+        <li><b>Packs follow the map:</b> they only deal cards from worlds that are open, so a deck further out waits until you get there. Cards already in your binder can always be reviewed, and your own decks are never locked.</li>
       </ul>
     </div>
 
@@ -363,6 +377,7 @@
     <select id="modeselect">
       <option value="daily">🃏 Review</option>
       <option value="deck">🗂 Decks</option>
+      <option value="solar">🪐 Solar System</option>
       <option value="translate">🌐 Translate</option>
       <option value="practice">🔁 Practice</option>
       <option value="burn">🔥 B.A.R. Exam</option>
@@ -514,6 +529,14 @@
   </section>
 
   <!-- ===== 🌐 Translate: a word or short phrase, French ⇄ English, shown as the card you'd get (js/translate.js) ===== -->
+  <!-- 🪐 Solar System (js/collection.js): your trip from Earth to the Black Hole, a world reached at 80% Familiar -->
+  <section id="solar" hidden>
+    <p id="sol-where"></p>
+    <div id="sol-track"><div id="sol-strip"></div></div>
+    <p class="sol-hint">‹ swipe › · Earth to the Black Hole</p>
+    <div id="sol-panel" aria-live="polite"></div>
+  </section>
+
   <section id="translate" hidden>
     <div class="tr-dir">
       <span id="tr-from">Français</span>

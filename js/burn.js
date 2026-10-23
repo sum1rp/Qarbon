@@ -82,7 +82,8 @@ function burnShow(panel) {
 function startBurn() {
   mode = "burn";
   $("msg").textContent = "";
-  const fresh = stackCards().filter(c => active(c) && c.reviews === 0).slice(0, BURN_SIZE);
+  // new cards from your binder, or ones a pack could deal (not on a world you haven't reached: js/collection.js)
+  const fresh = stackCards().filter(c => active(c) && c.reviews === 0 && (inBinder(c) || worldOpen(c))).slice(0, BURN_SIZE);
   burn = { cards: fresh, order: [], i: 0, right: 0, missed: [] };
   fresh.forEach(c => { c.got = c.got || today(); });   // seen for the first time: they go into your binder (js/collection.js)
   render();
@@ -151,6 +152,7 @@ function burnAnswer(c, chosen, button) {
   if (!ok) button.classList.add("wrong");
   $("burn-feedback").textContent = ok ? "Correct! " + c.front : "Not quite. It's spelled: " + c.front;
   applyGrade(c, ok ? 3 : 2);   // right = Good, wrong = Hard
+  journeyCheck(true);          // a world reached opens the next one (js/collection.js)
   if (ok) burn.right++;
   else { c.burnMissed = true; burn.missed.push(c); }   // first in line next Review
   save();   // saved after every answer, so a refresh doesn't lose anything

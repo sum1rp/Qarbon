@@ -213,6 +213,27 @@ function mediaWorldSVG() {
     </g></svg>`;
 }
 
+// ================= 🪐 Solar System: worlds circling the logo atom =================
+// An SVG in a 200 x 200 box: the logo's atom in the middle like a sun, three tilted orbits, and five of the card worlds
+// (real photos from img/) travelling around them. Each planet moves with <animateMotion> along its orbit's path,
+// so it stays upright; the inner ones are faster, like real planets. Paused if the phone asks for less motion.
+function solarWorldSVG() {
+  const orbit = (rx, ry) => `M${100 - rx} 100 a${rx} ${ry} 0 1 0 ${rx * 2} 0 a${rx} ${ry} 0 1 0 ${-rx * 2} 0`;
+  const orbits = [[50, 17, 14], [74, 25, 24], [98, 33, 38]];   // rx, ry, seconds per trip
+  const planets = [["img/earth.jpg", 0, 16, 0], ["img/mars.jpg", 1, 13, 0], ["img/jupiter.jpg", 1, 23, .5],
+                   ["img/saturn.jpg", 2, 30, .2], ["img/neptune.jpg", 2, 18, .7]];   // photo, orbit, size, where it starts (0–1)
+  return `<svg viewBox="0 0 200 200" aria-hidden="true">
+    <defs><radialGradient id="sw-halo"><stop offset="0" stop-color="#7b6cff" stop-opacity=".45"/><stop offset=".5" stop-color="#3b5bd0" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+      <filter id="sw-glow" x="-1" y="-1" width="3" height="3"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <circle cx="100" cy="100" r="70" fill="url(#sw-halo)"/>
+    <g transform="rotate(-14 100 100)">
+      ${orbits.map(([rx, ry]) => `<path d="${orbit(rx, ry)}" fill="none" stroke="rgba(200,195,255,.35)" stroke-width=".8"/>`).join("")}
+      <g class="sw-atom" filter="url(#sw-glow)"><svg x="76" y="76" width="48" height="48" viewBox="0 0 100 100">${atomSVG(4.5).replace(/^<svg[^>]*>|<\/svg>$/g, "")}</svg></g>
+      ${planets.map(([img, o, size, start]) => `<image href="${img}" x="${-size / 2}" y="${-size / 2}" width="${size}" height="${size}" preserveAspectRatio="xMidYMid meet">` +
+        `<animateMotion dur="${orbits[o][2]}s" begin="${-start * orbits[o][2]}s" repeatCount="indefinite" path="${orbit(orbits[o][0], orbits[o][1])}"/></image>`).join("")}
+    </g></svg>`;
+}
+
 // ================= putting the worlds on the home screen =================
 const liveWorlds = [];   // [world element, draw(time)]: the ones that keep moving (the Earth, the Big Dipper's twinkle)
 
@@ -228,6 +249,8 @@ function setUpWorlds() {
   document.querySelectorAll(".world img[data-src]").forEach(img => { img.src = img.dataset.src; img.removeAttribute("data-src"); });
   $("w-moon").innerHTML = moonSVG();
   $("w-media").innerHTML = mediaWorldSVG();
+  $("w-solar").innerHTML = solarWorldSVG();
+  if (stillMotion) $("w-solar").querySelector("svg").pauseAnimations();   // less motion: the planets stay where they are
   const dipper = document.createElement("canvas");
   $("w-dipper").appendChild(dipper);
   liveWorlds.push([$("w-dipper"), t => drawDipper(dipper, t)]);
