@@ -13,7 +13,7 @@ function cardShowing() { return mode === "daily" || mode === "practice"; }
 // "fr" = French on the front (the usual way), "en" = English on the front and you answer in French.
 // Each direction keeps its own schedule: French → English lives on the card itself (like before),
 // English → French lives in card.rev, so turning on reverse cards never touches your existing progress.
-const dirsOf = s => ({ fr: ["fr"], en: ["en"], both: ["fr", "en"] })[state.directions[s ? s.id : "all"] || "fr"];
+const dirsOf = s => ({ fr: ["fr"], en: ["en"], both: ["fr", "en"] })[state.directions[s ? s.id : COURSE_ID] || "fr"];
 const newSide = () => ({ interval: 1, ease: 2.5, reviews: 0, correct: 0, due: today() });
 const sideOf = (c, dir) => dir === "en" ? (c.rev || newSide()) : c;   // for reading
 function sideToSave(c, dir) {                                           // for saving an answer
@@ -132,7 +132,7 @@ function render() {
   const practicing = mode === "practice";
   $("status").textContent = practicing
     ? "Practice · " + left + " left · nothing here affects your schedule"
-    : (stack ? stack.name : "All cards") + " · " + left + " left today · " + stackCards().length + " cards";
+    : (stack || course()).name + " · " + left + " left today · " + stackCards().filter(inBinder).length + " cards in your binder";
   // practice only has two answers; daily review has Anki's four, each showing when you'd see the card next
   const names = practicing ? ["Missed", "", "Got it", ""] : ["Again", "Hard", "Good", "Easy"];
   GRADES.forEach((g, i) => {
@@ -152,7 +152,7 @@ function render() {
     $("card").dataset.type = "";
     $("front").textContent = practicing
       ? "Practice complete! " + practice.right + " of " + practice.total + " right on the first try"
-      : !stackCards().length ? "No cards here yet. Tap ‹ to pick a stack."
+      : !stackCards().length ? "No cards here yet. Pick a deck in 🗂 Decks."
       : !$("packbanner").hidden ? packDoneText() : "Done for today! Try “Practice” to keep going.";
     $("answer").textContent = $("example").textContent = "";
     $("type1").textContent = $("type2").textContent = "";
@@ -229,12 +229,14 @@ const harderThan = (a, b) => a.d - b.d || (a.w < b.w ? -1 : a.w > b.w ? 1 : 0);
 // which world each built-in word belongs to, worked out once from js/packs.js: its deck (the first one it's in),
 // then the easier or harder half of that deck, split at the middle difficulty (so each deck splits exactly in half).
 // worldWords = the built-in words (lowercase) of each world, in the order of WORLDS: what the Solar System counts.
-let wordWorld = null, worldWords = null, deckCuts = [];
+// wordOrder = each built-in word's place in the course (Level 1's list first, the most useful words first): packs deal in this order.
+let wordWorld = null, worldWords = null, deckCuts = [], wordOrder = null;
 function sortWorlds() {
-  wordWorld = new Map(); worldWords = WORLDS.map(() => []);
+  wordWorld = new Map(); worldWords = WORLDS.map(() => []); wordOrder = new Map();
   BUILT_IN.forEach((b, n) => {
     const rows = parseCSV(PACKS[b.id]), col = rows[0].map(h => h.trim().toLowerCase()).indexOf("front");
     const words = rows.slice(1).map(r => (r[col] || "").trim()).filter(w => w && !wordWorld.has(w.toLowerCase()));
+    words.forEach(w => { if (!wordOrder.has(w.toLowerCase())) wordOrder.set(w.toLowerCase(), wordOrder.size); });
     const sorted = words.map(w => ({ d: difficulty(w), w })).sort(harderThan);
     deckCuts[n] = sorted[Math.floor(sorted.length / 2)];
     sorted.forEach((x, i) => {
@@ -427,11 +429,11 @@ function renderList() {
     row.onclick = () => openEditor(c);
     box.appendChild(row);
   });
-  if (!list.length) box.textContent = all.length ? "No matching cards." : "No cards here yet. Tap ‹ to pick a stack.";
+  if (!list.length) box.textContent = all.length ? "No matching cards." : "No cards here yet. Tap + Add card to make one.";
 }
 
 function renderDeck() {
-  $("deckname").textContent = stack ? stack.name : "All my cards";
+  $("deckname").textContent = (stack || course()).name;
   renderStacks();
   fillFilters();
   renderList();
@@ -460,9 +462,9 @@ $("modeselect").onchange = e => {
 // Tap a card in the list to edit, suspend or delete it. "+ Add card" makes a new one.
 let editing = null;   // the card being edited, or null when adding a new card
 
-// words from the built-in packs: these can be suspended but not deleted
-// (opening Level 1, Level 2 or Level 3 would just add them back)
-const builtInWords = () => new Set(allStacks().filter(s => s.text).flatMap(s => [...s.words]));
+// words from the built-in Levels (the French course): these can be suspended but not deleted
+// (opening the course would just add them back)
+const builtInWords = () => course().words;
 
 function openEditor(c) {
   editing = c;
@@ -483,7 +485,7 @@ function openEditor(c) {
     $("ed-delete").disabled = builtIn;
   }
   $("ed-msg").textContent = builtIn ? "This word is part of a built-in stack, so it can be suspended but not deleted."
-    : c ? "" : "It will go into " + (stack && stack.custom ? "“" + stack.name + "”" : "All my cards") + ".";
+    : c ? "" : "It will go into " + (stack && stack.custom ? "“" + stack.name + "”" : "French's personal binder") + ".";
   scrollTo(0, 0);
 }
 
@@ -516,7 +518,7 @@ $("ed-save").onclick = () => {
     state.cards.push({ ...fields, interval: 1, ease: 2.5, due: today(), reviews: 0, correct: 0 });
     const deck = stack && stack.custom && state.decks.find(d => d.id === stack.id);
     if (deck) { deck.words.push(key); stack.words.add(key); }   // goes into the custom deck you're in
-    $("msg").textContent = "Added “" + front + "” to " + (deck ? "“" + deck.name + "”" : "All my cards") + ".";
+    $("msg").textContent = "Added “" + front + "” to " + (deck ? "“" + deck.name + "”" : "French's personal binder") + ".";
   }
   save();
   closeEditor();

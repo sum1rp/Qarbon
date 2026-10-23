@@ -13,7 +13,7 @@ window.addEventListener("error", e => showError((e.message || "unknown error") +
 window.addEventListener("unhandledrejection", e => showError(String((e.reason && e.reason.message) || e.reason)));
 
 // ================= basics =================
-const BUILD = "Qarbon 2.15 (build 63)";   // bump together with ?v= in index.html
+const BUILD = "Qarbon 2.16 (build 64)";   // bump together with ?v= in index.html
 const KEY = "flashcards-v1";   // same key as before, so existing progress carries over
 const $ = id => document.getElementById(id);
 const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -22,8 +22,11 @@ function addDays(n) { const d = new Date(); d.setDate(d.getDate() + n); return i
 
 const VOICES = { female: "Amélie", male: "Thomas" };
 const PER_DAY_CHOICES = [10, 20, 30];
-// card directions, chosen per stack in ⚙ settings
+// card directions, chosen per deck in ⚙ settings
 const DIRECTIONS = { fr: "French → English", en: "English → French", both: "Both directions" };
+// the French course (Level 1 to Level 6 as one deck, build 64) and the deck ids it replaced (the six Levels and "All my cards")
+const COURSE_ID = "french";
+const OLD_STACKS = ["beginner150", "level2", "level3", "level4", "level5", "level6", "all"];
 // minutes for each timer style. Pomodoro: 25 focus, 5 break, a longer 15 break after every 4th focus.
 // "every" = how many focus sessions before a long break (1 = no long breaks). "Custom" uses state.customTimer.
 const TIMER_MODES = {

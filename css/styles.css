@@ -663,8 +663,8 @@
   .pk-pic, .pk-pic2 { z-index:0; mix-blend-mode:screen; }
   .pk-pack[data-bg="hole"] .pk-pic { width:90%; left:5%; top:14%; opacity:.8; -webkit-mask-image:radial-gradient(closest-side, #000 45%, transparent); mask-image:radial-gradient(closest-side, #000 45%, transparent); }
   .pk-pack[data-bg="earth"] .pk-pic { width:150%; left:-25%; top:68%; border-radius:50%; mix-blend-mode:normal; box-shadow:0 0 50px rgba(79,195,255,.45); }
-  .pk-pack[data-bg="pair"] .pk-pic { width:68%; left:-20%; bottom:-20%; }    /* the level's easiest world, large, low on the left */
-  .pk-pack[data-bg="pair"] .pk-pic2 { width:30%; right:6%; top:6%; }         /* its hardest world, small, high on the right */
+  .pk-pack[data-bg="world"] .pk-pic { width:96%; left:2%; top:70%; }   /* the world you're at, large, rising from the bottom */
+  .pk-pack[data-world="saturn"] .pk-pic { width:116%; left:-8%; top:55%; }   /* Saturn's photo has room around the rings */
   .pk-pack[data-bg="hole"] .pk-glow { opacity:.4; }
   /* sliding to tear (--cut = 0 to 1, set while your finger moves): a glowing cut along the tear line, the top seal lifts a little */
   .pk-pack { touch-action:none; }   /* the finger slides the cut instead of scrolling the page */

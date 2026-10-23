@@ -265,12 +265,12 @@ async function useAlt(a) {
   showTranslation("");
 }
 
-// the deck dropdown: your own decks (the built-in ones are fixed word lists), or just "All my cards"
+// the deck dropdown: your own decks, or French (the course's word lists are fixed, so it goes in its personal binder)
 function fillDecks() {
   const sel = $("tr-deck");
   sel.innerHTML = "";
   const opt = (value, text) => { const o = document.createElement("option"); o.value = value; o.textContent = text; sel.appendChild(o); };
-  opt("", "Add to: All my cards");
+  opt("", "Add to: French (personal binder)");
   state.decks.forEach(d => opt(d.id, "Add to: " + d.name));
   opt("new", "+ New deck…");
   const want = state.trDeck || (stack && stack.custom ? stack.id : "");
@@ -308,7 +308,7 @@ function addTranslated() {
     if (stack && stack.id === c.deck.id) stack.words.add(wordKey(card));
   }
   save();
-  $("tr-note").textContent = "✓ Added “" + card.front + "” to " + (c.deck ? "“" + c.deck.name + "”" : "All my cards") + ".";
+  $("tr-note").textContent = "✓ Added “" + card.front + "” to " + (c.deck ? "“" + c.deck.name + "”" : "French's personal binder") + ".";
   updateAdd();
 }
 

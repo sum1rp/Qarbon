@@ -77,9 +77,18 @@ function clean(data) {
       c.t = Number(c.t) || 0;   // when this card last changed (for syncing)
       return c;
     });
-  // card direction per stack id, e.g. { beginner150: "both" }
+  // card direction per deck id, e.g. { french: "both" }
   const dirs = s.directions && typeof s.directions === "object" ? s.directions : {};
   s.directions = Object.fromEntries(Object.entries(dirs).filter(([, v]) => DIRECTIONS[v]));
+  // build 64: the six Levels and "All my cards" became one French course. Its direction = Level 1's, else the one
+  // most of the old decks used; the deck you were on becomes the course (your own decks stay as they were)
+  if (!s.directions[COURSE_ID]) {
+    const old = OLD_STACKS.map(id => s.directions[id]).filter(Boolean);
+    const most = old.sort((a, b) => old.filter(v => v === b).length - old.filter(v => v === a).length)[0];
+    const pick = s.directions.beginner150 || most;
+    if (pick) s.directions[COURSE_ID] = pick;
+  }
+  OLD_STACKS.forEach(id => { delete s.directions[id]; });
   // your own decks: a name plus the list of words (French fronts) in it
   s.decks = (Array.isArray(s.decks) ? s.decks : [])
     .filter(d => d && typeof d.name === "string" && Array.isArray(d.words))
@@ -103,7 +112,7 @@ function clean(data) {
                t: Number(b.t) || 0 };
     });
   if (!s.books.some(b => b.id === s.readingBook)) s.readingBook = "";
-  s.stackId = typeof s.stackId === "string" ? s.stackId : "";   // the deck you used last
+  s.stackId = typeof s.stackId === "string" && s.stackId && !OLD_STACKS.includes(s.stackId) ? s.stackId : COURSE_ID;   // the deck you used last
   // 🌐 Translate (this device): the direction ("fr" = French → English, "en" = English → French) and the deck new cards go to
   s.trDir = s.trDir === "en" ? "en" : "fr";
   s.trDeck = typeof s.trDeck === "string" ? s.trDeck : "";

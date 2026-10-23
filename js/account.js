@@ -128,7 +128,7 @@ function applyMerged(m) {
   // keep the screen in step with what arrived
   if (stack && stack.custom) {
     const d = state.decks.find(x => x.id === stack.id);
-    if (d) { stack.words = new Set(d.words); stack.name = d.name; } else stack = null;
+    if (d) { stack.words = new Set(d.words); stack.name = d.name; } else { stack = course(); state.stackId = COURSE_ID; }   // deleted on another device
   }
   if (JSON.stringify(settingsOf(state)) !== before) {
     $("perday").value = String(state.newPerDay);

@@ -127,10 +127,11 @@ $("file").addEventListener("change", async e => {
 });
 
 // ================= screens: home → choose a stack → study =================
-// A stack is a list of French words. A card belongs to a stack if its word is on the list,
+// A stack (deck) is a list of French words. A card belongs to a stack if its word is on the list,
 // so a word in two stacks shares one set of progress.
-// Built-in packs are stored in js/packs.js (PACKS),
-// so they work offline and when index.html is opened straight from the Mac.
+// The six built-in Levels are stored in js/packs.js (PACKS), so they work offline and when index.html is opened straight
+// from the Mac. Since build 64 they're one deck, the French course (below): you don't pick a Level any more,
+// the Solar System decides which words your packs deal. The Levels still name the worlds on the map, in the binder and on cards.
 const BUILT_IN = [
   { id: "beginner150", name: "Level 1",      blurb: "The 150 most useful words to start with" },
   { id: "level2",      name: "Level 2",      blurb: "The next 150 useful words" },
@@ -139,23 +140,35 @@ const BUILT_IN = [
   { id: "level5",      name: "Level 5",      blurb: "75 advanced words for reading and debate (C1)" },
   { id: "level6",      name: "Level 6",      blurb: "75 rare, literary words: the Nebulas and Black Holes (C2)" }
 ];
-let stack = null;   // the stack you're studying (null = all cards)
+let stack = null;   // the stack you're studying (null only before the app opens: then it counts as the French course)
 
 // the word a card is known by in decks: its original French word (kept in c.key if you respell it)
 const wordKey = c => c.key || c.front.trim().toLowerCase();
-function stackCards() {
-  return stack && stack.words ? state.cards.filter(c => stack.words.has(wordKey(c))) : state.cards;
+
+// the French course: every word of Level 1 to Level 6 in one deck (made once; its id "french" is what's saved)
+let courseStack = null;
+function course() {
+  if (!courseStack) courseStack = { id: COURSE_ID, name: "French", course: true,
+    blurb: "Level 1 to Level 6 as one trip: your packs follow the Solar System",
+    texts: BUILT_IN.map(s => PACKS[s.id].trim()),
+    words: new Set(BUILT_IN.flatMap(s => frontsOf(PACKS[s.id]))) };
+  return courseStack;
 }
 
-// every stack you can pick: built-in packs, then your own decks, then everything
+// the cards of a deck. The course also keeps your own cards that aren't in any of your decks (cards you added by hand
+// or from Translate while in French): they're its personal binder.
+function cardsOf(s) {
+  if (!s.course) return state.cards.filter(c => s.words.has(wordKey(c)));
+  const inDecks = new Set(state.decks.flatMap(d => d.words));
+  return state.cards.filter(c => s.words.has(wordKey(c)) || !inDecks.has(wordKey(c)));
+}
+function stackCards() { return cardsOf(stack || course()); }
+
+// every deck you can pick: the French course, then your own decks
 function allStacks() {
-  const built = BUILT_IN.map(s => {
-    const text = PACKS[s.id].trim();
-    return { ...s, text, words: new Set(frontsOf(text)) };
-  });
   const mine = state.decks.map(d => ({ id: d.id, name: d.name, custom: true, words: new Set(d.words),
                                         blurb: "Your deck" + (d.added ? " · added " + d.added : "") }));
-  return [...built, ...mine, { id: "all", name: "All my cards", blurb: "Everything, from every deck" }];
+  return [course(), ...mine];
 }
 
 // show one screen and hide the others, with a soft fade in
@@ -176,7 +189,7 @@ function openStacks() {
   $("deckpicker").open = true;
 }
 
-// opening the app from home starts on the deck you used last (Level 1 the first time)
+// opening the app from home starts on the deck you used last (the French course the first time)
 function openApp() {
   const all = allStacks();
   chooseStack(all.find(s => s.id === state.stackId) || all[0]);
@@ -185,10 +198,10 @@ function openApp() {
 function renderStacks() {
   const box = $("stacklist"), t = today();
   box.innerHTML = "";
-  const currentId = stack ? stack.id : "all";
+  const currentId = (stack || course()).id;
   allStacks().forEach(s => {
-    const mine = s.words ? state.cards.filter(c => s.words.has(wordKey(c))) : state.cards;
-    const total = s.words ? s.words.size : state.cards.length;
+    const mine = cardsOf(s);
+    const total = Math.max(s.words.size, mine.length);   // (the course's words are added the first time you open it)
     const sides = c => dirsOf(s).map(d => sideOf(c, d));   // one schedule per direction this stack uses
     const started = mine.filter(c => sides(c).some(x => x.reviews > 0)).length;
     const due = mine.filter(c => active(c) && sides(c).some(x => x.reviews > 0 && x.due <= t)).length;
@@ -224,32 +237,31 @@ function renameDeck(id) {
   if (stack && stack.id === id) stack.name = name;
   save();
   renderStacks();
-  $("deckname").textContent = stack ? stack.name : "All my cards";
+  $("deckname").textContent = (stack || course()).name;
   $("stackmsg").textContent = "Renamed to “" + name + "”.";
 }
 
-// deleting a deck keeps its cards (they stay in All my cards), it only removes the deck
+// deleting a deck keeps its cards and their progress, it only removes the deck
+// (your own words that aren't in another deck then show in French's personal binder)
 function deleteDeck(id) {
   const d = state.decks.find(x => x.id === id);
-  if (!confirm("Delete the deck “" + d.name + "”? Its cards and progress stay in All my cards.")) return;
+  if (!confirm("Delete the deck “" + d.name + "”? Its cards keep their progress.")) return;
   state.decks = state.decks.filter(x => x !== d);
   delete state.directions[id];
-  if (stack && stack.id === id) { stack = null; state.stackId = "all"; }   // you were in it: switch to All my cards
+  if (stack && stack.id === id) { stack = course(); state.stackId = COURSE_ID; }   // you were in it: back to the course
   save();
   if (mode === "deck") renderDeck(); else renderStacks();
-  $("stackmsg").textContent = "Deleted the deck “" + d.name + "”. Its cards are still in All my cards.";
+  $("stackmsg").textContent = "Deleted the deck “" + d.name + "”. Its cards keep their progress.";
 }
 
 // switch to a deck. stay = true when you picked it in the Decks tab (you stay there); otherwise Review opens
 function chooseStack(s, stay) {
-  stack = s.words ? s : null;
+  stack = s;
   state.stackId = s.id;   // remembered, so the app opens this deck next time
   save();
   $("msg").textContent = "";
-  if (s.text) {   // built-in pack: add any of its words you don't have yet
-    const r = importCSV(s.text);
-    if (r.added) $("msg").textContent = "Added " + r.added + " new card(s) from " + s.name;
-  }
+  // the course: add any of its words you don't have yet. They're only silhouettes in your binder until a pack deals them.
+  if (s.course) s.texts.forEach(importCSV);
   closeEditor(false);
   $("settings").hidden = true;
   $("search").value = "";                        // a new stack starts with a clear search
@@ -269,7 +281,7 @@ function toggleSettings(open) {
   $("settings").hidden = !open;
   if (open) showAccount();
   if (open) {   // the direction list belongs to the stack you're in
-    setOptions($("direction"), Object.entries(DIRECTIONS), state.directions[stack ? stack.id : "all"] || "fr");
+    setOptions($("direction"), Object.entries(DIRECTIONS), state.directions[(stack || course()).id] || "fr");
   }
   if (cardShowing()) fitCard();   // the panel pushes the card down
 }
@@ -287,16 +299,16 @@ $("tiltbtn").onclick = async () => {
 $("gosettings").onclick = () => toggleSettings($("settings").hidden);
 $("setdone").onclick = () => toggleSettings(false);
 $("direction").onchange = e => {
-  state.directions[stack ? stack.id : "all"] = e.target.value;
+  state.directions[(stack || course()).id] = e.target.value;
   save();
-  $("msg").textContent = "Cards in " + (stack ? stack.name : "All my cards") + ": " + DIRECTIONS[e.target.value] + ".";
+  $("msg").textContent = "Cards in " + (stack || course()).name + ": " + DIRECTIONS[e.target.value] + ".";
   refresh();   // rebuild today's review with the new direction
 };
 
 // the small lines under the worlds: where you are on the map, cards due, the deck you're on, books you're reading
 function worldInfo() {
   const all = allStacks(), s = all.find(x => x.id === state.stackId) || all[0], t = today();
-  const cards = s.words ? state.cards.filter(c => s.words.has(wordKey(c))) : state.cards;
+  const cards = cardsOf(s);
   const due = cards.filter(c => active(c) && dirsOf(s).some(d => { const x = sideOf(c, d); return x.reviews > 0 && x.due <= t; })).length;
   // today's pack, if it's still sealed (js/collection.js)
   const packWaiting = !packsOpened() && cards.some(c => active(c) && !inBinder(c) && !isOwn(c) && worldOpen(c));

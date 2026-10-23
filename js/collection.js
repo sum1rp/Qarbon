@@ -4,8 +4,9 @@
 
 // ================= packs: what's in them =================
 // A pack is always 10 cards: today's pack, then up to 2 extra packs a day (state.packCount, on the day state.packDate), then more tomorrow.
-// A pack takes the deck's next cards you haven't seen (in deck order: the most useful words first),
-// and shows them easiest first, so the hardest world comes last.
+// A pack takes the course's next cards you haven't seen: first what's left on the worlds you passed, then your current
+// world (in the course's order inside a world: the most useful words first), and shows them easiest first, so the hardest
+// world comes last.
 // About 1 daily pack in 10 swaps its last card for a "rare pull": a Level 6 word (a Nebula or a Black Hole).
 const PACK_SIZE = 10, PACKS_PER_DAY = 3, RARE_ODDS = 0.1;
 
@@ -14,7 +15,8 @@ const PACK_SIZE = 10, PACKS_PER_DAY = 3, RARE_ODDS = 0.1;
 function worldOpen(c) {
   return isOwn(c) || WORLDS.indexOf(worldOf(c)) <= state.journey;
 }
-const unseenCards = () => stackCards().filter(c => active(c) && !inBinder(c) && !isOwn(c) && worldOpen(c));
+const unseenCards = () => stackCards().filter(c => active(c) && !inBinder(c) && !isOwn(c) && worldOpen(c))
+  .sort((a, b) => worldIndex(a) - worldIndex(b) || wordOrder.get(wordKey(a)) - wordOrder.get(wordKey(b)));
 // cards of this deck that wait on a world you haven't reached yet
 const lockedCards = () => stackCards().filter(c => active(c) && !inBinder(c) && !worldOpen(c));
 const packsOpened = () => state.packDate === today() ? state.packCount : 0;   // packs opened today
@@ -30,7 +32,7 @@ function packReady() {
 
 // a rare pull: a Level 6 word you haven't seen. If it isn't one of your cards yet, only that one word is added.
 function pullRare() {
-  if (stack && stack.id === "level6") return null;   // in Level 6 every card is already rare
+  if (state.journey >= 10) return null;   // at the Nebula and the Black Hole, every card your packs deal is already rare
   const rows = parseCSV(PACKS.level6), col = rows[0].map(h => h.trim().toLowerCase()).indexOf("front");
   const mine = new Map(state.cards.map(c => [wordKey(c), c]));
   const choices = rows.slice(1).filter(r => {
@@ -76,21 +78,19 @@ const cardBackHTML = tier => '<div class="qcard pk-back" data-tier="' + tier + '
 
 // ================= the pack's look =================
 // The pack is the site's own sky (the real stars of the background, js/look.js), a little brighter, with the logo atom,
-// thin silver seals top and bottom, and the deck's own worlds behind it:
-//   Level 1 = Earth rising, Level 6 = the black hole, the other levels = their easiest world large and their hardest world small,
-//   your own decks and "All my cards" = just the sky.
+// thin silver seals top and bottom, and the world you're at on the Solar System behind it, with its name ("The Moon"):
+//   Earth = Earth rising, the Black Hole = the black hole, every other world = its photo, large, low in the pack.
+//   Your own decks = just the sky.
 let packSkyURL = "";   // drawn once, the first time a pack opens
 // the big pack pictures have sharper copies (1000–1500 px) in img/pack/, loaded only when a pack opens; others use the card photo
 const PACK_PICS = ["earth", "hole", "venus", "mercury", "saturn", "neptune"];
 const packPic = id => PACK_PICS.includes(id) ? "img/pack/" + id + ".jpg" : WORLDS.find(w => w.id === id).img;
 
-// which pictures this deck's pack shows: { bg, big, small } (big/small = worlds from WORLDS in js/cards.js)
+// which picture the pack shows: { bg, world } (world = where you are, from WORLDS in js/cards.js)
 function packBackground() {
-  if (!stack || stack.custom) return { bg: "sky" };
-  if (stack.id === "beginner150") return { bg: "earth" };   // Level 1
-  if (stack.id === "level6") return { bg: "hole" };
-  const ws = WORLDS.filter(w => stackCards().some(c => worldOf(c) === w));
-  return ws.length ? { bg: "pair", big: ws[0], small: ws[ws.length - 1] } : { bg: "sky" };
+  if (stack && stack.custom) return { bg: "sky" };
+  const w = WORLDS[state.journey];
+  return { bg: w.id === "earth" || w.id === "hole" ? w.id : "world", world: w };
 }
 
 // the stars, the same way drawSky() in js/look.js draws them, at the scale of an iPhone 16 screen, but 1.8× brighter
@@ -126,12 +126,11 @@ function packSky(w, h) {
 
 function packHTML(name, size, look) {
   if (!packSkyURL) packSkyURL = packSky(300, 420);
-  const pic = look.bg === "earth" || look.bg === "hole" ? packPic(look.bg) : look.bg === "pair" ? packPic(look.big.id) : "";
-  return '<div class="pk-pack" data-bg="' + look.bg + '" role="button" tabindex="0" aria-label="Open the pack">' +
+  const pic = look.world ? packPic(look.world.id) : "";
+  return '<div class="pk-pack" data-bg="' + look.bg + '" data-world="' + (look.world ? look.world.id : "") + '" role="button" tabindex="0" aria-label="Open the pack">' +
     '<div class="pk-crimp top"></div><div class="pk-tear"></div><div class="pk-cut"></div>' +
     '<div class="pk-body"><img class="pk-sky" alt="" src="' + packSkyURL + '">' +
       (pic ? '<img class="pk-pic" alt="" src="' + pic + '">' : '') +
-      (look.bg === "pair" && look.small !== look.big ? '<img class="pk-pic2" alt="" src="' + look.small.img + '">' : '') +
       '<div class="pk-gloss"></div><div class="pk-glow"></div><div class="pk-atom">' + atomSVG(3.4) + '</div>' +
       '<div class="pk-name"' + (name.length > 12 ? ' style="font-size:1.15rem"' : '') + '>' + esc(name) + '</div>' +
       '<div class="pk-sub">' + size + ' cards</div></div>' +
@@ -158,7 +157,8 @@ function openPack() {
   pk = { cards, i: -1, rare, busy: false };
   $("pk-done").hidden = true;
   $("pk-stage").hidden = false;
-  $("pk-stage").innerHTML = packHTML(stack ? stack.name : "All my cards", cards.length, packBackground());
+  const look = packBackground();   // the course's pack is named after your world ("The Moon"), your own deck's after the deck
+  $("pk-stage").innerHTML = packHTML(look.world ? named(look.world, true) : stack.name, cards.length, look);
   $("pk-count").textContent = ready.daily ? "Today's pack" : "Another pack";
   $("pk-hint").textContent = "Slide along the top of the pack to tear it open";
   $("pk-close").textContent = "Cancel";
@@ -541,7 +541,6 @@ journeyCheck(true);   // cards you studied before the Solar System existed count
 
 let solarPick = -1, solarSkyURL = "";
 const CEFR_OF_LEVEL = ["A1", "A1–A2", "A2–B1", "B2", "C1", "C2"];
-const deckOfLevel = n => allStacks().find(s => s.id === BUILT_IN[n].id);
 
 function renderSolar() {
   journeyCheck(true);   // so the map and "You are here" always agree with the cards
@@ -587,25 +586,26 @@ function renderSolar() {
 }
 
 function solarPanel(i, st, isReached) {
-  const w = WORLDS[i], n = Math.floor(i / 2), deck = deckOfLevel(n), here = state.journey;
+  const w = WORLDS[i], n = Math.floor(i / 2), level = BUILT_IN[n].name, here = state.journey;
   const pct = v => Math.round(v * 100) + "%";
   const bar = (v, goal) => '<div class="sol-bar"><i style="width:' + Math.min(100, v * 100) + '%"></i>' + (goal ? '<span class="goal"></span>' : '') + '</div>';
   const need = Math.max(0, Math.ceil(st.total * REACH) - st.fam);
   const note = isReached ? "<b>Reached.</b> " + pct(st.fam / st.total) + " of its cards are Familiar or better." + (i < WORLDS.length - 1 ? " " + named(WORLDS[i + 1], true) + " is open." : "")
     : i === here ? "<b>You are here.</b> Get " + need + " more card" + (need === 1 ? "" : "s") + " to Familiar (80%) to reach " + named(w) + (i < WORLDS.length - 1 ? " and open " + named(WORLDS[i + 1]) : "") + ". Keep opening packs and reviewing."
     : i < here ? "<b>Open.</b> " + need + " more card" + (need === 1 ? "" : "s") + " to Familiar to reach it."
-    : "<b>Not open yet.</b> Its cards come in packs once you reach " + named(WORLDS[i - 1]) + ". You can still browse " + deck.name + " in Decks.";
+    : "<b>Not open yet.</b> Its cards come in packs once you reach " + named(WORLDS[i - 1]) + ". They wait as silhouettes in your binder.";
   $("sol-panel").innerHTML =
-    '<div class="sol-ph"><img alt="" src="' + w.img + '"><div><b>' + w.name + '</b><span>' + esc(deck.name) + ' · ' + CEFR_OF_LEVEL[n] + ' · ' + st.total + ' cards</span></div></div>' +
+    '<div class="sol-ph"><img alt="" src="' + w.img + '"><div><b>' + w.name + '</b><span>' + esc(level) + ' · ' + CEFR_OF_LEVEL[n] + ' · ' + st.total + ' cards</span></div></div>' +
     '<div class="sol-stat"><span>Collected</span>' + bar(st.got / st.total) + '<span>' + st.got + '</span></div>' +
     '<div class="sol-stat"><span>Familiar or better</span>' + bar(st.fam / st.total, true) + '<span>' + pct(st.fam / st.total) + '</span></div>' +
     '<div class="sol-stat"><span>Mastered</span>' + bar(st.mas / st.total) + '<span>' + st.mas + '</span></div>' +
     '<p class="sol-note">' + note + '</p>' +
-    '<div class="sol-acts"><button id="sol-study">Study ' + esc(deck.name) + '</button><button id="sol-binder">Binder</button>' + (st.got ? '<button id="sol-practice">Practice</button>' : '') + '</div>';
-  $("sol-study").onclick = () => chooseStack(deck);
-  $("sol-binder").onclick = () => { chooseStack(deck, true); binderFilter = w.id; renderBinder(); };
+    '<div class="sol-acts"><button id="sol-study">Review French</button><button id="sol-binder">Binder</button>' + (st.got ? '<button id="sol-practice">Practice</button>' : '') + '</div>';
+  // every world is part of the one French course: Review it, or open its binder on this world
+  $("sol-study").onclick = () => chooseStack(course());
+  $("sol-binder").onclick = () => { chooseStack(course(), true); binderFilter = w.id; renderBinder(); };
   if (st.got) $("sol-practice").onclick = () => {
-    chooseStack(deck, true);
+    chooseStack(course(), true);
     startPractice(stackCards().filter(c => active(c) && inBinder(c) && worldOf(c) === w));
   };
 }
