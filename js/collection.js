@@ -494,7 +494,7 @@ function personalHTML(own, dir) {
 function renderPersonal(own, dir) {
   const mastered = own.filter(c => masteryOf(c, dir) === 4).length, pct = own.length ? Math.round(mastered / own.length * 100) : 0;
   $("binder").innerHTML = '<div class="bd-head"><div class="bd-big"><b>' + own.length + '</b><span>cards · ' + mastered + ' mastered · ' +
-    OWN_PER_DAY + ' new a day come into Review</span></div><div class="bd-bar"><i style="width:' + pct + '%"></i></div></div>' +
+    state.newPerDay + ' new a day come into Review</span></div><div class="bd-bar"><i style="width:' + pct + '%"></i></div></div>' +
     (own.length ? personalHTML(own, dir) : '<p class="bd-note">No cards in this deck yet.</p>');
   $("binder").querySelectorAll(".bd-pockets > button").forEach(b => {
     b.onclick = () => {

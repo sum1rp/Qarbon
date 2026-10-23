@@ -68,6 +68,9 @@ document.addEventListener("keydown", e => {
   }
 });
 
+$("perday").value = String(state.newPerDay);   // ⚙ New cards a day (your own decks)
+$("perday").onchange = e => { state.newPerDay = Number(e.target.value); save(); refresh(); };
+
 // ================= import a CSV pack =================
 // turns CSV text into cards and adds the ones you don't already have.
 // Returns how it went: { added, dupes, bad }, or { error } if the file can't be used.
@@ -300,10 +303,20 @@ function worldInfo() {
   $("ws-daily").textContent = [due ? due + " due" : "", packWaiting ? "today's pack is ready" : ""].filter(Boolean).join(" · ");
   $("ws-deck").textContent = s.name;
   $("ws-solar").textContent = "At " + named(WORLDS[state.journey]);   // where you are on the trip (js/collection.js)
-  // under the Moon: the books you're reading, else tonight's Moon ("Waxing gibbous · 73% lit tonight", js/worlds.js)
+  // under the Moon: always tonight's Moon ("Waxing gibbous · 73% lit tonight", js/worlds.js), then the books you're reading
   const reading = state.books.filter(b => !isFinished(b)).length;
-  $("ws-reading").textContent = reading ? reading + (reading === 1 ? " book" : " books") : moonLine();
+  $("ws-reading").textContent = moonLine() + (reading ? " · " + reading + (reading === 1 ? " book" : " books") : "");
+  showClock();
 }
+
+// under the Earth: today's date and the time here, like "Thu, Oct 23 · 2:05 PM" (the globe is lit where the Sun is right now).
+// It's updated every few seconds while home is showing.
+function showClock() {
+  const now = new Date();
+  $("ws-time").textContent = now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) + " · " +
+                             now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+setInterval(() => { if (!$("home").hidden && !document.hidden) showClock(); }, 5000);
 
 // ----- the home carousel: one world at a time -----
 const slides = [...document.querySelectorAll(".slide")];

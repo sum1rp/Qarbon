@@ -124,7 +124,7 @@ function clean(data) {
   const del = s.deleted && typeof s.deleted === "object" ? s.deleted : {};
   s.deleted = Object.fromEntries(Object.entries(del).filter(([k, v]) => /^(card|deck|playlist|book):/.test(k) && Number(v) > 0).map(([k, v]) => [k, Number(v)]));
   s.settingsT = Number(s.settingsT) || 0;
-  s.newPerDay = PER_DAY_CHOICES.includes(Number(s.newPerDay)) ? Number(s.newPerDay) : 10;   // (not used since build 63: packs are always 10)
+  s.newPerDay = PER_DAY_CHOICES.includes(Number(s.newPerDay)) ? Number(s.newPerDay) : 10;   // new cards a day for your own decks (packs are always 10)
   s.newDone = Number(s.newDone) || 0;
   s.packDate = typeof s.packDate === "string" ? s.packDate : "";   // the day you last opened a pack
   s.packCount = Number.isInteger(s.packCount) && s.packCount > 0 ? s.packCount : 0;   // how many packs you opened that day (at most 3)

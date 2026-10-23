@@ -6,10 +6,10 @@
 <title>Qarbon</title>
 <!-- Amiri italic for the packs' "Level 1" (the logo's own built-in font only has the letters Q a r b n); offline, Georgia italic stands in -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:ital@1&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=62">
+<link rel="stylesheet" href="css/styles.css?v=63">
 <!-- the atom icons: the little one in the browser tab, and the one iPhones use for "Add to Home Screen" -->
-<link rel="icon" type="image/svg+xml" href="favicon.svg?v=62">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=62">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=63">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=63">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -41,7 +41,7 @@
         <!-- 🃏 Review: the Earth, live (a still photo until the live globe is ready) -->
         <button class="slide" data-mode="daily">
           <span class="body world" id="w-earth" aria-hidden="true"><img class="photo" alt="" data-src="img/earth.jpg"></span>
-          <span class="wname">Review</span><span class="wsub" id="ws-daily"></span>
+          <span class="wname">Review</span><span class="wtime" id="ws-time"></span><span class="wsub" id="ws-daily"></span>
         </button>
         <!-- 🎧 Media: the Qarbon atom wearing headphones (drawn by mediaWorldSVG in js/worlds.js) -->
         <button class="slide" data-mode="media">
@@ -115,7 +115,7 @@
     <div class="howsec">
       <h3>Getting started</h3>
       <ul>
-        <li>The home screen shows one world at a time, starting with the Solar System. It moves on to the next world by itself every 5 seconds, like a little tour. Touching it pauses the tour; leave it alone for 10 seconds and it carries on (not with Reduce Motion on). Swipe left or right to move between them yourself, or tap a dot (or slide your finger along the dots) to jump (on a computer: the ‹ › buttons or the arrow keys). In order: the <b>Solar System</b> (your map, the Qarbon atom with planets around it), <b>Review</b> the Earth, <b>Qarbon Media Player</b> the atom wearing headphones, <b>Decks</b> the Big Dipper, <b>Translate</b> the Tower of Babel, <b>Reading</b> the Moon, <b>Focus</b> the Crab Nebula and <b>B.A.R. Exam</b> the Sun (tap it and watch). Tap a world to go straight there. The small line under each world shows where you are on the map, cards due, your deck, or the books you're reading (or tonight's Moon). <b>Practice</b> is in the Mode menu.</li>
+        <li>The home screen shows one world at a time, starting with the Solar System. It moves on to the next world by itself every 5 seconds, like a little tour. Touching it pauses the tour; leave it alone for 10 seconds and it carries on (not with Reduce Motion on). Swipe left or right to move between them yourself, or tap a dot (or slide your finger along the dots) to jump (on a computer: the ‹ › buttons or the arrow keys). In order: the <b>Solar System</b> (your map, the Qarbon atom with planets around it), <b>Review</b> the Earth (with today's date and your time: it's lit where the Sun is right now), <b>Qarbon Media Player</b> the atom wearing headphones, <b>Decks</b> the Big Dipper, <b>Translate</b> the Tower of Babel, <b>Reading</b> the Moon, <b>Focus</b> the Crab Nebula and <b>B.A.R. Exam</b> the Sun (tap it and watch). Tap a world to go straight there. The small line under each world shows where you are on the map, cards due, your deck, or tonight's Moon and the books you're reading. <b>Practice</b> is in the Mode menu.</li>
         <li>They're all real: the planets are NASA photos, and the Earth is live: it turns, and it's lit where the Sun really is right now, with city lights on the night side. The Moon shows <b>tonight's actual phase</b>, and the stars behind everything are the real night sky (see <b>Space images</b> below).</li>
         <li>The app opens on the deck you used last (Level 1 the first time).</li>
         <li>Pick what you're doing from the <b>Mode</b> menu at the top: <b>🃏 Review</b>, <b>🗂 Decks</b>, <b>🔁 Practice</b>, <b>🔥 B.A.R. Exam</b>, <b>⏱ Focus</b>, <b>📖 Reading</b>, <b>🌐 Translate</b> or <b>🎧 Qarbon Media Player</b>.</li>
@@ -134,7 +134,7 @@
         <li>Shows the cards due today, plus the new words from the packs you've opened. <b>Binder</b> and <b>List</b> (beside the pack) open this deck in 🗂 Decks.</li>
         <li><b>Today's pack:</b> new words come in a pack of 10 each day. Tap "Today's pack is ready" above the card, slide your finger along the top of the pack to tear it open, then swipe each card away. <b>Cancel</b> puts the pack back, still sealed, as long as you haven't torn it; once it's torn you go through to the end. The hardest world comes last, face down. About 1 daily pack in 10 has a <b>rare pull</b>: a Nebula or Black Hole word from Level 6.</li>
         <li><b>More packs:</b> when you're done for the day you can open another pack of 10, up to 3 packs a day; then more tomorrow. Each one adds to your reviews over the next days.</li>
-        <li><b>Your own cards</b> (your CSV decks, + Add card, Translate) skip the packs and come straight into Review like an Anki deck: 10 new ones a day per deck. They live in their own <b>personal binder</b>, not the course's worlds, and never count on the Solar System map.</li>
+        <li><b>Your own cards</b> (your CSV decks, + Add card, Translate) skip the packs and come straight into Review like an Anki deck: 10 new ones a day per deck. <b>New cards a day (your own decks)</b> in ⚙ makes it 20 or 30. They live in their own <b>personal binder</b>, not the course's worlds, and never count on the Solar System map.</li>
         <li><b>Flip:</b> tap the card, tap <b>Show answer</b>, or press Space/Enter. Tap again to peek back at the front.</li>
         <li><b>Rate it:</b> Again, Hard, Good or Easy (keys 1 to 4). The small text under each button is when you'll see the card next.</li>
         <li><b>Swipe up</b> on the card to show the answer, then <b>swipe</b> right for Good, left for Again.</li>
@@ -329,6 +329,10 @@
 
   <!-- settings: hidden until you tap ⚙ -->
   <div id="settings" hidden>
+    <!-- your own decks work like Anki: this many of their new cards come into Review each day (built-in Levels come in packs of 10) -->
+    <label>New cards a day (your own decks)
+      <select id="perday"><option>10</option><option>20</option><option>30</option></select>
+    </label>
     <label>Card direction (this stack) <select id="direction"></select></label>
     <label>Voice <select id="voice"></select></label>
     <!-- the cards' holo shine can follow the phone's tilt (iPhone asks permission once); this device only -->
@@ -823,22 +827,22 @@
 <!-- the program, in order: packs (data) first, start.js last. Every file shares the same variables.
      ?v=62 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
      (Book texts in js/books/ and the PDF viewer only load when you open a book.) -->
-<script src="js/packs.js?v=62"></script>
-<script src="js/basics.js?v=62"></script>
-<script src="js/stars.js?v=62"></script>
-<script src="js/look.js?v=62"></script>
-<script src="js/worlds.js?v=62"></script>
-<script src="js/data.js?v=62"></script>
-<script src="js/cards.js?v=62"></script>
-<script src="js/timer.js?v=62"></script>
-<script src="js/burn.js?v=62"></script>
-<script src="js/music.js?v=62"></script>
-<script src="js/media.js?v=62"></script>
-<script src="js/app.js?v=62"></script>
-<script src="js/collection.js?v=62"></script>
-<script src="js/reading.js?v=62"></script>
-<script src="js/translate.js?v=62"></script>
-<script src="js/account.js?v=62"></script>
-<script src="js/start.js?v=62"></script>
+<script src="js/packs.js?v=63"></script>
+<script src="js/basics.js?v=63"></script>
+<script src="js/stars.js?v=63"></script>
+<script src="js/look.js?v=63"></script>
+<script src="js/worlds.js?v=63"></script>
+<script src="js/data.js?v=63"></script>
+<script src="js/cards.js?v=63"></script>
+<script src="js/timer.js?v=63"></script>
+<script src="js/burn.js?v=63"></script>
+<script src="js/music.js?v=63"></script>
+<script src="js/media.js?v=63"></script>
+<script src="js/app.js?v=63"></script>
+<script src="js/collection.js?v=63"></script>
+<script src="js/reading.js?v=63"></script>
+<script src="js/translate.js?v=63"></script>
+<script src="js/account.js?v=63"></script>
+<script src="js/start.js?v=63"></script>
 </body>
 </html>

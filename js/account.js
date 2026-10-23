@@ -131,6 +131,7 @@ function applyMerged(m) {
     if (d) { stack.words = new Set(d.words); stack.name = d.name; } else stack = null;
   }
   if (JSON.stringify(settingsOf(state)) !== before) {
+    $("perday").value = String(state.newPerDay);
     fillVoices();
     if (!ticking) syncTimerUI();
     showMusic(false);
@@ -229,6 +230,7 @@ $("restore").addEventListener("change", async e => {
   syncTimerUI();
   showMusic(false);
   showReadbar();
+  $("perday").value = String(state.newPerDay);
   setMode("daily");
   $("msg").textContent = "Restored " + state.cards.length + " card(s) from backup";
 });

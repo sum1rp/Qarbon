@@ -32,16 +32,16 @@ function shuffle(a) {
 // a card is in your binder once you've seen it: from a pack (c.got), or studied before packs existed
 const inBinder = c => !!c.got || c.reviews > 0 || !!(c.rev && c.rev.reviews > 0);
 // your own cards (any word that isn't in the built-in Levels) work like an Anki deck: no packs, they come straight into
-// Review, OWN_PER_DAY new ones a day per deck (c.got = the day one came in), and they live in a personal binder
-const OWN_PER_DAY = 10;
+// Review, a few new ones a day per deck (⚙ "New cards a day (your own decks)", state.newPerDay: 10, 20 or 30;
+// c.got = the day one came in), and they live in a personal binder
 const isOwn = c => { if (!wordWorld) sortWorlds(); return !wordWorld.has(wordKey(c)); };
 
 function dailyList() {
   const t = today();
   if (state.newDate !== t) { state.newDate = t; state.newDone = 0; }
-  // your own cards come in by themselves: up to OWN_PER_DAY new ones today, in the order you added them
+  // your own cards come in by themselves: up to state.newPerDay new ones today, in the order you added them
   const own = stackCards().filter(c => active(c) && isOwn(c));
-  let room = OWN_PER_DAY - own.filter(c => c.got === t).length;
+  let room = state.newPerDay - own.filter(c => c.got === t).length;
   own.forEach(c => { if (room > 0 && !inBinder(c)) { c.got = t; room--; } });
   const dirs = dirsOf(stack);
   // new words come from the packs you've opened (js/collection.js): the cards in your binder you haven't studied yet,
