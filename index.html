@@ -38,11 +38,6 @@
           <span class="body world" id="w-solar" aria-hidden="true"></span>
           <span class="wname">Solar System</span><span class="wsub" id="ws-solar"></span>
         </button>
-        <!-- 🃏 Review: the Earth, live (a still photo until the live globe is ready) -->
-        <button class="slide" data-mode="daily">
-          <span class="body world" id="w-earth" aria-hidden="true"><img class="photo" alt="" data-src="img/earth.jpg"></span>
-          <span class="wname">Review</span><span class="wtime" id="ws-time"></span><span class="wsub" id="ws-daily"></span>
-        </button>
         <!-- 🎧 Media: the Qarbon atom wearing headphones (drawn by mediaWorldSVG in js/worlds.js) -->
         <button class="slide" data-mode="media">
           <span class="body world" id="w-media" aria-hidden="true"></span>
@@ -91,6 +86,11 @@
         <button class="slide" data-mode="burn">
           <span class="body world" id="w-sun" aria-hidden="true"><img class="photo" alt="" data-src="img/sun.jpg"><span class="shock"></span><span class="flash"></span></span>
           <span class="wname">B.A.R. Exam</span><span class="wsub"></span>
+        </button>
+        <!-- 🃏 Review: the Earth, live, last (after B.A.R., the user's order in build 71; the carousel wraps, so it also sits just before the Solar System) (a still photo until the live globe is ready) -->
+        <button class="slide" data-mode="daily">
+          <span class="body world" id="w-earth" aria-hidden="true"><img class="photo" alt="" data-src="img/earth.jpg"></span>
+          <span class="wname">Review</span><span class="wtime" id="ws-time"></span><span class="wsub" id="ws-daily"></span>
         </button>
       </div>
       <button class="arrow" id="nextworld" aria-label="Next world">›</button>
