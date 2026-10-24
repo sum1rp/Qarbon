@@ -5,7 +5,7 @@
 let storageOK = true;
 try { localStorage.setItem("_qtest", "1"); localStorage.removeItem("_qtest"); } catch (e) { storageOK = false; }
 
-const FRESH = { cards: [], decks: [], playlists: [], music: "", directions: {}, books: [], readingBook: "", stackId: "", newPerDay: 10, newDate: "", newDone: 0, packDate: "", packCount: 0, journey: 0, voice: "female", sessions: 0, timerMode: "pomodoro" };
+const FRESH = { cards: [], decks: [], playlists: [], music: "", directions: {}, books: [], readingBook: "", stackId: "", courseId: COURSE_ID, courses: {}, newPerDay: 10, newDate: "", newDone: 0, packDate: "", packCount: 0, journey: 0, voice: "female", sessions: 0, timerMode: "pomodoro" };
 
 // where you stopped reading a book: { ch: chapter (from 0), y: how far down it (0 to 1) } or { page } for a PDF
 function cleanPlace(p) {
@@ -70,6 +70,8 @@ function clean(data) {
       } else delete c.rev;
       if (c.suspended !== true) delete c.suspended;
       if (typeof c.key !== "string" || !c.key) delete c.key;
+      // the card's language: "es" for Spanish (build 69). French cards (and cards from before) have none.
+      if (typeof c.lang !== "string" || !/^[a-z]{2}$/.test(c.lang) || c.lang === "fr") delete c.lang;
       // the collection (js/collection.js): got = the day the card went into your binder (first seen in a pack),
       // pulled = it came as a rare pull from a harder deck
       if (typeof c.got !== "string" || !/^\d{4}-\d\d-\d\d$/.test(c.got)) delete c.got;
@@ -113,7 +115,9 @@ function clean(data) {
     });
   if (!s.books.some(b => b.id === s.readingBook)) s.readingBook = "";
   s.stackId = typeof s.stackId === "string" && s.stackId && !OLD_STACKS.includes(s.stackId) ? s.stackId : COURSE_ID;   // the deck you used last
-  // 🌐 Translate (this device): the direction ("fr" = French → English, "en" = English → French) and the deck new cards go to
+  // the course you used last (this device): the map, packs and Translate follow it, even while you're in one of your own decks
+  s.courseId = COURSE_IDS.includes(s.stackId) ? s.stackId : COURSE_IDS.includes(s.courseId) ? s.courseId : COURSE_ID;
+  // 🌐 Translate (this device): the direction ("fr" = the course's language → English, "en" = English → it) and the deck new cards go to
   s.trDir = s.trDir === "en" ? "en" : "fr";
   s.trDeck = typeof s.trDeck === "string" ? s.trDeck : "";
   s.readerSize = Number(s.readerSize) >= 14 && Number(s.readerSize) <= 28 ? Number(s.readerSize) : 18;   // the reader's text size (this device)
@@ -140,8 +144,17 @@ function clean(data) {
   if (s.packDate && !s.packCount) s.packCount = 1;   // saves from before build 63 only kept the day of the daily pack
   // the Solar System (js/collection.js): the furthest world open to your packs, 0 = Earth … 11 = Black Hole. Once open, it stays open.
   s.journey = Number.isInteger(s.journey) && s.journey >= 0 && s.journey <= 11 ? s.journey : 0;
+  // the other courses keep the same three things for themselves: { spanish: { journey, packDate, packCount } }
+  // (French keeps them at the top of the save, where they were before Spanish existed)
+  const cs = s.courses && typeof s.courses === "object" ? s.courses : {};
+  s.courses = Object.fromEntries(COURSE_IDS.filter(id => id !== COURSE_ID).map(id => {
+    const p = cs[id] && typeof cs[id] === "object" ? cs[id] : {};
+    return [id, { journey: Number.isInteger(p.journey) && p.journey >= 0 && p.journey <= 11 ? p.journey : 0,
+                  packDate: typeof p.packDate === "string" ? p.packDate : "",
+                  packCount: Number.isInteger(p.packCount) && p.packCount > 0 ? p.packCount : 0 }];
+  }));
   s.sessions = Number(s.sessions) || 0;
-  if (!VOICES[s.voice]) s.voice = "female";
+  if (!VOICES.fr[s.voice]) s.voice = "female";
   if (!TIMER_MODES[s.timerMode] && s.timerMode !== "custom") s.timerMode = "pomodoro";
   // your Custom timer: each length is kept between its smallest and largest allowed value
   const ct = s.customTimer && typeof s.customTimer === "object" ? s.customTimer : {};
@@ -159,7 +172,10 @@ function load() {
 // Every card, deck and book has a "t" (when it last changed, in milliseconds), and your settings share one
 // "settingsT". Instead of stamping things all over the code, save() compares each item with how it looked at
 // the last save: whatever changed gets stamped "now", and whatever disappeared goes into state.deleted.
-const cardKey = c => c.key || c.front.trim().toLowerCase();   // same as wordKey(): the word a card is known by
+// the key a word is known by: lowercase, with its language in front unless it's French ("es:hola"), so the same
+// spelling in two languages ("piano") is two different cards
+const langKey = (lang, word) => (lang && lang !== "fr" ? lang + ":" : "") + word.trim().toLowerCase();
+const cardKey = c => c.key || langKey(c.lang, c.front);   // same as wordKey(): the key a card is known by
 const SYNCED_SETTINGS = ["newPerDay", "voice", "timerMode", "customTimer", "music", "directions"];
 const settingsOf = s => Object.fromEntries(SYNCED_SETTINGS.map(k => [k, s[k]]));
 
@@ -172,7 +188,7 @@ function snapshot(s) {
   s.playlists.forEach(p => add("playlist:" + p.id, p));
   s.books.forEach(b => add("book:" + b.id, b));
   out.settings = JSON.stringify(settingsOf(s));
-  out.counters = JSON.stringify([s.sessions, s.newDate, s.newDone, s.packDate, s.packCount, s.journey]);   // not stamped, but worth syncing
+  out.counters = JSON.stringify([s.sessions, s.newDate, s.newDone, s.packDate, s.packCount, s.journey, s.courses]);   // not stamped, but worth syncing
   return out;
 }
 let snap = {};   // the fingerprints at the last save
@@ -325,10 +341,17 @@ function mergeStates(a, b) {   // a = this device, b = online (both already clea
     sessions: Math.max(a.sessions, b.sessions),   // focus sessions done: the bigger count
     newDate: later.newDate,                        // new cards started today: the bigger count, if it's the same day
     newDone: a.newDate === b.newDate ? Math.max(a.newDone, b.newDone) : later.newDone,
-    packDate: (a.packDate || "") > (b.packDate || "") ? a.packDate : b.packDate,  // the daily pack: opened on either device counts
-    packCount: a.packDate === b.packDate ? Math.max(a.packCount, b.packCount)      // packs opened that day: the bigger count,
-             : (a.packDate || "") > (b.packDate || "") ? a.packCount : b.packCount,  // or the later day's
-    journey: Math.max(a.journey || 0, b.journey || 0)                            // the Solar System: the furthest world reached on either device
+    ...mergeProgress(a, b),   // French's packs and place on the map
+    courses: Object.fromEntries(Object.keys(a.courses).map(id => [id, mergeProgress(a.courses[id], b.courses[id] || {})]))   // Spanish's
+  };
+}
+// one course's packs today and place on the map, from two devices
+function mergeProgress(a, b) {
+  return {
+    packDate: (a.packDate || "") > (b.packDate || "") ? a.packDate : b.packDate || "",  // the daily pack: opened on either device counts
+    packCount: a.packDate === b.packDate ? Math.max(a.packCount || 0, b.packCount || 0) // packs opened that day: the bigger count,
+             : (a.packDate || "") > (b.packDate || "") ? a.packCount : b.packCount,     // or the later day's
+    journey: Math.max(a.journey || 0, b.journey || 0)                                   // the Solar System: the furthest world reached on either device
   };
 }
 

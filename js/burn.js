@@ -3,7 +3,7 @@
 
 // ================= Burn After Reading =================
 // 1. read up to 10 new cards once (no going back)  2. watch them burn up as a meteor
-// 3. for each English word, pick the exact French spelling out of 4  4. see how many "survived"
+// 3. for each English word, pick the exact French (or Spanish) spelling out of 4  4. see how many "survived"
 // Right answers count like Good, wrong ones like Hard, and missed words go first in your next Review.
 const BURN_SIZE = 10;
 let burn = null;   // the current round: { cards, order, i, right, missed }
@@ -12,27 +12,56 @@ const pick = list => list[Math.floor(Math.random() * list.length)];
 const stripAccents = w => w.normalize("NFD").replace(/[̀-ͯ]/g, "").normalize("NFC");
 const isLetter = ch => /\p{L}/u.test(ch || "");
 
-// accent traps: a wrong accent for each accented letter, or an accent to add where none belongs
+// accent traps: a wrong accent for each accented letter, or an accent to add where none belongs.
+// French has many accents (é è ê à ç …); Spanish has one kind (á é í ó ú) plus ü and ñ, so its traps drop, move or add them.
 const WRONG_ACCENT = { "é": ["è", "ê", "e"], "è": ["é", "ê", "e"], "ê": ["é", "è", "e"], "ë": ["é", "e"],
                        "à": ["a", "â"], "â": ["à", "a"], "î": ["i", "ï"], "ï": ["i", "î"], "ô": ["o", "ö"],
                        "ù": ["u", "û"], "û": ["u", "ù"], "ç": ["c"] };
 const ADD_ACCENT = { e: ["é", "è", "ê"], a: ["à", "â"], i: ["î"], o: ["ô"], u: ["ù", "û"], c: ["ç"] };
+const WRONG_ACCENT_ES = { "á": ["a"], "é": ["e"], "í": ["i"], "ó": ["o"], "ú": ["u", "ü"], "ü": ["u", "ú"], "ñ": ["n"] };
+const ADD_ACCENT_ES = { a: ["á"], e: ["é"], i: ["í"], o: ["ó"], u: ["ú"], n: ["ñ"] };
+const ES_VOWEL = { a: "á", e: "é", i: "í", o: "ó", u: "ú" };
 
-// "être" → "etre" (all accents dropped) or "ètre" (one accent wrong); "porte" → "pôrte" (accent added)
-function accentTrap(word) {
+// "être" → "etre" (all accents dropped) or "ètre" (one accent wrong); "porte" → "pôrte" (accent added).
+// Spanish: "canción" → "cancion" (dropped), "cáncion" (moved to another vowel), "año" → "ano"; "mesa" → "mésa" (added)
+function accentTrap(word, lang) {
+  const es = lang === "es", wrong = es ? WRONG_ACCENT_ES : WRONG_ACCENT, add = es ? ADD_ACCENT_ES : ADD_ACCENT;
   const chars = [...word];
-  const accented = chars.map((ch, i) => WRONG_ACCENT[ch] ? i : -1).filter(i => i >= 0);
+  const accented = chars.map((ch, i) => wrong[ch] ? i : -1).filter(i => i >= 0);
   if (accented.length) {
     if (Math.random() < .5) return stripAccents(word);
     const i = pick(accented);
-    chars[i] = pick(WRONG_ACCENT[chars[i]]);
+    const base = stripAccents(chars[i]);
+    const others = chars.map((ch, j) => j !== i && ES_VOWEL[ch] ? j : -1).filter(j => j >= 0);
+    if (es && ES_VOWEL[base] && others.length && Math.random() < .5) {   // the accent moves to another vowel
+      const j = pick(others);
+      chars[i] = base; chars[j] = ES_VOWEL[chars[j]];
+    } else chars[i] = pick(wrong[chars[i]]);
     return chars.join("");
   }
-  const plain = chars.map((ch, i) => ADD_ACCENT[ch] ? i : -1).filter(i => i >= 0);
+  const plain = chars.map((ch, i) => add[ch] ? i : -1).filter(i => i >= 0);
   if (!plain.length) return null;   // nothing to put an accent on
   const i = pick(plain);
-  chars[i] = pick(ADD_ACCENT[chars[i]]);
+  chars[i] = pick(add[chars[i]]);
   return chars.join("");
+}
+
+// Spanish spelling traps: the letters that sound alike. b ↔ v, ll ↔ y, z/c ↔ s, g ↔ j before e and i,
+// a silent h dropped or added, rr ↔ r, qu → k. "vivir" → "bivir", "llave" → "yave", "hacer" → "acer"
+const ES_SOUNDS = [
+  [/b/g, "v"], [/v/g, "b"], [/ll/g, "y"], [/y(?=[aeiouáéíóú])/g, "ll"], [/z/g, "s"], [/c(?=[eéií])/g, "s"],
+  [/s(?=[aou])/g, "z"], [/g(?=[eéií])/g, "j"], [/j(?=[eéií])/g, "g"], [/(^|\s)h/g, "$1"], [/(^|\s)(?=[aeiou])/g, "$1h"],
+  [/rr/g, "r"], [/([aeiouáéíóú])r(?=[aeiouáéíóú])/g, "$1rr"], [/qu(?=[eéií])/g, "k"]
+];
+function soundTrap(word) {
+  const art = (word.match(/^(el|la|los|las|un|una) /i) || [""])[0];   // the article stays as it is: "el agua" → "el hagua"
+  const w = word.slice(art.length);
+  // (fresh copies of each pattern: a /g pattern remembers where it stopped last time)
+  const fits = ES_SOUNDS.filter(([re]) => new RegExp(re.source).test(w));
+  if (!fits.length) return null;
+  const [re, to] = pick(fits);
+  const m = pick([...w.matchAll(new RegExp(re.source, "g"))]);   // change just one of the places it fits: the first match from there on
+  return art + w.slice(0, m.index) + w.slice(m.index).replace(new RegExp(re.source), to);
 }
 
 // "être" → "têre" (two letters swapped), "êttre" (a letter doubled) or "êre" (a letter dropped)
@@ -48,9 +77,11 @@ function spellingTrap(word) {
 }
 
 // the 4 answers for one card: correct, accent trap, spelling trap, another real word. All different.
+// The real words come from cards in the same language (Spanish cards get Spanish words).
 function burnOptions(card) {
-  const right = card.front, options = [right];
-  const realWords = new Set(state.cards.map(c => c.front));
+  const right = card.front, options = [right], lang = cardLang(card);
+  const sameLang = state.cards.filter(c => cardLang(c) === lang);
+  const realWords = new Set(state.cards.map(c => c.front));   // traps are never real words, in any language ("tú" → "tu" is a French card)
   // try a maker a few times until it gives something new (traps can come out the same as the answer).
   // Traps must not be real words either: dropping a letter from "avoir" gives "voir", which isn't a mistake.
   const add = (make, real) => {
@@ -61,14 +92,19 @@ function burnOptions(card) {
     return false;
   };
   // a spelling trap must change the letters themselves ("l'ideé" only moves the accent, so it doesn't count)
-  const letterTrap = () => { const o = spellingTrap(right); return o && stripAccents(o) !== stripAccents(right) ? o : null; };
-  if (!add(() => accentTrap(right))) add(letterTrap);   // no accent possible? another spelling trap
+  // (Spanish: half the time a letter that sounds the same, like b for v)
+  const letterTrap = () => {
+    const o = lang === "es" && Math.random() < .6 ? soundTrap(right) || spellingTrap(right) : spellingTrap(right);
+    return o && stripAccents(o) !== stripAccents(right) ? o : null;
+  };
+  if (!add(() => accentTrap(right, lang))) add(letterTrap);   // no accent possible? another spelling trap
   add(letterTrap);
   // a real word from your deck, of the same type (noun, verb...) if there is one
-  const sameType = state.cards.filter(c => c.part_of_speech === card.part_of_speech && c.front !== right).map(c => c.front);
-  const anyWord = state.cards.filter(c => c.front !== right).map(c => c.front);
+  const sameType = sameLang.filter(c => c.part_of_speech === card.part_of_speech && c.front !== right).map(c => c.front);
+  const anyWord = sameLang.filter(c => c.front !== right).map(c => c.front);
   if (!add(() => pick(sameType.length ? sameType : anyWord), true)) add(() => pick(anyWord), true);
   while (options.length < 4 && add(() => spellingTrap(right))) {}   // safety net: always 4 options
+  while (options.length < 4 && add(() => pick(anyWord), true)) {}   // (a one-letter word like "y" has only one spelling trap)
   return shuffle(options);
 }
 
@@ -107,7 +143,7 @@ function burnRead() {
   $("burn-fr").textContent = c.front;
   $("burn-en").textContent = c.back || "";
   $("burn-next").textContent = burn.i + 1 < burn.cards.length ? "Next" : "Burn them";
-  speak(c.front);
+  speak(c.front, cardLang(c));
 }
 
 // burn phase: play the meteor animation, then shuffle the cards and start the test
@@ -126,10 +162,11 @@ function burnFire() {
   }, wait);
 }
 
-// test phase: the English word and 4 French spellings to choose from
+// test phase: the English word and 4 French (or Spanish) spellings to choose from
 function burnQuestion() {
   const c = burn.order[burn.i], box = $("burn-options");
   burnShow("burn-test");
+  $("burn-ask").textContent = "Which is the correct " + courseOf(c).name + " spelling?";
   $("burn-qcount").textContent = "Question " + (burn.i + 1) + " of " + burn.order.length;
   $("burn-prompt").textContent = c.back || "";
   $("burn-feedback").textContent = "";
@@ -184,5 +221,5 @@ $("burn-next").onclick = () => {   // forward only: there's no Back button on pu
   burn.i++;
   if (burn.i < burn.cards.length) burnRead(); else burnFire();
 };
-$("burn-hear").onclick = () => speak(burn.cards[burn.i].front);
+$("burn-hear").onclick = () => speak(burn.cards[burn.i].front, cardLang(burn.cards[burn.i]));
 $("burn-back").onclick = () => setMode("daily");

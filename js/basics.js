@@ -20,12 +20,20 @@ const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0
 const today = () => iso(new Date());
 function addDays(n) { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); }
 
-const VOICES = { female: "Amélie", male: "Thomas" };
+// the voice reading words aloud: female or male (⚙), with each language's usual voice names on iPhone and Mac.
+// Spanish is Mexican Spanish (the user's choice, build 69): Paulina and Juan. LOCALE = the accent each language asks for.
+const VOICES = { fr: { female: "Amélie", male: "Thomas" }, es: { female: "Paulina", male: "Juan" } };
+const LOCALE = { fr: "fr-FR", es: "es-MX" };
 const PER_DAY_CHOICES = [10, 20, 30];
-// card directions, chosen per deck in ⚙ settings
-const DIRECTIONS = { fr: "French → English", en: "English → French", both: "Both directions" };
-// the French course (Level 1 to Level 6 as one deck, build 64) and the deck ids it replaced (the six Levels and "All my cards")
+// card directions, chosen per deck in ⚙ settings. "fr" = the course's language on the front (French or Spanish:
+// the name stayed "fr" from when there was only French), "en" = English on the front. {L} = the language's name.
+const DIRECTIONS = { fr: "{L} → English", en: "English → {L}", both: "Both directions" };
+const dirLabel = (dir, lang) => DIRECTIONS[dir].replace("{L}", lang || "French");
+// the courses (each is Level 1, 2 … as one deck that follows the Solar System; their words are in js/packs.js).
+// COURSE_ID = the French course (build 64), Spanish came in build 69
 const COURSE_ID = "french";
+const COURSE_IDS = [COURSE_ID, "spanish"];
+// the deck ids the French course replaced in build 64 (the six Levels and "All my cards")
 const OLD_STACKS = ["beginner150", "level2", "level3", "level4", "level5", "level6", "all"];
 // minutes for each timer style. Pomodoro: 25 focus, 5 break, a longer 15 break after every 4th focus.
 // "every" = how many focus sessions before a long break (1 = no long breaks). "Custom" uses state.customTimer.

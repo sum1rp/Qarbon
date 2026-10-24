@@ -3,23 +3,30 @@
 // The cards themselves (worlds, mastery, the silver edge) are in js/cards.js ("collectible cards"); their looks are in css/styles.css.
 
 // ================= packs: what's in them =================
-// A pack is always 10 cards: today's pack, then up to 2 extra packs a day (state.packCount, on the day state.packDate), then more tomorrow.
+// A pack is always 10 cards: today's pack, then up to 2 extra packs a day (packCount, on the day packDate), then more tomorrow.
+// Each course counts its own packs: French in state.packDate / packCount, Spanish in state.courses.spanish (see prog below).
 // A pack takes the course's next cards you haven't seen: first what's left on the worlds you passed, then your current
 // world (in the course's order inside a world: the most useful words first), and shows them easiest first, so the hardest
 // world comes last.
 // About 1 daily pack in 10 swaps its last card for a "rare pull": a Level 6 word (a Nebula or a Black Hole).
 const PACK_SIZE = 10, PACKS_PER_DAY = 3, RARE_ODDS = 0.1;
 
+// a course's packs today and its place on the map: { journey, packDate, packCount }. French keeps them at the top of
+// your save (state.journey …, where they were before Spanish existed); other courses in state.courses (js/data.js).
+const prog = (k = course()) => k.id === COURSE_ID ? state : state.courses[k.id];
+// the last world a course has words for (French: the Black Hole, 11; Spanish with 3 Levels so far: Jupiter, 5)
+const lastWorld = (k = course()) => k.levels.length * 2 - 1;
+
 // cards a pack can deal: built-in words not seen yet, on a world that's open (they follow the Solar System).
 // Your own cards are never in packs (they come straight into Review, see isOwn in js/cards.js) and never locked.
 function worldOpen(c) {
-  return isOwn(c) || WORLDS.indexOf(worldOf(c)) <= state.journey;
+  return isOwn(c) || WORLDS.indexOf(worldOf(c)) <= prog(courseOf(c)).journey;
 }
 const unseenCards = () => stackCards().filter(c => active(c) && !inBinder(c) && !isOwn(c) && worldOpen(c))
   .sort((a, b) => worldIndex(a) - worldIndex(b) || wordOrder.get(wordKey(a)) - wordOrder.get(wordKey(b)));
 // cards of this deck that wait on a world you haven't reached yet
 const lockedCards = () => stackCards().filter(c => active(c) && !inBinder(c) && !worldOpen(c));
-const packsOpened = () => state.packDate === today() ? state.packCount : 0;   // packs opened today
+const packsOpened = () => prog().packDate === today() ? prog().packCount : 0;   // packs opened today (in the course you're on)
 const packsUsedUp = () => packsOpened() >= PACKS_PER_DAY && unseenCards().length > 0;   // cards left, but that's 3 packs today
 
 // the pack you can open now: { daily: true or false, size }, or null when every card of this deck is in your binder
@@ -31,19 +38,21 @@ function packReady() {
 }
 
 // a rare pull: a Level 6 word you haven't seen. If it isn't one of your cards yet, only that one word is added.
+// (Only French has a Level 6 so far: Spanish packs have no rares yet.)
 function pullRare() {
-  if (state.journey >= 10) return null;   // at the Nebula and the Black Hole, every card your packs deal is already rare
-  const rows = parseCSV(PACKS.level6), col = rows[0].map(h => h.trim().toLowerCase()).indexOf("front");
+  const k = course();
+  if (k.levels.length < 6 || prog().journey >= 10) return null;   // at the Nebula and the Black Hole, every card your packs deal is already rare
+  const rows = parseCSV(PACKS[k.levels[5].id]), col = rows[0].map(h => h.trim().toLowerCase()).indexOf("front");
   const mine = new Map(state.cards.map(c => [wordKey(c), c]));
   const choices = rows.slice(1).filter(r => {
-    const c = mine.get(r[col].trim().toLowerCase());
+    const c = mine.get(langKey(k.lang, r[col]));
     return !c || (active(c) && !inBinder(c));
   });
   if (!choices.length) return null;
-  const row = choices[Math.floor(Math.random() * choices.length)], word = row[col].trim().toLowerCase();
+  const row = choices[Math.floor(Math.random() * choices.length)], word = langKey(k.lang, row[col]);
   if (!mine.has(word)) {   // a tiny CSV with just the header and this row ("quoted", so commas inside are kept)
     const quote = v => '"' + String(v || "").replace(/"/g, '""') + '"';
-    importCSV(rows[0].map(quote).join(",") + "\n" + row.map(quote).join(","));
+    importCSV(rows[0].map(quote).join(",") + "\n" + row.map(quote).join(","), k.lang);
   }
   return state.cards.find(c => wordKey(c) === word);
 }
@@ -92,7 +101,7 @@ const packPic = id => PACK_PICS.includes(id) ? "img/pack/" + id + ".jpg" : WORLD
 // which picture the pack shows: { bg, world } (world = where you are, from WORLDS in js/cards.js)
 function packBackground() {
   if (stack && stack.custom) return { bg: "sky" };
-  const w = WORLDS[state.journey];
+  const w = WORLDS[prog().journey];
   return { bg: w.id === "earth" || w.id === "hole" ? w.id : "world", world: w };
 }
 
@@ -130,7 +139,8 @@ function packSky(w, h) {
 packSkyURL = packSky(300, 420);
 document.documentElement.style.setProperty("--sky", "url(" + packSkyURL + ")");
 
-function packHTML(name, size, look) {
+// sub = the small line under the name ("Spanish · 10 cards")
+function packHTML(name, sub, look) {
   if (!packSkyURL) packSkyURL = packSky(300, 420);
   const pic = look.world ? packPic(look.world.id) : "";
   return '<div class="pk-pack" data-bg="' + look.bg + '" data-world="' + (look.world ? look.world.id : "") + '" role="button" tabindex="0" aria-label="Open the pack">' +
@@ -139,7 +149,7 @@ function packHTML(name, size, look) {
       (pic ? '<img class="pk-pic" alt="" src="' + pic + '">' : '') +
       '<div class="pk-gloss"></div><div class="pk-glow"></div><div class="pk-atom">' + atomSVG(3.4) + '</div>' +
       '<div class="pk-name"' + (name.length > 12 ? ' style="font-size:1.15rem"' : '') + '>' + esc(name) + '</div>' +
-      '<div class="pk-sub">' + size + ' cards</div></div>' +
+      '<div class="pk-sub">' + esc(sub) + '</div></div>' +
     '<div class="pk-crimp bottom"></div></div>';
 }
 
@@ -164,7 +174,8 @@ function openPack() {
   $("pk-done").hidden = true;
   $("pk-stage").hidden = false;
   const look = packBackground();   // the course's pack is named after your world ("The Moon"), your own deck's after the deck
-  $("pk-stage").innerHTML = packHTML(look.world ? named(look.world, true) : stack.name, cards.length, look);
+  $("pk-stage").innerHTML = packHTML(look.world ? named(look.world, true) : stack.name,
+                                     (look.world ? course().name + " · " : "") + cards.length + " cards", look);
   $("pk-count").textContent = ready.daily ? "Today's pack" : "Another pack";
   $("pk-hint").textContent = "Slide along the top of the pack to tear it open";
   $("pk-close").textContent = "Cancel";
@@ -182,8 +193,8 @@ function tearPack() {
   const t = today();
   pk.cards.forEach(c => { c.got = t; });
   if (pk.rare) pk.rare.pulled = true;
-  state.packCount = packsOpened() + 1;
-  state.packDate = t;
+  prog().packCount = packsOpened() + 1;
+  prog().packDate = t;
   save();
   $("pk-close").hidden = true;
   $("pk-stage").querySelector(".pk-pack").classList.add("open");
@@ -369,7 +380,7 @@ function packBanner() {
   if (b.hidden) return;
   b.classList.toggle("extra", !ready || !ready.daily);
   if (locked) {   // e.g. "🔒 Venus opens when you reach the Moon" · "You're at Earth: 12% of 80% Familiar"
-    const here = WORLDS[state.journey], st = worldStats(state.journey);
+    const here = WORLDS[prog().journey], st = worldStats(prog().journey);
     $("pb-title").textContent = "🔒 " + lockedLine();
     $("pb-sub").textContent = "You're at " + named(here) + ": " + Math.round(st.fam / st.total * 100) + "% of 80% Familiar · tap for your Solar System";
     return;
@@ -415,7 +426,7 @@ $("tab-binder").onclick = () => showBinder(true);
 
 const num3 = n => "#" + String(n).padStart(3, "0");
 
-// 🔁 Practice one world's cards (they're all in the French course): only the ones you've collected (silhouettes aren't yours yet).
+// 🔁 Practice one world's cards (of the course you're on): only the ones you've collected (silhouettes aren't yours yet).
 // startPractice is in js/cards.js; practice never changes your schedule
 const practiceCards = w => cardsOf(course()).filter(c => active(c) && inBinder(c) && !isOwn(c) && worldOf(c) === w);
 const practiceButton = (id, n) => n ? '<button class="bd-practice" data-practice="' + id + '" aria-label="Practice these ' + n + ' cards">🔁 Practice</button>' : '';
@@ -466,8 +477,8 @@ function renderBinder() {
       '</div>' + (cut.length < list.length ? '<button class="bd-more">Show all ' + list.length + '</button>' : '') + '</div>';
   });
 
-  // rares you pulled from packs that belong to another deck (they're also in their own deck's binder)
-  const rares = state.cards.filter(c => c.pulled && !numberOf.has(c));
+  // rares you pulled from packs that belong to another deck (they're also in their own deck's binder), in this course's language
+  const rares = state.cards.filter(c => c.pulled && !numberOf.has(c) && cardLang(c) === course().lang);
   if (rares.length) {
     h += '<div class="bd-sec"><h3><img alt="" src="img/sgr-a.jpg">Rare pulls <span>· from harder decks, pulled from a pack</span></h3><div class="bd-pockets">' +
       rares.map((c, i) => '<button data-rare="' + i + '" aria-label="' + esc(c.front) + ', rare pull">' + cardHTML(c, masteryOf(c, dir), "mini", "rare") + '</button>').join("") + '</div></div>';
@@ -494,9 +505,11 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") $("bd-zoom")
 
 // ================= the Solar System: your trip from Earth to the Black Hole =================
 // The 12 worlds in a row, two per built-in deck (Level 1 = Earth and the Moon … Level 6 = a Nebula and the Black Hole).
+// Each course has its own trip (French and Spanish both start at Earth). The map shows the course you're on.
+// Spanish has Level 1 to Level 3 so far: its worlds after Jupiter say "Soon".
 // The cards are the only source of truth: a world is reached when 80% of its built-in cards are Familiar or better
 // (their review wait has grown to several days, see masteryOf in js/cards.js). Reaching a world opens the next one to your packs.
-// state.journey = the furthest open world (it stays open, even if you forget some cards later).
+// prog().journey = the furthest open world of the course (it stays open, even if you forget some cards later).
 const REACH = .8;
 // a world's name in a sentence: "the Moon", "the Sun", "the Nebula", "the Black Hole", but "Earth", "Mars" (cap = at the start of a sentence)
 const named = (w, cap) => ["moon", "sun", "nebula", "hole"].includes(w.id) ? (cap ? "The " : "the ") + w.name : w.name;
@@ -528,11 +541,11 @@ function renderPersonal(own, dir) {
   });
 }
 
-function worldStats(i) {
+function worldStats(i, k = course()) {
   if (!worldWords) sortWorlds();
   const mine = new Map(state.cards.map(c => [wordKey(c), c]));
-  const st = { total: worldWords[i].length, got: 0, fam: 0, mas: 0 };
-  worldWords[i].forEach(w => {
+  const st = { total: worldWords[k.id][i].length, got: 0, fam: 0, mas: 0 };
+  worldWords[k.id][i].forEach(w => {
     const c = mine.get(w);
     if (!c || !inBinder(c)) return;
     st.got++;
@@ -542,17 +555,18 @@ function worldStats(i) {
   });
   return st;
 }
-const reached = i => { const st = worldStats(i); return st.total > 0 && st.fam >= Math.ceil(st.total * REACH); };
+const reached = (i, k) => { const st = worldStats(i, k); return st.total > 0 && st.fam >= Math.ceil(st.total * REACH); };
 
-// open the next worlds you've earned. quiet = no message (when the app starts). Returns true if a world opened.
-function journeyCheck(quiet) {
-  const from = state.journey;
-  while (state.journey < WORLDS.length - 1 && reached(state.journey)) state.journey++;
-  if (state.journey === from) return false;
+// open the next worlds you've earned on a course (the one you're on). quiet = no message (when the app starts).
+// Returns true if a world opened.
+function journeyCheck(quiet, k = course()) {
+  const p = prog(k), from = p.journey;
+  while (p.journey < lastWorld(k) && reached(p.journey, k)) p.journey++;
+  if (p.journey === from) return false;
   save();
   if (!quiet) {   // "⬆ Earth reached! The Moon is open" for a few seconds above the card
     const el = $("levelup");
-    el.textContent = "🪐 " + named(WORLDS[state.journey - 1], true) + " reached! " + named(WORLDS[state.journey], true) + " is open in your packs";
+    el.textContent = "🪐 " + named(WORLDS[p.journey - 1], true) + " reached! " + named(WORLDS[p.journey], true) + " is open in your packs";
     el.hidden = false;
     el.classList.remove("show"); void el.offsetWidth; el.classList.add("show");
     clearTimeout(noteLevelUp.timer);
@@ -560,16 +574,17 @@ function journeyCheck(quiet) {
   }
   return true;
 }
-journeyCheck(true);   // cards you studied before the Solar System existed count from the start
+courses().forEach(k => journeyCheck(true, k));   // cards you studied before the Solar System existed count from the start
 
 let solarPick = -1, solarSkyURL = "";
 const CEFR_OF_LEVEL = ["A1", "A1–A2", "A2–B1", "B2", "C1", "C2"];
 
 function renderSolar() {
   journeyCheck(true);   // so the map and "You are here" always agree with the cards
+  const k = course(), last = lastWorld(k);
   const stats = WORLDS.map((w, i) => worldStats(i));
   const isReached = i => stats[i].total > 0 && stats[i].fam >= Math.ceil(stats[i].total * REACH);
-  const here = state.journey;
+  const here = prog().journey;
   if (solarPick < 0) solarPick = here;
   const STEP = 150, PAD = 90, H = 300, width = PAD * 2 + STEP * (WORLDS.length - 1);
   const pos = WORLDS.map((w, i) => ({ x: PAD + i * STEP, y: H / 2 + 14 + Math.sin(i * 1.05) * 34 }));
@@ -581,19 +596,19 @@ function renderSolar() {
   for (let i = 1; i < pos.length; i++) { const a = pos[i - 1], b = pos[i], mx = (a.x + b.x) / 2; d += " C" + mx + " " + a.y + " " + mx + " " + b.y + " " + b.x + " " + b.y; }
   let h = '<svg class="sol-route" viewBox="0 0 ' + width + ' ' + H + '" preserveAspectRatio="none"><defs><clipPath id="sol-done"><rect width="' + pos[here].x + '" height="' + H + '"/></clipPath></defs>' +
     '<path d="' + d + '" class="sol-ahead"/><path d="' + d + '" class="sol-past" clip-path="url(#sol-done)"/></svg>';
-  BUILT_IN.forEach((b, n) => {
+  k.levels.forEach((b, n) => {
     const a = pos[n * 2].x, z = pos[n * 2 + 1].x, done = isReached(n * 2) && isReached(n * 2 + 1);
     h += '<div class="sol-lvl' + (done ? " done" : "") + '" style="left:' + (a - 48) + 'px;width:' + (z - a + 96) + 'px">' + esc(b.name) + ' · ' + CEFR_OF_LEVEL[n] + (done ? " ✓" : "") + '</div>';
   });
   WORLDS.forEach((w, i) => {
     const st = stats[i], own = st.total ? st.fam / st.total : 0, circ = 2 * Math.PI * 50, size = SOLAR_SIZES[i];
-    const state_ = isReached(i) ? "reached" : i === here ? "current" : i < here ? "open" : "locked";
-    h += '<button class="sol-world ' + state_ + (solarPick === i ? " sel" : "") + '" data-i="' + i + '" style="left:' + pos[i].x + 'px;top:' + pos[i].y + 'px" aria-label="' + w.name + ', ' + Math.round(own * 100) + '% Familiar' + (state_ === "locked" ? ", not open yet" : "") + '">' +
+    const state_ = i > last ? "soon" : isReached(i) ? "reached" : i === here ? "current" : i < here ? "open" : "locked";
+    h += '<button class="sol-world ' + state_ + (solarPick === i ? " sel" : "") + '" data-i="' + i + '" style="left:' + pos[i].x + 'px;top:' + pos[i].y + 'px" aria-label="' + w.name + (state_ === "soon" ? ", coming soon" : ', ' + Math.round(own * 100) + '% Familiar' + (state_ === "locked" ? ", not open yet" : "")) + '">' +
       '<span class="sol-orb" style="width:' + size + 'px;height:' + size + 'px">' + (i === here && state_ !== "reached" ? '<span class="sol-here">You are here</span>' : '') +
       '<img alt="" src="' + w.img + '"><svg class="sol-ring" viewBox="0 0 108 108"><circle class="bg" cx="54" cy="54" r="50"/>' +
       '<circle class="got" cx="54" cy="54" r="50" stroke-dasharray="' + (own * circ).toFixed(1) + ' ' + circ.toFixed(1) + '"/></svg>' +
       (state_ === "reached" ? '<span class="sol-badge">✓</span>' : state_ === "locked" ? '<span class="sol-badge lock">🔒</span>' : '') + '</span>' +
-      '<span class="sol-nm">' + w.name + '</span><span class="sol-pc">' + Math.round(own * 100) + '%</span></button>';
+      '<span class="sol-nm">' + w.name + '</span><span class="sol-pc">' + (state_ === "soon" ? "Soon" : Math.round(own * 100) + '%') + '</span></button>';
   });
   strip.innerHTML = h;
   // tap a world for its progress below the map. The world you're at ("You are here") goes straight to Review
@@ -604,8 +619,9 @@ function renderSolar() {
     solarPick = i; renderSolar();
   }; });
   const done = WORLDS.filter((w, i) => isReached(i)).length;
-  $("sol-where").innerHTML = done === WORLDS.length ? "Every world reached. You made it to the Black Hole!"
-    : "You're at <b>" + named(WORLDS[here]) + "</b> · Level " + (Math.floor(here / 2) + 1) + " · " + done + " of 12 worlds reached";
+  $("sol-where").innerHTML = "<b>" + k.name + "</b> · " + (done === WORLDS.length ? "Every world reached. You made it to the Black Hole!"
+    : done === last + 1 ? "Every world so far reached! Level " + (k.levels.length + 1) + " and beyond are coming soon."
+    : "You're at <b>" + named(WORLDS[here]) + "</b> · Level " + (Math.floor(here / 2) + 1) + " · " + done + " of " + (last + 1) + " worlds reached");
   solarPanel(solarPick, stats[solarPick], isReached(solarPick));
   if (!renderSolar.scrolled) {   // the first time: bring your world into view
     renderSolar.scrolled = true;
@@ -615,7 +631,13 @@ function renderSolar() {
 }
 
 function solarPanel(i, st, isReached) {
-  const w = WORLDS[i], n = Math.floor(i / 2), level = BUILT_IN[n].name, here = state.journey;
+  const k = course(), w = WORLDS[i], n = Math.floor(i / 2), level = "Level " + (n + 1), here = prog().journey;
+  if (i > lastWorld(k)) {   // a world this course has no words for yet (Spanish after Jupiter)
+    $("sol-panel").innerHTML = '<div class="sol-ph"><img alt="" src="' + w.img + '"><div><b>' + w.name + '</b><span>' + level + ' · ' + CEFR_OF_LEVEL[n] + '</span></div></div>' +
+      '<p class="sol-note"><b>Coming soon.</b> ' + k.name + ' ' + level + ' isn\'t written yet. ' + k.name + ' has Level 1 to Level ' + k.levels.length +
+      ' so far, Earth to ' + named(WORLDS[lastWorld(k)]) + '.</p>';
+    return;
+  }
   const pct = v => Math.round(v * 100) + "%";
   const bar = (v, goal) => '<div class="sol-bar"><i style="width:' + Math.min(100, v * 100) + '%"></i>' + (goal ? '<span class="goal"></span>' : '') + '</div>';
   const need = Math.max(0, Math.ceil(st.total * REACH) - st.fam);
@@ -629,8 +651,8 @@ function solarPanel(i, st, isReached) {
     '<div class="sol-stat"><span>Familiar or better</span>' + bar(st.fam / st.total, true) + '<span>' + pct(st.fam / st.total) + '</span></div>' +
     '<div class="sol-stat"><span>Mastered</span>' + bar(st.mas / st.total) + '<span>' + st.mas + '</span></div>' +
     '<p class="sol-note">' + note + '</p>' +
-    '<div class="sol-acts"><button id="sol-study">Review French</button><button id="sol-binder">Binder</button>' + (practiceCards(w).length ? '<button id="sol-practice">🔁 Practice</button>' : '') + '</div>';
-  // every world is part of the one French course: Review it, or open its binder on this world
+    '<div class="sol-acts"><button id="sol-study">Review ' + k.name + '</button><button id="sol-binder">Binder</button>' + (practiceCards(w).length ? '<button id="sol-practice">🔁 Practice</button>' : '') + '</div>';
+  // every world is part of the course: Review it, or open its binder on this world
   $("sol-study").onclick = () => chooseStack(course());
   $("sol-binder").onclick = () => { chooseStack(course(), true); binderFilter = w.id; renderBinder(); };
   if ($("sol-practice")) $("sol-practice").onclick = () => { chooseStack(course(), true); practiceWorld(w); };

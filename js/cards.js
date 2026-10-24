@@ -10,10 +10,10 @@ let practice = { total: 0, right: 0, missed: new Set(), name: "" };
 function cardShowing() { return mode === "daily" || mode === "practice"; }
 
 // ================= card directions =================
-// "fr" = French on the front (the usual way), "en" = English on the front and you answer in French.
+// "fr" = the course's language (French or Spanish) on the front (the usual way), "en" = English on the front and you answer in it.
 // Each direction keeps its own schedule: French → English lives on the card itself (like before),
 // English → French lives in card.rev, so turning on reverse cards never touches your existing progress.
-const dirsOf = s => ({ fr: ["fr"], en: ["en"], both: ["fr", "en"] })[state.directions[s ? s.id : COURSE_ID] || "fr"];
+const dirsOf = s => ({ fr: ["fr"], en: ["en"], both: ["fr", "en"] })[state.directions[(s || course()).id] || "fr"];
 const newSide = () => ({ interval: 1, ease: 2.5, reviews: 0, correct: 0, due: today() });
 const sideOf = (c, dir) => dir === "en" ? (c.rev || newSide()) : c;   // for reading
 function sideToSave(c, dir) {                                           // for saving an answer
@@ -31,7 +31,7 @@ function shuffle(a) {
 
 // a card is in your binder once you've seen it: from a pack (c.got), or studied before packs existed
 const inBinder = c => !!c.got || c.reviews > 0 || !!(c.rev && c.rev.reviews > 0);
-// your own cards (any word that isn't in the built-in Levels) work like an Anki deck: no packs, they come straight into
+// your own cards (any word that isn't in a course's built-in Levels) work like an Anki deck: no packs, they come straight into
 // Review, a few new ones a day per deck (⚙ "New cards a day (your own decks)", state.newPerDay: 10, 20 or 30;
 // c.got = the day one came in), and they live in a personal binder
 const isOwn = c => { if (!wordWorld) sortWorlds(); return !wordWorld.has(wordKey(c)); };
@@ -45,9 +45,9 @@ function dailyList() {
   own.forEach(c => { if (room > 0 && !inBinder(c)) { c.got = t; room--; } });
   const dirs = dirsOf(stack);
   // new words come from the packs you've opened (js/collection.js): the cards in your binder you haven't studied yet,
-  // plus a rare you pulled today (it may belong to another deck, like Level 6)
+  // plus a rare you pulled today (it may belong to another deck, like Level 6; only in the course's own language)
   const mine = new Set(stackCards());
-  const pulledToday = state.cards.filter(c => c.pulled && c.got === t && c.reviews === 0 && active(c) && !mine.has(c))
+  const pulledToday = state.cards.filter(c => c.pulled && c.got === t && c.reviews === 0 && active(c) && !mine.has(c) && cardLang(c) === course().lang)
     .map(c => ({ c, dir: dirs[0] }));
   const items = stackCards().filter(active).flatMap(c => dirs.map(dir => ({ c, dir })));
   // words you missed in Burn After Reading go first, even if they aren't due yet
@@ -218,13 +218,14 @@ const WORLDS = [
 const MASTERY = ["New", "Learning", "Familiar", "Known", "Mastered"];
 const LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
-// how hard a word looks, as one number: 100 for accents, 100 for a long word (9+ letters) or several words, plus its letters
+// how hard a word looks, as one number: 100 for accents, 100 for a long word (9+ letters) or several words, plus its letters.
+// Works for French and Spanish words alike.
 function difficulty(front) {
   const w = front || "";
-  const word = w.replace(/^(le|la|les|l'|un|une) /i, "");        // "la femme" counts as "femme"
+  const word = w.replace(/^(le|la|les|l'|un|une|el|los|las|una) /i, "");   // "la femme" counts as "femme", "el perro" as "perro"
   const letters = word.replace(/ /g, "").length;
   let d = letters;
-  if (/[éèêëàâçîïôûùœæ]/i.test(w)) d += 100;                      // accents
+  if (/[éèêëàâçîïôûùœæáíóúüñ¿¡]/i.test(w)) d += 100;              // accents (French and Spanish)
   if (letters >= 9 || word.includes(" ") || w.includes("s'")) d += 100;   // long, several words, or reflexive
   return d;
 }
@@ -234,21 +235,27 @@ const harderThan = (a, b) => a.d - b.d || (a.w < b.w ? -1 : a.w > b.w ? 1 : 0);
 
 // which world each built-in word belongs to, worked out once from js/packs.js: its deck (the first one it's in),
 // then the easier or harder half of that deck, split at the middle difficulty (so each deck splits exactly in half).
-// worldWords = the built-in words (lowercase) of each world, in the order of WORLDS: what the Solar System counts.
-// wordOrder = each built-in word's place in the course (Level 1's list first, the most useful words first): packs deal in this order.
+// Each course does this on its own: French Level 1 and Spanish Level 1 are both Earth and the Moon.
+// The maps use word keys (wordKey: "es:hola" for Spanish).
+// worldWords = { course id: the built-in words of each world, in the order of WORLDS }: what the Solar System counts.
+// wordOrder = each built-in word's place in its course (Level 1's list first, the most useful words first): packs deal in this order.
+// deckCuts = French's middle word per Level: your own cards with a level tag are placed by it (worldOf).
 let wordWorld = null, worldWords = null, deckCuts = [], wordOrder = null;
 function sortWorlds() {
-  wordWorld = new Map(); worldWords = WORLDS.map(() => []); wordOrder = new Map();
-  BUILT_IN.forEach((b, n) => {
-    const rows = parseCSV(PACKS[b.id]), col = rows[0].map(h => h.trim().toLowerCase()).indexOf("front");
-    const words = rows.slice(1).map(r => (r[col] || "").trim()).filter(w => w && !wordWorld.has(w.toLowerCase()));
-    words.forEach(w => { if (!wordOrder.has(w.toLowerCase())) wordOrder.set(w.toLowerCase(), wordOrder.size); });
-    const sorted = words.map(w => ({ d: difficulty(w), w })).sort(harderThan);
-    deckCuts[n] = sorted[Math.floor(sorted.length / 2)];
-    sorted.forEach((x, i) => {
-      const w = n * 2 + (i >= Math.floor(sorted.length / 2) ? 1 : 0);
-      wordWorld.set(x.w.toLowerCase(), WORLDS[w]);
-      worldWords[w].push(x.w.toLowerCase());
+  wordWorld = new Map(); worldWords = {}; wordOrder = new Map();
+  courses().forEach(k => {
+    worldWords[k.id] = WORLDS.map(() => []);
+    k.levels.forEach((b, n) => {
+      const rows = parseCSV(PACKS[b.id]), col = rows[0].map(h => h.trim().toLowerCase()).indexOf("front");
+      const words = rows.slice(1).map(r => (r[col] || "").trim()).filter(w => w && !wordWorld.has(langKey(k.lang, w)));
+      words.forEach(w => { if (!wordOrder.has(langKey(k.lang, w))) wordOrder.set(langKey(k.lang, w), wordOrder.size); });
+      const sorted = words.map(w => ({ d: difficulty(w), w })).sort(harderThan);
+      if (k.id === COURSE_ID) deckCuts[n] = sorted[Math.floor(sorted.length / 2)];
+      sorted.forEach((x, i) => {
+        const w = n * 2 + (i >= Math.floor(sorted.length / 2) ? 1 : 0);
+        wordWorld.set(langKey(k.lang, x.w), WORLDS[w]);
+        worldWords[k.id][w].push(langKey(k.lang, x.w));
+      });
     });
   });
 }
@@ -469,15 +476,19 @@ $("modeselect").onchange = e => {
 // Tap a card in the list to edit, suspend or delete it. "+ Add card" makes a new one.
 let editing = null;   // the card being edited, or null when adding a new card
 
-// words from the built-in Levels (the French course): these can be suspended but not deleted
+// words from the built-in Levels (a course): these can be suspended but not deleted
 // (opening the course would just add them back)
-const builtInWords = () => course().words;
+const isBuiltIn = c => courses().some(k => k.words.has(wordKey(c)));
 
 function openEditor(c) {
   editing = c;
   $("decklistview").hidden = true;
   $("editor").hidden = false;
   $("edtitle").textContent = c ? "Edit card" : "Add a card";
+  // the labels name the card's language: the course's for a new card in a course, else the card's own (your decks: French, as before)
+  const lang = c ? courseOf(c).name : stack && stack.custom ? "French" : course().name;
+  $("ed-front").previousSibling.textContent = lang + " (front)";
+  $("ed-exfr").previousSibling.textContent = "Example sentence (" + lang + ")";
   $("ed-front").value = c ? c.front : "";
   $("ed-back").value = c ? c.back || "" : "";
   $("ed-pos").value = c ? c.part_of_speech || "" : "";
@@ -486,13 +497,13 @@ function openEditor(c) {
   $("ed-exen").value = c ? c.example_english || "" : "";
   $("ed-tags").value = c ? c.tags || "" : "";
   $("ed-suspend").hidden = $("ed-delete").hidden = !c;
-  const builtIn = c && builtInWords().has(wordKey(c));
+  const builtIn = c && isBuiltIn(c);
   if (c) {
     $("ed-suspend").textContent = c.suspended ? "Unsuspend" : "Suspend";
     $("ed-delete").disabled = builtIn;
   }
   $("ed-msg").textContent = builtIn ? "This word is part of a built-in stack, so it can be suspended but not deleted."
-    : c ? "" : "It will go into " + (stack && stack.custom ? "“" + stack.name + "”" : "French's personal binder") + ".";
+    : c ? "" : "It will go into " + (stack && stack.custom ? "“" + stack.name + "”" : course().name + "'s personal binder") + ".";
   scrollTo(0, 0);
 }
 
@@ -509,9 +520,11 @@ $("ed-cancel").onclick = () => closeEditor();
 
 $("ed-save").onclick = () => {
   const front = $("ed-front").value.trim(), back = $("ed-back").value.trim();
-  if (!front || !back) { $("ed-msg").textContent = "Both the French and the English are needed."; return; }
-  const key = front.toLowerCase();
-  const clash = state.cards.find(c => c !== editing && (wordKey(c) === key || c.front.trim().toLowerCase() === key));
+  // the card's language: an edited card keeps its own; a new one in a course gets the course's (your own decks: none, as before)
+  const lang = editing ? editing.lang : stack && stack.custom ? "" : course().lang;
+  if (!front || !back) { $("ed-msg").textContent = "Both the " + (lang === "es" ? "Spanish" : "French") + " and the English are needed."; return; }
+  const key = langKey(lang, front);
+  const clash = state.cards.find(c => c !== editing && (wordKey(c) === key || langKey(c.lang, c.front) === key));
   if (clash) { $("ed-msg").textContent = "“" + clash.front + "” is already one of your cards."; return; }
   const fields = { front, back, part_of_speech: $("ed-pos").value.trim(), gender: $("ed-gender").value,
                    example_target: $("ed-exfr").value.trim(), example_english: $("ed-exen").value.trim(),
@@ -522,10 +535,10 @@ $("ed-save").onclick = () => {
     Object.assign(editing, fields);
     $("msg").textContent = "Saved “" + front + "”.";
   } else {
-    state.cards.push({ ...fields, interval: 1, ease: 2.5, due: today(), reviews: 0, correct: 0 });
+    state.cards.push({ ...fields, interval: 1, ease: 2.5, due: today(), reviews: 0, correct: 0, ...(lang && lang !== "fr" ? { lang } : {}) });
     const deck = stack && stack.custom && state.decks.find(d => d.id === stack.id);
     if (deck) { deck.words.push(key); stack.words.add(key); }   // goes into the custom deck you're in
-    $("msg").textContent = "Added “" + front + "” to " + (deck ? "“" + deck.name + "”" : "French's personal binder") + ".";
+    $("msg").textContent = "Added “" + front + "” to " + (deck ? "“" + deck.name + "”" : course().name + "'s personal binder") + ".";
   }
   save();
   closeEditor();

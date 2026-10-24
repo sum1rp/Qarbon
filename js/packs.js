@@ -2,6 +2,9 @@
 // (beginner150.csv, level2-150.csv, level3.csv, level4.csv, level5.csv, level6.csv). They live in a script file so they also work offline and when
 // index.html is opened straight from the Mac (the browser won't let a page read those CSV files then).
 // If a CSV file changes, update its copy here too.
+// es1, es2, es3 = the Spanish course's Level 1 to 3 (build 69), Mexican Spanish (carro, computadora, boleto …): the same meanings,
+// in the same order, as French's Level 1 to 3, with Spanish genders, el / la and examples. They live only here (no CSV files to keep in step).
+// Where Spanish has one word for two French ones (ne … pas and non are both "no"), the second is another useful word.
 const PACKS = {
   beginner150: `
 front,back,part_of_speech,gender,example_target,example_english,tags
@@ -847,5 +850,614 @@ sine die,indefinitely,adverb,none,La réunion a été reportée sine die.,The me
 cahin-caha,after a fashion,adverb,none,Le projet avance cahin-caha.,The project is limping along.,C2
 in extremis,at the last minute,adverb,none,Il a attrapé le train in extremis.,He caught the train at the last minute.,C2
 à brûle-pourpoint,point-blank,adverb,none,Elle m'a posé la question à brûle-pourpoint.,She asked me the question point-blank.,C2
-`
+`,
+  es1: `
+front,back,part_of_speech,gender,example_target,example_english,tags
+el / la,the,article,none,El gato duerme sobre la mesa.,The cat sleeps on the table.,A1;core
+un / una,a / an,article,none,Tengo un hermano y una hermana.,I have a brother and a sister.,A1;core
+de,of / from,preposition,none,Soy de México.,I am from Mexico.,A1;core
+y,and,conjunction,none,Pan y queso.,Bread and cheese.,A1;core
+a,to / at,preposition,none,Vamos a la escuela.,We are going to school.,A1;core
+ser,to be (what someone or something is),verb,none,Soy estudiante.,I am a student.,A1;core
+tener,to have,verb,none,Ella tiene dos gatos.,She has two cats.,A1;core
+yo,I,pronoun,none,Yo hablo español.,I speak Spanish.,A1;core
+tú,you (informal),pronoun,none,Tú eres mi amigo.,You are my friend.,A1;core
+él,he,pronoun,none,Él vive en Oaxaca.,He lives in Oaxaca.,A1;core
+ella,she,pronoun,none,Ella trabaja aquí.,She works here.,A1;core
+nosotros / nosotras,we,pronoun,none,Nosotros comemos a mediodía.,We eat at noon.,A1;core
+usted / ustedes,you (formal / plural),pronoun,none,Usted es muy amable.,You are very kind.,A1;core
+ellos / ellas,they,pronoun,none,Ellos están de vacaciones.,They are on vacation.,A1;core
+estar,to be (where or how someone is),verb,none,Estoy cansado.,I am tired.,A1;core
+que,that / than,conjunction,none,Creo que es bueno.,I think that it is good.,A1;core
+quién,who,pronoun,none,¿Quién está ahí?,Who is there?,A1;core
+este / esta,this,determiner,none,Este libro es interesante.,This book is interesting.,A1;core
+para,for / in order to,preposition,none,Este regalo es para ti.,This gift is for you.,A1;core
+en,in / on / at,preposition,none,El libro está en la mochila.,The book is in the bag.,A1;core
+con,with,preposition,none,Viajo con mi hermano.,I travel with my brother.,A1;core
+sobre,on / about,preposition,none,El vaso está sobre la mesa.,The glass is on the table.,A1;core
+pero,but,conjunction,none,Quiero venir pero estoy ocupado.,I want to come but I am busy.,A1;core
+o,or,conjunction,none,¿Quieres té o café?,Do you want tea or coffee?,A1;core
+sí,yes,adverb,none,"Sí, me gustaría.","Yes, I would like that.",A1;core
+no,no / not,adverb,none,"No, gracias.","No, thank you.",A1;core
+muy,very,adverb,none,Hace muy buen tiempo.,The weather is very nice.,A1;core
+también,also / too,adverb,none,A mí también me gusta el café.,I like coffee too.,A1;core
+hacer,to do / to make,verb,none,Hago mi tarea.,I am doing my homework.,A1;core
+ir,to go,verb,none,Vamos al mercado.,We are going to the market.,A1;core
+decir,to say / to tell,verb,none,¿Qué dices?,What are you saying?,A1;core
+poder,to be able to / can,verb,none,Puedo ayudarte.,I can help you.,A1;core
+querer,to want / to love,verb,none,Ella quiere un café.,She wants a coffee.,A1;core
+saber,to know (a fact or how to),verb,none,Sé nadar.,I know how to swim.,A1;core
+ver,to see,verb,none,Veo el mar.,I see the sea.,A1;core
+venir,to come,verb,none,¿Vienes esta noche?,Are you coming tonight?,A1;core
+el tiempo,time / weather,noun,m,No tengo tiempo.,I do not have time.,A1;core
+la persona,person,noun,f,Esta persona es muy amable.,This person is very kind.,A1;core
+el día,day,noun,m,¿Qué día es hoy?,What day is it today?,A1;core
+el hombre,man,noun,m,El hombre lee el periódico.,The man reads the newspaper.,A1;core
+la mujer,woman / wife,noun,f,La mujer habla por teléfono.,The woman is talking on the phone.,A1;core
+el niño / la niña,child / boy / girl,noun,m/f,El niño juega en el jardín.,The child plays in the garden.,A1;core
+la vida,life,noun,f,La vida es bella.,Life is beautiful.,A1;core
+el mundo,world,noun,m,Quiero ver el mundo.,I want to see the world.,A1;core
+la casa,house / home,noun,f,Mi casa es pequeña.,My house is small.,A1;core
+bueno / buena,good,adjective,none,Es un buen libro.,It is a good book.,A1;core
+grande,big / large,adjective,none,Mi casa es grande.,My house is big.,A1;core
+pequeño / pequeña,small / little,adjective,none,Tengo un gato pequeño.,I have a small cat.,A1;core
+nuevo / nueva,new,adjective,none,Tengo un trabajo nuevo.,I have a new job.,A1;core
+aquí,here,adverb,none,Ven aquí.,Come here.,A1;core
+dar,to give,verb,none,Te doy mi número.,I give you my number.,A1;core
+tomar,to take / to drink,verb,none,Tomo el autobús.,I take the bus.,A1;core
+poner,to put,verb,none,Él pone el libro en la mesa.,He puts the book on the table.,A1;core
+deber,to have to / must / to owe,verb,none,Debo irme.,I have to leave.,A1;core
+hay que,it is necessary / one must,expression,none,Hay que tener paciencia.,One must be patient.,A1;core
+gustar,to like (to be pleasing),verb,none,Me gusta el chocolate.,I like chocolate.,A1;core
+hablar,to speak / to talk,verb,none,Ella habla tres idiomas.,She speaks three languages.,A1;core
+pensar,to think,verb,none,Pienso en ti.,I am thinking of you.,A1;core
+encontrar,to find,verb,none,No encuentro mis llaves.,I cannot find my keys.,A1;core
+preguntar,to ask,verb,none,Él pregunta la hora.,He asks the time.,A1;core
+pasar,to pass / to spend (time) / to happen,verb,none,Pasamos el fin de semana en la playa.,We spend the weekend at the beach.,A1;core
+entender,to understand,verb,none,No entiendo.,I do not understand.,A1;core
+esperar,to wait (for) / to hope,verb,none,Espero el autobús.,I am waiting for the bus.,A1;core
+conocer,to know (a person or place),verb,none,Conozco este restaurante.,I know this restaurant.,A1;core
+irse,to leave / to go away,verb,none,Me voy mañana.,I am leaving tomorrow.,A1;core
+llegar,to arrive,verb,none,Llegamos mañana.,We arrive tomorrow.,A1;core
+mirar,to look at / to watch,verb,none,Miro una película.,I am watching a movie.,A1;core
+llamar,to call,verb,none,Llamo a mi madre.,I am calling my mother.,A1;core
+quedarse,to stay,verb,none,Me quedo en casa.,I am staying at home.,A1;core
+dónde,where,adverb,none,¿Dónde está la estación?,Where is the train station?,A1;core
+cuándo,when,adverb,none,¿Cuándo llegas?,When are you arriving?,A1;core
+cómo,how,adverb,none,¿Cómo estás?,How are you?,A1;core
+por qué,why,adverb,none,¿Por qué estás triste?,Why are you sad?,A1;core
+todo / toda,all / every / everything,adjective,none,Todo el mundo está aquí.,Everyone is here.,A1;core
+mucho,a lot / much,adverb,none,Él come mucho.,He eats a lot.,A1;core
+un poco,a little,adverb,none,Hablo un poco de español.,I speak a little Spanish.,A1;core
+más,more,adverb,none,Quiero más pan.,I want more bread.,A1;core
+bien,well / fine,adverb,none,Hablas bien.,You speak well.,A1;core
+todavía,still / yet,adverb,none,Todavía tengo hambre.,I am still hungry.,A1;core
+siempre,always,adverb,none,Él siempre llega tarde.,He is always late.,A1;core
+nunca,never,adverb,none,Nunca como carne.,I never eat meat.,A1;core
+ahora,now,adverb,none,Ahora estoy libre.,I am free now.,A1;core
+ya,already / now,adverb,none,Ya comí.,I already ate.,A1;core
+entonces,so / then,adverb,none,"Llueve, entonces me quedo aquí.","It is raining, so I am staying here.",A1;core
+porque,because,conjunction,none,Me quedo porque estoy cansado.,I am staying because I am tired.,A1;core
+si,if,conjunction,none,Voy si tú vas.,I am going if you go.,A1;core
+mi / mis,my,determiner,none,Mi hermano vive en Monterrey.,My brother lives in Monterrey.,A1;core
+su / sus,his / her / its / their / your (formal),determiner,none,Su casa es grande.,His or her house is big.,A1;core
+hay,there is / there are,expression,none,Hay un gato en el jardín.,There is a cat in the garden.,A1;core
+el trabajo,work / job,noun,m,Mi trabajo es interesante.,My job is interesting.,A1;core
+el amigo / la amiga,friend,noun,m/f,Mi amiga vive en Puebla.,My friend lives in Puebla.,A1;core
+la cosa,thing,noun,f,Es una buena cosa.,It is a good thing.,A1;core
+la mano,hand,noun,f,Me duele la mano.,My hand hurts.,A1;core
+el padre,father,noun,m,Mi padre trabaja mucho.,My father works a lot.,A1;core
+la madre,mother,noun,f,Mi madre cocina bien.,My mother cooks well.,A1;core
+la ciudad,city / town,noun,f,La ciudad es muy bonita.,The city is very beautiful.,A1;core
+el año,year,noun,m,Este año voy a México.,This year I am going to Mexico.,A1;core
+la mañana,morning,noun,f,Tomo café por la mañana.,I drink coffee in the morning.,A1;core
+la noche,night / evening,noun,f,La noche está tranquila.,The night is calm.,A1;core
+el país,country,noun,m,México es un país bonito.,Mexico is a beautiful country.,A1;core
+comer,to eat,verb,none,Como una manzana.,I am eating an apple.,A1;core
+beber,to drink,verb,none,Ella bebe agua.,She is drinking water.,A1;core
+vivir,to live,verb,none,Vivo en un pueblo pequeño.,I live in a small town.,A1;core
+trabajar,to work,verb,none,Él trabaja todos los días.,He works every day.,A1;core
+comprar,to buy,verb,none,Compro pan.,I am buying bread.,A1;core
+empezar,to begin / to start,verb,none,La clase empieza a las nueve.,The class starts at nine.,A1;core
+terminar,to finish,verb,none,Termino mi trabajo.,I am finishing my work.,A1;core
+escuchar,to listen (to),verb,none,Escucho música.,I listen to music.,A1;core
+escribir,to write,verb,none,Ella escribe una carta.,She is writing a letter.,A1;core
+leer,to read,verb,none,Leo un libro.,I am reading a book.,A1;core
+jugar,to play (a game or sport),verb,none,Los niños juegan afuera.,The children play outside.,A1;core
+aprender,to learn,verb,none,Aprendo español.,I am learning Spanish.,A1;core
+creer,to believe,verb,none,Te creo.,I believe you.,A1;core
+el café,coffee / café,noun,m,El café está caliente.,The coffee is hot.,A1;core
+el pan,bread,noun,m,El pan está fresco.,The bread is fresh.,A1;core
+la familia,family,noun,f,Mi familia es grande.,My family is big.,A1;core
+el hermano,brother,noun,m,Mi hermano tiene diez años.,My brother is ten years old.,A1;core
+la hermana,sister,noun,f,Mi hermana vive en Mérida.,My sister lives in Mérida.,A1;core
+el chico,boy,noun,m,El chico juega fútbol.,The boy plays soccer.,A1;core
+la chica,girl,noun,f,La chica lee un libro.,The girl is reading a book.,A1;core
+la escuela,school,noun,f,La escuela empieza a las ocho.,School starts at eight.,A1;core
+el libro,book,noun,m,Este libro es muy bueno.,This book is very good.,A1;core
+el carro,car,noun,m,Mi carro es rojo.,My car is red.,A1;core
+la calle,street,noun,f,La calle está tranquila.,The street is quiet.,A1;core
+el dinero,money,noun,m,No tengo dinero.,I have no money.,A1;core
+el nombre,name,noun,m,¿Cuál es tu nombre?,What is your name?,A1;core
+la hora,hour / time (of day),noun,f,¿Qué hora es?,What time is it?,A1;core
+la semana,week,noun,f,Trabajo toda la semana.,I work all week.,A1;core
+la tarde,afternoon / evening,noun,f,Por la tarde comemos juntos.,In the evening we eat together.,A1;core
+la mesa,table,noun,f,La mesa está en la cocina.,The table is in the kitchen.,A1;core
+bonito / bonita,pretty / beautiful / nice,adjective,none,Es una casa bonita.,It is a pretty house.,A1;core
+joven,young,adjective,none,Ella es muy joven.,She is very young.,A1;core
+viejo / vieja,old,adjective,none,Es un libro viejo.,It is an old book.,A1;core
+contento / contenta,happy / pleased,adjective,none,Estoy contento de verte.,I am happy to see you.,A1;core
+fácil,easy,adjective,none,Esta palabra es fácil.,This word is easy.,A1;core
+difícil,difficult,adjective,none,El examen es difícil.,The exam is difficult.,A1;core
+mismo / misma,same,adjective,none,Tenemos el mismo libro.,We have the same book.,A1;core
+antes,before,adverb,none,Como antes de las doce.,I eat before noon.,A1;core
+después,after / afterwards,adverb,none,Después del trabajo voy a casa.,After work I go home.,A1;core
+debajo de,under,preposition,none,El gato está debajo de la mesa.,The cat is under the table.,A1;core
+entre,between / among,preposition,none,El banco está entre la estación y la escuela.,The bank is between the station and the school.,A1;core
+en casa de,at the home of,expression,none,Estoy en casa de mi tía.,I am at my aunt's house.,A1;core
+sin,without,preposition,none,Tomo el café sin azúcar.,I drink my coffee without sugar.,A1;core
+durante,during / for,preposition,none,Leo durante una hora.,I read for an hour.,A1;core
+cerca,near / close,adverb,none,La estación está cerca de aquí.,The station is near here.,A1;core
+lejos,far,adverb,none,Mi trabajo está lejos.,My work is far.,A1;core
+mañana,tomorrow,adverb,none,¡Hasta mañana!,See you tomorrow!,A1;core
+ayer,yesterday,adverb,none,Ayer comí en el restaurante.,Yesterday I ate at the restaurant.,A1;core
+hoy,today,adverb,none,Hoy llueve.,It is raining today.,A1;core
+gracias,thank you,interjection,none,Muchas gracias.,Thank you very much.,A1;core
+`,
+  es2: `
+front,back,part_of_speech,gender,example_target,example_english,tags
+abrir,to open,verb,none,"Abre la puerta, por favor.","Open the door, please.",A1;core
+cerrar,to close,verb,none,Cierro la ventana.,I am closing the window.,A1;core
+salir,to go out / to leave,verb,none,Salimos esta noche.,We are going out tonight.,A1;core
+entrar,to enter / to come in,verb,none,"Entra, por favor.","Come in, please.",A1;core
+volver,to return / to go back,verb,none,Vuelvo a casa a las seis.,I am going home at six.,A1;core
+caer,to fall,verb,none,El libro cae de la mesa.,The book falls off the table.,A1;core
+estudiar,to study,verb,none,Estudio español todos los días.,I study Spanish every day.,A1;core
+elegir,to choose,verb,none,Elijo el café.,I choose the coffee.,A2;core
+buscar,to look for,verb,none,Busco mis llaves.,I am looking for my keys.,A1;core
+llevar,to carry / to wear,verb,none,Ella lleva un abrigo rojo.,She is wearing a red coat.,A2;core
+mostrar,to show,verb,none,Él muestra la foto a su madre.,He shows the photo to his mother.,A2;core
+seguir,to follow / to keep going,verb,none,Sígueme.,Follow me.,A2;core
+perder,to lose,verb,none,Tengo miedo de perder mi teléfono.,I am afraid of losing my phone.,A2;core
+ganar,to win / to earn,verb,none,Nuestro equipo gana el partido.,Our team wins the match.,A2;core
+reunirse,to meet / to get together,verb,none,Me reúno con mi amigo en el café.,I am meeting my friend at the café.,A2;core
+contestar,to answer,verb,none,Contesto a tu pregunta.,I am answering your question.,A1;core
+pagar,to pay,verb,none,Pago con tarjeta.,I pay by card.,A1;core
+olvidar,to forget,verb,none,No olvides tu boleto.,Do not forget your ticket.,A2;core
+dormir,to sleep,verb,none,El bebé duerme en su cuarto.,The baby sleeps in his room.,A1;core
+caminar,to walk,verb,none,Caminamos hasta la estación.,We walk to the station.,A1;core
+dejar,to leave (behind) / to let,verb,none,Dejo mi bolsa aquí.,I am leaving my bag here.,A2;core
+sentir,to feel,verb,none,Siento frío.,I feel cold.,A2;core
+recibir,to receive,verb,none,Recibo un mensaje de mi hermana.,I receive a message from my sister.,A2;core
+enviar,to send,verb,none,Envío una carta a mi padre.,I am sending a letter to my father.,A2;core
+ayudar,to help,verb,none,¿Puedes ayudarme?,Can you help me?,A1;core
+la cabeza,head,noun,f,Me duele la cabeza.,I have a headache.,A1;core
+la palabra,word,noun,f,No conozco esta palabra.,I do not know this word.,A1;core
+la pregunta,question,noun,f,Tengo una pregunta.,I have a question.,A1;core
+la respuesta,answer,noun,f,La respuesta es fácil.,The answer is easy.,A1;core
+el problema,problem,noun,m,No hay ningún problema.,There is no problem.,A1;core
+la vez,time / occasion,noun,f,Una vez a la semana.,Once a week.,A1;core
+el sitio,place / seat / room,noun,m,Hay un sitio aquí.,There is a seat here.,A1;core
+el final,end,noun,m,Es el final de la película.,It is the end of the movie.,A1;core
+la puerta,door,noun,f,La puerta está abierta.,The door is open.,A1;core
+la ventana,window,noun,f,La ventana está cerrada.,The window is closed.,A1;core
+el cuarto,room / bedroom,noun,m,Mi cuarto es pequeño.,My bedroom is small.,A1;core
+la cocina,kitchen / cooking,noun,f,Ella está en la cocina.,She is in the kitchen.,A1;core
+el jardín,garden,noun,m,Los niños juegan en el jardín.,The children play in the garden.,A1;core
+el gato,cat,noun,m,El gato duerme.,The cat is sleeping.,A1;core
+el perro,dog,noun,m,El perro está en el jardín.,The dog is in the garden.,A1;core
+la comida,meal / food / lunch,noun,f,La comida está lista.,The meal is ready.,A1;core
+el agua,water,noun,f,Quiero un poco de agua.,I would like some water.,A1;core
+el sol,sun,noun,m,Hace sol.,The sun is shining.,A1;core
+la lluvia,rain,noun,f,La lluvia cae desde esta mañana.,The rain has been falling since this morning.,A2;core
+el teléfono,phone,noun,m,Mi teléfono está en la mesa.,My phone is on the table.,A1;core
+la computadora,computer,noun,f,Uso mi computadora todos los días.,I use my computer every day.,A1;core
+la película,movie / film,noun,f,Esta película es muy buena.,This movie is very good.,A1;core
+la música,music,noun,f,Me gusta la música mexicana.,I like Mexican music.,A1;core
+el viaje,trip / journey,noun,m,El viaje es largo.,The trip is long.,A1;core
+la estación,station / season,noun,f,La estación está cerca de aquí.,The station is near here.,A1;core
+el tren,train,noun,m,El tren llega a las ocho.,The train arrives at eight.,A1;core
+el boleto,ticket,noun,m,Tengo un boleto para Cancún.,I have a ticket for Cancún.,A1;core
+la tienda,shop / store,noun,f,La tienda cierra a las siete.,The shop closes at seven.,A1;core
+el mercado,market,noun,m,Vamos al mercado los sábados.,We go to the market on Saturdays.,A1;core
+el restaurante,restaurant,noun,m,El restaurante está cerca de la estación.,The restaurant is near the station.,A1;core
+el precio,price,noun,m,¿Cuál es el precio?,What is the price?,A1;core
+la idea,idea,noun,f,Es una buena idea.,It is a good idea.,A1;core
+la historia,story / history,noun,f,Es una historia bonita.,It is a lovely story.,A2;core
+el idioma,language,noun,m,El español es un idioma bonito.,Spanish is a beautiful language.,A1;core
+el médico / la médica,doctor,noun,m/f,Voy al médico.,I am going to the doctor.,A1;core
+el mes,month,noun,m,Me voy el mes que viene.,I am leaving next month.,A2;core
+la oficina,office,noun,f,Trabajo en la oficina.,I work at the office.,A1;core
+la foto,photo,noun,f,Miro la foto.,I am looking at the photo.,A1;core
+caliente,hot (to the touch),adjective,none,El café está caliente.,The coffee is hot.,A1;core
+frío / fría,cold,adjective,none,El agua está fría.,The water is cold.,A1;core
+caro / cara,expensive,adjective,none,Este libro es demasiado caro.,This book is too expensive.,A1;core
+listo / lista,ready / clever,adjective,none,Estoy listo.,I am ready.,A1;core
+solo / sola,alone,adjective,none,Ella vive sola.,She lives alone.,A1;core
+feliz,happy,adjective,none,Somos muy felices.,We are very happy.,A1;core
+triste,sad,adjective,none,La película es muy triste.,The movie is very sad.,A1;core
+cansado / cansada,tired,adjective,none,Estoy cansada esta noche.,I am tired this evening.,A1;core
+enfermo / enferma,sick / ill,adjective,none,Mi hermano está enfermo.,My brother is sick.,A1;core
+libre,free,adjective,none,Estoy libre mañana.,I am free tomorrow.,A1;core
+ocupado / ocupada,busy,adjective,none,Ella está muy ocupada.,She is very busy.,A1;core
+verdadero / verdadera,true / real,adjective,none,Es una historia verdadera.,It is a true story.,A1;core
+amable,kind / nice,adjective,none,Mi hermana es muy amable.,My sister is very kind.,A1;core
+importante,important,adjective,none,Es muy importante.,It is very important.,A2;core
+posible,possible,adjective,none,¿Es posible?,Is it possible?,A2;core
+otro / otra,other / another,adjective,none,Quiero otro café.,I want another coffee.,A1;core
+cada,each / every,adjective,none,Leo cada día.,I read every day.,A1;core
+cuál,which / what,pronoun,none,¿Cuál quieres?,Which one do you want?,A1;core
+quizás,maybe / perhaps,adverb,none,Quizás mañana.,Maybe tomorrow.,A1;core
+a menudo,often,adverb,none,Como aquí a menudo.,I often eat here.,A1;core
+rápido,quickly / fast,adverb,none,Él habla muy rápido.,He speaks very fast.,A1;core
+mucho tiempo,for a long time,expression,none,Duerme mucho tiempo los domingos.,He sleeps for a long time on Sundays.,A2;core
+juntos / juntas,together,adverb,none,Viajamos juntos.,We are traveling together.,A1;core
+casi,almost,adverb,none,Son casi las doce.,It is almost noon.,A1;core
+solamente,only,adverb,none,Solamente quiero un café.,I only want a coffee.,A1;core
+bastante,enough / quite,adverb,none,Tengo bastante pan.,I have enough bread.,A1;core
+demasiado,too much / too,adverb,none,Hay demasiada gente.,There are too many people.,A1;core
+por fin,finally / at last,adverb,none,"¡Por fin, el fin de semana!","Finally, the weekend!",A1;core
+luego,then / later,adverb,none,Luego comemos.,Then we eat.,A1;core
+tarde,late,adverb,none,Es tarde.,It is late.,A1;core
+temprano,early,adverb,none,Él llega temprano por la mañana.,He arrives early in the morning.,A1;core
+afuera,outside,adverb,none,Hace frío afuera.,It is cold outside.,A1;core
+así que,so / therefore,conjunction,none,"Es tarde, así que vuelvo a casa.","It is late, so I am going home.",A1;core
+nada,nothing,pronoun,none,No hago nada.,I am doing nothing.,A1;core
+algo,something,pronoun,none,Quiero algo de beber.,I want something to drink.,A1;core
+alguien,someone,pronoun,none,Alguien está en la puerta.,Someone is at the door.,A1;core
+cuánto,how much / how many,adverb,none,¿Cuánto cuesta?,How much does it cost?,A1;core
+dos,two,number,none,Tengo dos gatos.,I have two cats.,A1;core
+tres,three,number,none,Hay tres libros.,There are three books.,A1;core
+cuatro,four,number,none,Somos cuatro.,There are four of us.,A1;core
+cinco,five,number,none,Son las cinco.,It is five o'clock.,A1;core
+seis,six,number,none,Hay seis personas aquí.,There are six people here.,A1;core
+siete,seven,number,none,La semana tiene siete días.,The week has seven days.,A1;core
+ocho,eight,number,none,Son las ocho.,It is eight o'clock.,A1;core
+nueve,nine,number,none,Ella tiene nueve años.,She is nine years old.,A1;core
+diez,ten,number,none,Tengo diez euros.,I have ten euros.,A1;core
+oír,to hear,verb,none,Oigo un ruido en la cocina.,I hear a noise in the kitchen.,A1;core
+sostener,to hold,verb,none,Sostengo tu bolsa.,I am holding your bag.,A2;core
+convertirse en,to become,verb,none,Quiere convertirse en médico.,He wants to become a doctor.,A2;core
+regresar,to come back / to return,verb,none,Regreso mañana.,I am coming back tomorrow.,A1;core
+usar,to use,verb,none,Puedes usar mi bolsa.,You can use my bag.,A1;core
+intentar,to try,verb,none,Intento hablar español.,I am trying to speak Spanish.,A1;core
+continuar,to continue,verb,none,Continuamos mañana.,We are continuing tomorrow.,A1;core
+parar,to stop,verb,none,Él para la música.,He stops the music.,A2;core
+explicar,to explain,verb,none,Él explica la pregunta.,He explains the question.,A2;core
+preparar,to prepare,verb,none,Preparo la comida.,I am preparing the meal.,A1;core
+decidir,to decide,verb,none,Decidimos juntos.,We decide together.,A2;core
+contar,to tell (a story) / to count,verb,none,Ella cuenta una historia bonita.,She tells a lovely story.,A2;core
+llamarse,to be called (my name is...),verb,none,Me llamo Lucía.,My name is Lucía.,A1;core
+levantarse,to get up,verb,none,Me levanto a las siete.,I get up at seven.,A1;core
+el queso,cheese,noun,m,Me gusta el queso mexicano.,I like Mexican cheese.,A1;core
+la manzana,apple,noun,f,La manzana es roja.,The apple is red.,A1;core
+la carne,meat,noun,f,No como carne.,I do not eat meat.,A1;core
+el pescado,fish (as food),noun,m,El pescado está fresco.,The fish is fresh.,A1;core
+la leche,milk,noun,f,Bebo leche por la mañana.,I drink milk in the morning.,A1;core
+la bolsa,bag / purse,noun,f,¿Dónde está mi bolsa?,Where is my bag?,A1;core
+la llave,key,noun,f,Busco mi llave.,I am looking for my key.,A1;core
+el mapa,map,noun,m,Mira el mapa de la ciudad.,Look at the map of the city.,A1;core
+la carta,letter / menu,noun,f,Escribo una carta a mi hermana.,I am writing a letter to my sister.,A1;core
+el mar,sea,noun,m,El mar es muy bonito.,The sea is very beautiful.,A1;core
+la montaña,mountain,noun,f,Caminamos por la montaña.,We are walking in the mountains.,A1;core
+el color,color,noun,m,¿Cuál es tu color favorito?,What is your favorite color?,A2;core
+la cita,appointment / date,noun,f,Tengo una cita mañana.,I have an appointment tomorrow.,A1;core
+el ruido,noise,noun,m,Hay demasiado ruido aquí.,There is too much noise here.,A1;core
+las vacaciones,vacation / holidays,noun,f,Estamos de vacaciones.,We are on vacation.,A1;core
+rojo / roja,red,adjective,none,El carro es rojo.,The car is red.,A1;core
+azul,blue,adjective,none,El cielo es azul.,The sky is blue.,A1;core
+blanco / blanca,white,adjective,none,El gato es blanco.,The cat is white.,A1;core
+negro / negra,black,adjective,none,Mi bolsa es negra.,My bag is black.,A1;core
+verde,green,adjective,none,La manzana es verde.,The apple is green.,A1;core
+último / última,last,adjective,none,Es el último tren.,It is the last train.,A1;core
+próximo / próxima,next,adjective,none,¡Hasta la próxima!,See you next time!,A1;core
+primero / primera,first,adjective,none,Es la primera vez.,It is the first time.,A1;core
+largo / larga,long,adjective,none,La calle es larga.,The street is long.,A1;core
+desde,since / from,preposition,none,Vivo aquí desde hace un año.,I have lived here for a year.,A2;core
+hacia,toward / around,preposition,none,Vuelvo a casa hacia las seis.,I go home around six o'clock.,A2;core
+contra,against,preposition,none,Estoy en contra de esta idea.,I am against this idea.,A2;core
+`,
+  es3: `
+front,back,part_of_speech,gender,example_target,example_english,tags
+acordarse de,to remember,verb,none,Me acuerdo de ese día.,I remember that day.,A2;daily
+despertarse,to wake up,verb,none,Me despierto a las siete.,I wake up at seven.,A2;daily
+acostarse,to go to bed,verb,none,Ella se acuesta tarde los sábados.,She goes to bed late on Saturdays.,A2;daily
+vestirse,to get dressed,verb,none,Me visto rápido por la mañana.,I get dressed quickly in the morning.,A2;daily
+lavarse,to wash (oneself),verb,none,Los niños se lavan las manos.,The children wash their hands.,A2;daily
+apurarse,to hurry,verb,none,¡Apúrate! El tren sale.,Hurry up! The train is leaving.,A2;daily
+sentarse,to sit down,verb,none,Siéntate aquí.,Sit down here.,A2;daily
+pasear,to go for a walk,verb,none,Paseamos por el parque.,We go for a walk in the park.,A2;daily
+descansar,to rest,verb,none,Deberías descansar un poco.,You should rest a little.,A2;health
+divertirse,to have fun,verb,none,Los niños se divierten afuera.,The children are having fun outside.,A2;feelings
+cuidar,to take care of / to look after,verb,none,Cuido a mi hermano pequeño.,I take care of my little brother.,A2;daily
+equivocarse,to be wrong / to make a mistake,verb,none,"Perdón, me equivoqué.","Sorry, I made a mistake.",A2;daily
+sentirse,to feel (well or ill),verb,none,No me siento bien.,I don't feel well.,A2;health
+darse cuenta,to realize,verb,none,Me doy cuenta de que es tarde.,I realize that it is late.,B1;mind
+preocuparse,to worry,verb,none,No te preocupes.,Don't worry.,A2;feelings
+casarse,to get married,verb,none,Se casan en junio.,They are getting married in June.,A2;people
+interesarse por,to be interested in,verb,none,Me intereso por la historia.,I am interested in history.,B1;mind
+quejarse,to complain,verb,none,Siempre se queja del ruido.,He always complains about the noise.,B1;feelings
+callarse,to be quiet,verb,none,Cállate y escucha.,Be quiet and listen.,B1;daily
+discutir,to argue,verb,none,Mis vecinos discuten a menudo.,My neighbors often argue.,B1;people
+ocurrir,to happen,verb,none,¿Qué ocurre?,What's happening?,A2;daily
+compartir,to share,verb,none,¿Compartimos el pastel?,Shall we share the cake?,A2;people
+permitir,to allow,verb,none,Este boleto te permite entrar en el museo.,This ticket lets you into the museum.,B1;society
+prometer,to promise,verb,none,Te prometo que vendré.,I promise you I will come.,A2;people
+proponer,to suggest / to propose,verb,none,Propongo ir al cine.,I suggest going to the cinema.,A2;people
+negarse,to refuse,verb,none,Él se niega a contestar.,He refuses to answer.,A2;people
+aceptar,to accept,verb,none,Acepto tu invitación.,I accept your invitation.,A2;people
+aprobar,to pass (an exam) / to approve,verb,none,Ella aprobó el examen.,She passed her exam.,A2;work
+reprobar,to fail (an exam),verb,none,Él reprobó el examen.,He failed the exam.,B1;work
+mejorar,to improve,verb,none,Quiero mejorar mi español.,I want to improve my Spanish.,B1;work
+apreciar,to appreciate,verb,none,Aprecio tu ayuda.,I appreciate your help.,B1;feelings
+evitar,to avoid,verb,none,Evita esta calle por la noche.,Avoid this street at night.,B1;city
+impedir,to prevent,verb,none,El ruido me impide dormir.,The noise keeps me from sleeping.,B1;daily
+desear,to wish / to want,verb,none,Te deseo un buen viaje.,I wish you a good trip.,A2;feelings
+soñar,to dream,verb,none,Sueño con ver Madrid.,I dream of seeing Madrid.,A2;feelings
+parecer,to seem,verb,none,Pareces cansado.,You seem tired.,B1;mind
+merecer,to deserve,verb,none,Mereces unas vacaciones.,You deserve a vacation.,B1;feelings
+atreverse,to dare,verb,none,No me atrevo a hablarle.,I don't dare talk to him.,B1;feelings
+importar,to matter / to import,verb,none,Tu opinión me importa.,Your opinion matters to me.,A2;mind
+manejar,to drive,verb,none,Manejo al trabajo.,I drive to work.,A2;travel
+construir,to build,verb,none,Construyen una casa.,They are building a house.,B1;home
+arreglar,to repair / to fix,verb,none,Mi padre arregla la bici.,My father is repairing the bike.,A2;home
+limpiar,to clean,verb,none,Limpio la cocina.,I am cleaning the kitchen.,A2;home
+ordenar,to tidy up / to order,verb,none,¡Ordena tu cuarto!,Tidy your room!,A2;home
+lavar,to wash,verb,none,Lavo el carro.,I am washing the car.,A2;home
+cocinar,to cook,verb,none,Le gusta cocinar para sus amigos.,He likes cooking for his friends.,A2;food
+probar,to taste / to try,verb,none,Prueba esta sopa.,Taste this soup.,A2;food
+cortar,to cut,verb,none,"Corta el pan, por favor.","Cut the bread, please.",A2;food
+encender,to turn on / to light,verb,none,Enciende la luz.,Turn on the light.,A2;home
+apagar,to turn off,verb,none,No olvides apagar la tele.,Don't forget to turn off the TV.,A2;home
+subir,to go up / to get on,verb,none,Subimos al tercer piso.,We are going up to the third floor.,A2;city
+bajar,to go down / to get off,verb,none,Bajo del autobús aquí.,I get off the bus here.,A2;travel
+cruzar,to cross,verb,none,Cruza la calle en el semáforo.,Cross the street at the light.,A2;city
+girar,to turn,verb,none,Gira a la izquierda después del puente.,Turn left after the bridge.,A2;city
+marcharse,to leave (a place),verb,none,Ella se marcha de la oficina a las seis.,She leaves the office at six.,A2;work
+encontrarse con,to meet up with / to run into,verb,none,Me encuentro contigo en el café.,I'll meet you at the café.,B1;people
+pedir prestado,to borrow,verb,none,¿Puedo pedir prestada tu pluma?,Can I borrow your pen?,A2;daily
+prestar,to lend,verb,none,Él me presta su carro.,He lends me his car.,A2;daily
+vender,to sell,verb,none,Venden su departamento.,They are selling their apartment.,A2;shopping
+rentar,to rent,verb,none,Rentamos una bici para el día.,We are renting a bike for the day.,A2;travel
+gastar,to spend (money),verb,none,Gasté demasiado este mes.,I spent too much this month.,A2;shopping
+costar,to cost,verb,none,¿Cuánto cuesta este abrigo?,How much does this coat cost?,A2;shopping
+traer,to bring,verb,none,Trae una botella de vino.,Bring a bottle of wine.,A2;food
+guardar,to keep / to put away,verb,none,Guarda el cambio.,Keep the change.,A2;shopping
+esconderse,to hide,verb,none,El gato se esconde debajo de la cama.,The cat is hiding under the bed.,A2;home
+tirar,to throw (away),verb,none,No tires este papel al suelo.,Don't throw this paper on the ground.,A2;home
+tocar,to touch / to play (an instrument),verb,none,¡No toques el horno!,Don't touch the oven!,A2;home
+jalar,to pull,verb,none,Jala la puerta para abrirla.,Pull the door to open it.,A2;daily
+empujar,to push,verb,none,Empuja la puerta.,Push the door.,A2;daily
+correr,to run,verb,none,Corro todas las mañanas.,I run every morning.,A2;health
+nadar,to swim,verb,none,Nadamos en el lago.,We swim in the lake.,A2;nature
+bailar,to dance,verb,none,¿Quieres bailar?,Do you want to dance?,A2;free time
+cantar,to sing,verb,none,Ella canta muy bien.,She sings very well.,A2;free time
+dibujar,to draw,verb,none,Mi hijo dibuja un árbol.,My son is drawing a tree.,A2;free time
+reír,to laugh,verb,none,Nos reímos mucho esta noche.,We laughed a lot tonight.,A2;feelings
+sonreír,to smile,verb,none,Ella sonríe todo el tiempo.,She smiles all the time.,A2;feelings
+llorar,to cry,verb,none,El bebé llora.,The baby is crying.,A2;feelings
+gritar,to shout,verb,none,¡No grites!,Don't shout!,A2;feelings
+agradecer,to thank / to be grateful for,verb,none,Te agradezco el regalo.,Thank you for the gift.,A2;people
+disculparse,to apologize,verb,none,Se disculpa por llegar tarde.,He apologizes for being late.,A2;people
+perdonar,to forgive,verb,none,Te perdono.,I forgive you.,B1;feelings
+invitar,to invite,verb,none,Te invito a cenar.,I'm inviting you to dinner.,A2;people
+charlar,to chat,verb,none,Charlamos de nuestros planes.,We are chatting about our plans.,A2;people
+convencer,to convince,verb,none,Me convenciste.,You convinced me.,B1;mind
+avisar,to warn / to let know,verb,none,Avísame si llegas tarde.,Let me know if you're late.,B1;people
+prever,to foresee / to forecast,verb,none,El pronóstico prevé lluvia.,The forecast calls for rain.,B1;nature
+describir,to describe,verb,none,Descríbeme tu casa.,Describe your house to me.,A2;mind
+traducir,to translate,verb,none,¿Puedes traducir esta frase?,Can you translate this sentence?,A2;work
+repetir,to repeat,verb,none,"¿Puedes repetirlo, por favor?","Can you repeat that, please?",A2;work
+adivinar,to guess,verb,none,¡Adivina quién está aquí!,Guess who's here!,A2;mind
+imaginar,to imagine,verb,none,Imagina una ciudad sin carros.,Imagine a city without cars.,B1;mind
+notar,to notice,verb,none,¿Notaste su bolsa nueva?,Did you notice her new bag?,B1;mind
+reconocer,to recognize,verb,none,¡No te reconocí!,I didn't recognize you!,B1;mind
+descubrir,to discover,verb,none,Descubrí un pequeño restaurante.,I discovered a little restaurant.,B1;travel
+parecerse a,to look like,verb,none,Te pareces a tu madre.,You look like your mother.,A2;people
+depender de,to depend on,verb,none,Depende del tiempo.,It depends on the weather.,B1;mind
+extrañar,to miss (someone),verb,none,Te extraño.,I miss you.,B1;feelings
+curarse,to heal / to get better,verb,none,Se curó muy rápido.,He got better very quickly.,B1;health
+morir,to die,verb,none,Su abuela murió el año pasado.,Her grandmother died last year.,A2;people
+nacer,to be born,verb,none,Nací en 2001.,I was born in 2001.,A2;people
+crecer,to grow up / to grow,verb,none,Crecí en el campo.,I grew up in the countryside.,A2;people
+cambiar,to change,verb,none,El tiempo cambia rápido aquí.,The weather changes fast here.,A2;nature
+durar,to last,verb,none,La película dura dos horas.,The movie lasts two hours.,A2;time
+el departamento,apartment,noun,m,Nuestro departamento es pequeño pero luminoso.,Our apartment is small but bright.,A2;home
+el piso,floor (of a building),noun,m,Vivo en el segundo piso.,I live on the second floor.,A2;home
+la escalera,stairs / ladder,noun,f,Toma la escalera.,Take the stairs.,A2;home
+el baño,bathroom / bath,noun,m,El baño está a la derecha.,The bathroom is on the right.,A2;home
+la cama,bed,noun,f,La cama es muy cómoda.,The bed is very comfortable.,A2;home
+el sofá,sofa,noun,m,El gato duerme en el sofá.,The cat sleeps on the sofa.,A2;home
+el refrigerador,fridge,noun,m,Ya no hay leche en el refrigerador.,There's no more milk in the fridge.,A2;home
+el horno,oven,noun,m,El pastel está en el horno.,The cake is in the oven.,A2;home
+la luz,light,noun,f,Hay mucha luz aquí.,There is a lot of light here.,A2;home
+la pared,wall,noun,f,Hay una foto en la pared.,There is a photo on the wall.,A2;home
+el vecino / la vecina,neighbor,noun,m/f,Nuestra vecina es muy amable.,Our neighbor is very kind.,A2;home
+el barrio,neighborhood,noun,m,Me gusta mucho este barrio.,I really like this neighborhood.,A2;city
+el puente,bridge,noun,m,Cruzamos el puente a pie.,We cross the bridge on foot.,A2;city
+el parque,park,noun,m,Los niños juegan en el parque.,The children are playing in the park.,A2;city
+el banco,bank / bench,noun,m,El banco cierra a las cinco.,The bank closes at five.,A2;city
+la farmacia,pharmacy,noun,f,Hay una farmacia en la esquina.,There is a pharmacy on the corner.,A2;city
+la panadería,bakery,noun,f,Voy a la panadería a comprar pan.,I'm going to the bakery to get bread.,A2;city
+la biblioteca,library,noun,f,Estudio en la biblioteca.,I study at the library.,A2;city
+el museo,museum,noun,m,El museo es gratis los domingos.,The museum is free on Sundays.,A2;city
+el hospital,hospital,noun,m,Ella trabaja en el hospital.,She works at the hospital.,A2;city
+el correo,mail / post office,noun,m,Envío un paquete por correo.,I'm sending a package by mail.,A2;city
+el semáforo,traffic light,noun,m,El semáforo está en rojo.,The light is red.,A2;city
+la iglesia,church,noun,f,La iglesia es muy antigua.,The church is very old.,A2;city
+el avión,plane,noun,m,El avión sale a mediodía.,The plane leaves at noon.,A2;travel
+el autobús,bus,noun,m,Tomo el autobús para ir al centro.,I take the bus into town.,A2;travel
+el metro,subway / metro,noun,m,El metro es más rápido.,The subway is faster.,A2;travel
+la bicicleta,bike / bicycle,noun,f,Voy al trabajo en bicicleta.,I go to work by bike.,A2;travel
+la carretera,road,noun,f,La carretera es larga.,The road is long.,A2;travel
+el aeropuerto,airport,noun,m,Llegamos al aeropuerto a las seis.,We arrive at the airport at six.,A2;travel
+el pasaporte,passport,noun,m,No olvides tu pasaporte.,Don't forget your passport.,A2;travel
+la maleta,suitcase,noun,f,Mi maleta pesa demasiado.,My suitcase is too heavy.,A2;travel
+el hotel,hotel,noun,m,El hotel está cerca de la estación.,The hotel is near the station.,A2;travel
+la playa,beach,noun,f,Vamos a la playa esta tarde.,We're going to the beach this afternoon.,A2;travel
+el retraso,delay,noun,m,El tren tiene una hora de retraso.,The train is an hour late.,A2;travel
+la empresa,company,noun,f,Ella trabaja en una empresa grande.,She works at a big company.,A2;work
+el compañero / la compañera,colleague / classmate,noun,m/f,Mi compañero está de vacaciones.,My colleague is on vacation.,A2;work
+la reunión,meeting,noun,f,La reunión empieza a las diez.,The meeting starts at ten.,A2;work
+el sueldo,salary,noun,m,Él tiene un buen sueldo.,He has a good salary.,B1;work
+la profesión,profession / job,noun,f,¿Cuál es tu profesión?,What do you do for a living?,A2;work
+el proyecto,project / plan,noun,m,Tengo un proyecto nuevo.,I have a new project.,A2;work
+la clase,class / lesson,noun,f,La clase de español es los martes.,Spanish class is on Tuesdays.,A2;work
+el examen,exam,noun,m,El examen es mañana.,The exam is tomorrow.,A2;work
+la tarea,homework,noun,f,¿Ya terminaste la tarea?,Did you finish your homework?,A2;work
+el estudiante / la estudiante,student,noun,m/f,Los estudiantes están en el aula.,The students are in the classroom.,A2;work
+el correo electrónico,email,noun,m,Te envío un correo electrónico esta noche.,I'll send you an email tonight.,A2;work
+el cuerpo,body,noun,m,El deporte es bueno para el cuerpo.,Sport is good for the body.,A2;health
+el corazón,heart,noun,m,Mi corazón late rápido.,My heart is beating fast.,A2;health
+la espalda,back,noun,f,Me duele la espalda.,My back hurts.,A2;health
+el brazo,arm,noun,m,Se rompió el brazo.,He broke his arm.,A2;health
+la pierna,leg,noun,f,Me duele la pierna.,My leg hurts.,A2;health
+el pie,foot,noun,m,Vamos a pie.,We're going on foot.,A2;health
+el ojo / los ojos,eye / eyes,noun,m,Ella tiene los ojos azules.,She has blue eyes.,A2;health
+la boca,mouth,noun,f,No hables con la boca llena.,Don't talk with your mouth full.,A2;health
+el diente,tooth,noun,m,Me lavo los dientes.,I brush my teeth.,A2;health
+la salud,health,noun,f,La salud es importante.,Health is important.,A2;health
+el resfriado,cold (illness),noun,m,Tengo un resfriado.,I have a cold.,A2;health
+la fiebre,fever,noun,f,Él tiene fiebre.,He has a fever.,A2;health
+el medicamento,medicine,noun,m,Toma este medicamento dos veces al día.,Take this medicine twice a day.,A2;health
+el miedo,fear,noun,m,Tengo miedo de la oscuridad.,I'm afraid of the dark.,A2;feelings
+la alegría,joy,noun,f,¡Qué alegría verte!,What a joy to see you!,B1;feelings
+el enojo,anger,noun,m,No puede esconder su enojo.,He can't hide his anger.,B1;feelings
+el amor,love,noun,m,El amor es ciego.,Love is blind.,A2;feelings
+la esperanza,hope,noun,f,No hay que perder la esperanza.,You must not lose hope.,B1;feelings
+el recuerdo,memory / souvenir,noun,m,Es un buen recuerdo.,It's a good memory.,A2;feelings
+el sueño,dream / sleepiness,noun,m,Tuve un sueño extraño.,I had a strange dream.,A2;feelings
+la felicidad,happiness,noun,f,El dinero no compra la felicidad.,Money doesn't buy happiness.,B1;feelings
+la confianza,trust / confidence,noun,f,Tengo confianza en ti.,I trust you.,B1;feelings
+la amistad,friendship,noun,f,Nuestra amistad es importante para mí.,Our friendship is important to me.,B1;feelings
+el marido,husband,noun,m,Su marido es médico.,Her husband is a doctor.,A2;people
+el hijo / la hija,son / daughter,noun,m/f,Su hijo tiene diez años.,Their son is ten.,A2;people
+el tío,uncle,noun,m,Mi tío vive en Guadalajara.,My uncle lives in Guadalajara.,A2;people
+la tía,aunt,noun,f,Mi tía viene a cenar esta noche.,My aunt is coming to dinner tonight.,A2;people
+el primo / la prima,cousin,noun,m/f,Mi prima es estudiante.,My cousin is a student.,A2;people
+los abuelos,grandparents,noun,m,Voy a casa de mis abuelos.,I'm going to my grandparents' house.,A2;people
+el cielo,sky,noun,m,El cielo está azul hoy.,The sky is blue today.,A2;nature
+el árbol,tree,noun,m,Hay un árbol grande en el jardín.,There is a big tree in the garden.,A2;nature
+la flor,flower,noun,f,Estas flores huelen bien.,These flowers smell good.,A2;nature
+el bosque,forest,noun,m,Paseamos por el bosque.,We walk in the forest.,A2;nature
+el lago,lake,noun,m,El lago está frío.,The lake is cold.,A2;nature
+el río,river,noun,m,El río pasa cerca del pueblo.,The river runs near the village.,A2;nature
+el viento,wind,noun,m,Hace viento esta mañana.,It's windy this morning.,A2;nature
+la nieve,snow,noun,f,Los niños juegan en la nieve.,The children are playing in the snow.,A2;nature
+la nube,cloud,noun,f,No hay ni una nube.,There isn't a cloud.,A2;nature
+el pájaro,bird,noun,m,Un pájaro canta en el árbol.,A bird is singing in the tree.,A2;nature
+el campo,countryside / field,noun,m,Viven en el campo.,They live in the countryside.,A2;nature
+el invierno,winter,noun,m,El invierno es largo aquí.,Winter is long here.,A2;time
+el verano,summer,noun,m,Nos vamos de vacaciones en verano.,We go on vacation in the summer.,A2;time
+el siglo,century,noun,m,Este castillo es del siglo dieciséis.,This castle dates from the sixteenth century.,B1;time
+el momento,moment,noun,m,Espera un momento.,Wait a moment.,A2;time
+el futuro,future,noun,m,Nadie conoce el futuro.,Nobody knows the future.,B1;time
+el fin de semana,weekend,noun,m,¿Qué haces este fin de semana?,What are you doing this weekend?,A2;time
+el cumpleaños,birthday,noun,m,¡Feliz cumpleaños!,Happy birthday!,A2;time
+la fiesta,party / holiday,noun,f,Hacemos una fiesta el sábado.,We're having a party on Saturday.,A2;time
+el principio,beginning / principle,noun,m,El principio del libro es lento.,The beginning of the book is slow.,A2;time
+la verdura,vegetable,noun,f,Cómete las verduras.,Eat your vegetables.,A2;food
+el pollo,chicken,noun,m,Esta noche comemos pollo.,We're eating chicken tonight.,A2;food
+el huevo,egg,noun,m,Quiero dos huevos.,I'd like two eggs.,A2;food
+el azúcar,sugar,noun,m,¿Tomas azúcar en el café?,Do you take sugar in your coffee?,A2;food
+el pastel,cake,noun,m,Este pastel de chocolate está delicioso.,This chocolate cake is delicious.,A2;food
+el desayuno,breakfast,noun,m,El desayuno está listo.,Breakfast is ready.,A2;food
+la cena,dinner,noun,f,La cena es a las nueve.,Dinner is at nine.,A2;food
+el vaso,glass (for drinking),noun,m,"Un vaso de agua, por favor.","A glass of water, please.",A2;food
+la botella,bottle,noun,f,Una botella de vino tinto.,A bottle of red wine.,A2;food
+el zapato,shoe,noun,m,Necesito zapatos nuevos.,I need new shoes.,A2;shopping
+el abrigo,coat,noun,m,Ponte el abrigo. Hace frío.,Put on your coat. It's cold.,A2;shopping
+la razón,reason,noun,f,¿Por qué razón?,For what reason?,B1;mind
+la elección,choice / election,noun,f,No tienes elección.,You don't have a choice.,B1;mind
+la opinión,opinion,noun,f,"En mi opinión, es una buena idea.","In my opinion, it's a good idea.",B1;mind
+la verdad,truth,noun,f,Dime la verdad.,Tell me the truth.,B1;mind
+la mentira,lie,noun,f,¡Eso es mentira!,That's a lie!,B1;mind
+la suerte,luck,noun,f,¡Buena suerte en el examen!,Good luck on your exam!,A2;mind
+el peligro,danger,noun,m,"¡Cuidado, peligro!","Watch out, danger!",B1;society
+la guerra,war,noun,f,Mi abuelo luchó en la guerra.,My grandfather fought in the war.,B1;society
+la paz,peace,noun,f,Déjame en paz.,Leave me in peace.,B1;society
+el error,mistake / error,noun,m,Todo el mundo comete errores.,Everyone makes mistakes.,A2;mind
+el consejo,piece of advice,noun,m,¿Puedo darte un consejo?,Can I give you some advice?,B1;mind
+fuerte,strong / loud,adjective,none,Él es muy fuerte.,He is very strong.,A2;describe
+débil,weak,adjective,none,Me siento débil.,I feel weak.,B1;describe
+rico / rica,rich / tasty,adjective,none,Son muy ricos.,They are very rich.,A2;describe
+pobre,poor,adjective,none,El pobre gato tiene hambre.,The poor cat is hungry.,A2;describe
+limpio / limpia,clean,adjective,none,La cocina está limpia.,The kitchen is clean.,A2;home
+sucio / sucia,dirty,adjective,none,Tus zapatos están sucios.,Your shoes are dirty.,A2;home
+lleno / llena,full,adjective,none,El autobús está lleno.,The bus is full.,A2;describe
+vacío / vacía,empty,adjective,none,El refrigerador está vacío.,The fridge is empty.,A2;describe
+pesado / pesada,heavy / annoying,adjective,none,Esta bolsa es pesada.,This bag is heavy.,A2;describe
+ligero / ligera,light (not heavy),adjective,none,Mi maleta es ligera.,My suitcase is light.,A2;describe
+suave,soft / gentle / mild,adjective,none,Este suéter es muy suave.,This sweater is very soft.,B1;describe
+duro / dura,hard,adjective,none,Este pan está duro.,This bread is hard.,A2;describe
+seguro / segura,sure / safe,adjective,none,¿Estás seguro?,Are you sure?,A2;mind
+peligroso / peligrosa,dangerous,adjective,none,Esta carretera es peligrosa.,This road is dangerous.,A2;describe
+tranquilo / tranquila,calm / quiet,adjective,none,El barrio es tranquilo.,The neighborhood is quiet.,A2;describe
+gracioso / graciosa,funny,adjective,none,Tu hermano es gracioso.,Your brother is funny.,A2;people
+serio / seria,serious,adjective,none,Es un estudiante serio.,He's a serious student.,A2;people
+simpático / simpática,nice / friendly,adjective,none,Tus amigos son simpáticos.,Your friends are nice.,A2;people
+antipático / antipática,unfriendly / unpleasant,adjective,none,No seas antipático.,Don't be unfriendly.,A2;people
+educado / educada,polite,adjective,none,Él siempre es educado.,He is always polite.,A2;people
+tímido / tímida,shy,adjective,none,Mi hija es un poco tímida.,My daughter is a little shy.,A2;people
+orgulloso / orgullosa,proud,adjective,none,Estoy orgulloso de ti.,I'm proud of you.,B1;feelings
+celoso / celosa,jealous,adjective,none,Él tiene celos de su hermano.,He is jealous of his brother.,B1;feelings
+preocupado / preocupada,worried,adjective,none,Tu madre está preocupada.,Your mother is worried.,B1;feelings
+sorprendido / sorprendida,surprised,adjective,none,Estoy sorprendido de verte aquí.,I'm surprised to see you here.,B1;feelings
+decepcionado / decepcionada,disappointed,adjective,none,Ella está decepcionada con el resultado.,She is disappointed with the result.,B1;feelings
+enojado / enojada,angry / upset,adjective,none,¿Estás enojado conmigo?,Are you angry with me?,B1;feelings
+famoso / famosa,famous,adjective,none,Es un actor famoso.,He's a famous actor.,A2;describe
+extraño / extraña,strange,adjective,none,Es una historia extraña.,It's a strange story.,B1;describe
+sencillo / sencilla,simple / easy,adjective,none,La receta es sencilla.,The recipe is simple.,A2;describe
+útil,useful,adjective,none,Este libro es muy útil.,This book is very useful.,A2;describe
+práctico / práctica,practical / handy,adjective,none,El metro es práctico.,The subway is handy.,A2;describe
+antiguo / antigua,old / former / ancient,adjective,none,Es mi antiguo profesor.,He's my former teacher.,B1;describe
+moderno / moderna,modern,adjective,none,Su cocina es muy moderna.,Their kitchen is very modern.,A2;describe
+rápido / rápida,fast,adjective,none,Este tren es rápido.,This train is fast.,A2;describe
+lento / lenta,slow,adjective,none,El internet está lento hoy.,The internet is slow today.,A2;describe
+corto / corta,short (in length),adjective,none,La película es corta.,The movie is short.,A2;describe
+lindo / linda,pretty / lovely,adjective,none,¡Qué vestido tan lindo!,What a pretty dress!,A2;describe
+malo / mala,bad,adjective,none,Hoy hace mal tiempo.,The weather is bad today.,A2;describe
+mejor,better / best,adjective,none,Es mi mejor amigo.,He's my best friend.,A2;describe
+diferente,different,adjective,none,Las dos ciudades son muy diferentes.,The two cities are very different.,A2;describe
+agradable,pleasant,adjective,none,El tiempo es agradable.,The weather is pleasant.,A2;describe
+interesante,interesting,adjective,none,Este libro es interesante.,This book is interesting.,A2;describe
+aburrido / aburrida,boring / bored,adjective,none,La clase fue aburrida.,The class was boring.,A2;describe
+silencioso / silenciosa,quiet / silent,adjective,none,La biblioteca es muy silenciosa.,The library is very quiet.,B1;describe
+aun así,even so / yet,adverb,none,"Es rico y, aun así, no es feliz.",He's rich and yet he's not happy.,B1;linking
+además,besides / also,adverb,none,"Además, no tengo tiempo.","Besides, I don't have time.",B1;linking
+sin embargo,however,adverb,none,"Es caro. Sin embargo, está bien hecho.","It's expensive. However, it's well made.",B1;linking
+en realidad,actually / in fact,adverb,none,"En realidad, prefiero el té.","Actually, I prefer tea.",A2;linking
+al menos,at least,adverb,none,Hay al menos veinte personas.,There are at least twenty people.,A2;linking
+más bien,rather,adverb,none,La película es más bien buena.,The movie is rather good.,B1;linking
+sobre todo,especially / above all,adverb,none,"Me gusta la fruta, sobre todo las fresas.","I like fruit, especially strawberries.",A2;linking
+más o menos,about / more or less,adverb,none,Cuesta más o menos diez euros.,It costs about ten euros.,A2;linking
+realmente,really,adverb,none,Es realmente bonito.,It's really beautiful.,A2;linking
+apenas,barely / hardly,adverb,none,Apenas lo conozco.,I barely know him.,B1;linking
+antiguamente,in the past / formerly,adverb,none,Antiguamente había una escuela aquí.,There used to be a school here.,B1;time
+pronto,soon,adverb,none,¡Hasta pronto!,See you soon!,A2;time
+a veces,sometimes,adverb,none,A veces trabajo los sábados.,Sometimes I work on Saturdays.,A2;time
+en primer lugar,first (of all),adverb,none,"En primer lugar, comemos. Luego salimos.","First, we eat. Then we go out.",A2;linking
+más tarde,later / then,adverb,none,Más tarde te llamo.,I'll call you later.,A2;linking
+enseguida,right away,adverb,none,Voy enseguida.,I'm coming right away.,A2;time
+de todos modos,anyway,adverb,none,"Llueve, pero salimos de todos modos.","It's raining, but we're going out anyway.",B1;linking
+por todas partes,everywhere,adverb,none,Te busqué por todas partes.,I looked everywhere for you.,A2;linking
+de vez en cuando,from time to time,adverb,none,Nos vemos de vez en cuando.,We see each other from time to time.,A2;time
+gracias a,thanks to,preposition,none,Lo conseguí gracias a ti.,I succeeded thanks to you.,B1;linking
+a causa de,because of,preposition,none,El tren llega tarde a causa de la nieve.,The train is late because of the snow.,A2;linking
+a pesar de,despite,preposition,none,Salimos a pesar de la lluvia.,We went out despite the rain.,B1;linking
+excepto,except,preposition,none,Vinieron todos excepto Pablo.,Everyone came except Pablo.,A2;linking
+según,according to,preposition,none,"Según el pronóstico, va a llover.","According to the forecast, it's going to rain.",B1;linking
+cuando,when (not a question),conjunction,none,"Cuando era pequeño, tenía un perro.","When I was little, I had a dog.",B1;linking
+ya que,since (because),conjunction,none,"Ya que estás aquí, puedes ayudarme.","Since you're here, you can help me.",B1;linking
+mientras,while,conjunction,none,Leo mientras cocinas.,I read while you cook.,A2;linking
+en cuanto,as soon as,conjunction,none,Llámame en cuanto llegues.,Call me as soon as you arrive.,B1;linking
+tener ganas de,to feel like / to want,expression,none,Tengo ganas de un helado.,I feel like having an ice cream.,A2;expressions
+necesitar,to need,verb,none,Necesito tu ayuda.,I need your help.,A2;expressions
+tener miedo de,to be afraid of,expression,none,Ella tiene miedo de los perros.,She's afraid of dogs.,A2;expressions
+tener razón,to be right,expression,none,Tienes toda la razón.,You're absolutely right.,A2;expressions
+estar equivocado,to be wrong,expression,none,Estaba equivocado.,I was wrong.,A2;expressions
+tener cuidado,to be careful,expression,none,¡Ten cuidado con los carros!,Watch out for the cars!,A2;expressions
+es mejor,it's better to,expression,none,Es mejor salir temprano.,It's better to leave early.,B1;expressions
+todo el mundo,everyone,pronoun,none,Todo el mundo está aquí.,Everyone is here.,A2;expressions
+`,
 };

@@ -1,5 +1,6 @@
 // Qarbon · js/translate.js: 🌐 Translate mode. Type a French or English word (or a short phrase), see it as the
-// card you'd get, and add it to a deck in one tap. Free services with no account or key:
+// card you'd get, and add it to a deck in one tap. It follows the course you're on: Spanish ⇄ English on Spanish (build 69).
+// Free services with no account or key:
 //   · your own cards and the built-in packs first (instant, and they work offline)
 //   · Wiktionary (en.wiktionary.org): single words, with word type, gender and an example sentence
 //   · MyMemory (mymemory.translated.net): phrases, and a second opinion for single words
@@ -11,18 +12,21 @@ const MYMEMORY = "https://api.mymemory.translated.net/get";
 let trRun = 0;             // which lookup is the newest (late answers to older ones are ignored)
 let trTimer = null;        // waits for a short pause in typing
 let trResult = null;       // what's showing: { front, back, pos, gender, exFr, exEn, alts: [{ text, note }], local }
-let packRows = null;       // the built-in packs' words, read once when first needed
+let packRows = {};         // each course's built-in words, read once when first needed
 
 // ================= small helpers =================
-const trDirFr = () => state.trDir === "fr";   // true = French → English
-const ARTICLE = /^(le|la|les|un|une|des|l['’])\s*/i;
-const bare = w => w.trim().replace(ARTICLE, "").trim();                  // "la fenêtre" → "fenêtre"
+// the language you're translating: the course's ({ lang: "fr" or "es", name: "French", native: "Français" }, js/app.js)
+const trK = () => course();
+const trDirFr = () => state.trDir === "fr";   // true = the course's language → English (the name is from when there was only French)
+const ARTICLE = /^(le|la|les|un|une|des|l['’]|el|los|las|una|unos|unas)\s+|^l['’]/i;
+const bare = w => w.trim().replace(ARTICLE, "").trim();                  // "la fenêtre" → "fenêtre", "el perro" → "perro"
 const plainWord = t => String(t || "").toLowerCase().normalize("NFC").replace(/\s+/g, " ").trim();
 const noTags = html => { const d = document.createElement("div"); d.innerHTML = html; return d.textContent.replace(/\s+/g, " ").trim(); };
 const fromWiki = t => t.replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1").replace(/\{\{[^}]*\}\}/g, "").replace(/'''?/g, "").trim();
-// add le / la / l' to a French noun, like the built-in packs ("la fenêtre", "l'arbre")
+// add le / la / l' to a French noun, like the built-in packs ("la fenêtre", "l'arbre"), or el / la to a Spanish one ("la ventana")
 function withArticle(word, gender) {
   if (ARTICLE.test(word) || !["m", "f"].includes(gender)) return word;
+  if (trK().lang === "es") return (gender === "m" ? "el " : "la ") + word;
   if (/^[aeiouyàâäéèêëîïôöùûüh]/i.test(word)) return "l'" + word;
   return (gender === "m" ? "le " : "la ") + word;
 }
@@ -32,30 +36,32 @@ const POS = { noun: "noun", "proper noun": "noun", verb: "verb", adjective: "adj
               interjection: "expression", phrase: "expression", "prepositional phrase": "expression", idiom: "expression" };
 
 // ================= 1. your cards and the built-in packs (offline) =================
+// only the cards and packs in the course's language
 function localMatch(q) {
-  if (!packRows) {
-    packRows = BUILT_IN.flatMap(s => {
+  const k = trK();
+  if (!packRows[k.id]) {
+    packRows[k.id] = k.levels.flatMap(s => {
       const rows = parseCSV(PACKS[s.id].trim()), head = rows[0];
-      return rows.slice(1).map(r => Object.fromEntries(head.map((h, i) => [h, (r[i] || "").trim()]))).map(o => ({ ...o, pack: s.name }));
+      return rows.slice(1).map(r => Object.fromEntries(head.map((h, i) => [h, (r[i] || "").trim()]))).map(o => ({ ...o, pack: k.name + " " + s.name }));
     });
   }
   const want = plainWord(bare(q));
   const fits = c => trDirFr()
     ? plainWord(bare(c.front)) === want || plainWord(c.front) === plainWord(q)
     : String(c.back || "").toLowerCase().split(/\s*[/,;]\s*/).some(b => plainWord(b.replace(/^to /, "")) === plainWord(q.replace(/^to /, "")));
-  const mine = state.cards.find(fits);
+  const mine = state.cards.find(c => cardLang(c) === k.lang && fits(c));
   if (mine) return { card: mine, where: "your cards" };
-  const row = packRows.find(fits);
+  const row = packRows[k.id].find(fits);
   return row ? { card: row, where: row.pack } : null;
 }
 
 // ================= 2. Wiktionary =================
-// a French word's meanings in English, its word type and an example (the "definition" service)
+// a French (or Spanish) word's meanings in English, its word type and an example (the "definition" service)
 async function wikiDefinitions(word) {
   const res = await fetchWithin(WIKI + "/api/rest_v1/page/definition/" + encodeURIComponent(word.replace(/ /g, "_")), 12);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(res.status);
-  const fr = ((await res.json()).fr || []);
+  const fr = ((await res.json())[trK().lang] || []);   // the entries in the course's language
   if (!fr.length) return null;
   const meanings = [], first = fr[0];
   let exFr = "", exEn = "";
@@ -68,7 +74,7 @@ async function wikiDefinitions(word) {
   return { pos: String(first.partOfSpeech || "").toLowerCase(), meanings, exFr, exEn };
 }
 
-// a page's source text (to find a French noun's gender, or an English word's French translations)
+// a page's source text (to find a noun's gender, or an English word's French or Spanish translations)
 async function wikiSource(title) {
   const res = await fetchWithin(WIKI + "/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&formatversion=2" +
                                 "&format=json&origin=*&titles=" + encodeURIComponent(title), 12);
@@ -83,22 +89,23 @@ function section(text, lang) {
   const rest = text.slice(i + 4 + lang.length), next = rest.search(/\n==[^=]/);
   return next < 0 ? rest : rest.slice(0, next);
 }
-// a French noun's gender from its page, like {{fr-noun|f}}
+// a noun's gender from its page, like {{fr-noun|f}} or {{es-noun|f}}
 async function wikiGender(word) {
-  const fr = section(await wikiSource(word), "French");
-  const m = fr.match(/\{\{fr-noun\|(m|f|mf|m-p|f-p)\b/) || fr.match(/\{\{fr-proper noun\|(m|f)\b/);
+  const k = trK(), fr = section(await wikiSource(word), k.name);
+  const m = fr.match(new RegExp("\\{\\{" + k.lang + "-noun\\|(m|f|mf|m-p|f-p)\\b")) || fr.match(new RegExp("\\{\\{" + k.lang + "-proper noun\\|(m|f)\\b"));
   return !m ? "" : m[1] === "mf" ? "m/f" : m[1][0];
 }
-// an English word's French translations, in the page's order (big words keep them on a "/translations" page)
+// an English word's French (or Spanish) translations, in the page's order (big words keep them on a "/translations" page)
 async function wikiTranslations(word) {
+  const k = trK();
   const [main, sub] = await Promise.all([wikiSource(word), wikiSource(word + "/translations").catch(() => "")]);
   const out = [];
   [section(sub, "English") || sub, section(main, "English")].forEach(text => {
-    // every "* French: …" line, whichever kind of translation box it's in; its meaning is the box's title, if it has one
-    for (const m of text.matchAll(/^\*:? French: (.*)$/gm)) {
+    // every "* French: …" (or "* Spanish: …") line, whichever kind of translation box it's in; its meaning is the box's title, if it has one
+    for (const m of text.matchAll(new RegExp("^\\*:? " + k.name + ": (.*)$", "gm"))) {
       const tops = [...text.slice(0, m.index).matchAll(/\{\{(?:trans-top(?:-see|-also)?|checktrans-top)(?:\|([^}|]*))?[^}]*\}\}/g)];
       const note = tops.length ? fromWiki(tops[tops.length - 1][1] || "") : "";
-      for (const t of m[1].matchAll(/\{\{tt?\+?\|fr\|([^|}]+)((?:\|[^}]*)?)\}\}/g)) {
+      for (const t of m[1].matchAll(new RegExp("\\{\\{tt?\\+?\\|" + k.lang + "\\|([^|}]+)((?:\\|[^}]*)?)\\}\\}", "g"))) {
         const word = fromWiki(t[1]), g = (t[2].match(/\|(m|f)(?=\||$)/) || [])[1] || "";
         if (word && !out.some(o => o.text === word)) out.push({ text: word, gender: g, note });
       }
@@ -144,19 +151,19 @@ async function lookUp(q) {
     const word = bare(q);
     const [defs, gender, mm] = await Promise.all([short ? settle(wikiDefinitions(word.toLowerCase())) : { ok: true, v: null },
                                                   short ? settle(wikiGender(word.toLowerCase())) : { ok: true, v: "" },
-                                                  settle(myMemory(q, "fr", "en"))]);
+                                                  settle(myMemory(q, LOCALE[trK().lang], "en"))]);
     if (run !== trRun) return;   // you've typed something else since
     const d = defs.ok && defs.v, m = mm.ok && mm.v;
     const meanings = d ? d.meanings.map(x => x.text) : [];
     const back = shortMeaning(meanings[0] || (m && m.main) || "");
     if (!back && !trResult) return failed(q, mm, defs);
-    const g = (gender.ok && gender.v) || (/^la\s|^une\s/i.test(q) ? "f" : /^le\s|^un\s/i.test(q) ? "m" : "");
+    const g = (gender.ok && gender.v) || (/^(la|une|una|las)\s/i.test(q) ? "f" : /^(le|un|el|los)\s/i.test(q) ? "m" : "");
     const pos = d ? POS[d.pos] || "" : q.includes(" ") ? "expression" : "";
     res = { front: pos === "noun" ? withArticle(word, g) : q.trim(), back, pos, gender: pos === "noun" ? g : "",
             exFr: d ? d.exFr : "", exEn: d ? d.exEn : "",
             alts: [...meanings.slice(1), ...((m && m.all) || [])].map(t => ({ text: shortMeaning(t) })), via: d ? "Wiktionary" : "MyMemory" };
   } else {
-    const [tr, mm] = await Promise.all([short ? settle(wikiTranslations(q.trim().toLowerCase())) : { ok: true, v: [] }, settle(myMemory(q, "en", "fr"))]);
+    const [tr, mm] = await Promise.all([short ? settle(wikiTranslations(q.trim().toLowerCase())) : { ok: true, v: [] }, settle(myMemory(q, "en", LOCALE[trK().lang]))]);   // (es-MX: Mexican Spanish)
     if (run !== trRun) return;
     const cands = (tr.ok && tr.v) || [], m = mm.ok && mm.v;
     // Wiktionary's translation that MyMemory agrees with, else Wiktionary's first, else MyMemory's
@@ -164,7 +171,7 @@ async function lookUp(q) {
     const pick = agreed || cands[0] || (m && m.main ? { text: m.main, gender: "" } : null);
     if (!pick && !trResult) return failed(q, mm, tr);
     if (pick) {
-      res = await frenchDetails(pick.text, pick.gender, run);
+      res = await wordDetails(pick.text, pick.gender, run);
       if (!res) return;
       res.back = q.trim();
       res.alts = [...cands.filter(c => c !== pick), ...((m && m.all) || []).filter(a => !cands.some(c => c.text === a)).map(text => ({ text }))]
@@ -178,8 +185,8 @@ async function lookUp(q) {
   showTranslation("");
 }
 
-// the details of a French word (word type, gender, example) for the card's front
-async function frenchDetails(word, gender, run) {
+// the details of a French or Spanish word (word type, gender, example) for the card's front
+async function wordDetails(word, gender, run) {
   const w = bare(word);
   const [defs, g] = await Promise.all([wikiDefinitions(w.toLowerCase()).catch(() => null), gender ? gender : wikiGender(w.toLowerCase()).catch(() => "")]);
   if (run !== trRun) return null;
@@ -210,11 +217,13 @@ function blankCard(q) {
 
 // ================= drawing the screen =================
 function renderTranslate() {
-  const fr = trDirFr();
-  $("tr-from").textContent = fr ? "Français" : "English";
-  $("tr-to").textContent = fr ? "English" : "Français";
-  $("tr-text").placeholder = fr ? "Type a French word or phrase" : "Type an English word or phrase";
-  $("tr-text").lang = fr ? "fr" : "en";
+  const fr = trDirFr(), k = trK();
+  if (renderTranslate.lang && renderTranslate.lang !== k.lang) { ++trRun; trResult = null; $("tr-text").value = ""; $("tr-msg").textContent = ""; }   // you switched course
+  renderTranslate.lang = k.lang;
+  $("tr-from").textContent = fr ? k.native : "English";
+  $("tr-to").textContent = fr ? "English" : k.native;
+  $("tr-text").placeholder = fr ? "Type a " + k.name + " word or phrase" : "Type an English word or phrase";
+  $("tr-text").lang = fr ? k.lang : "en";
   fillDecks();
   showTranslation($("tr-msg").textContent);
 }
@@ -230,7 +239,9 @@ function showTranslation(msg) {
   $("tr-pill").textContent = [r.pos, { m: "masculine", f: "feminine", "m/f": "masculine or feminine" }[r.gender]].filter(Boolean).join(" · ") || "word";
   if (document.activeElement !== $("tr-front")) $("tr-front").value = r.front || "";
   if (document.activeElement !== $("tr-back")) $("tr-back").value = r.back || "";
-  $("tr-front").placeholder = "French"; $("tr-back").placeholder = "English";
+  $("tr-front").placeholder = trK().name; $("tr-back").placeholder = "English";
+  $("tr-front").lang = trK().lang;
+  $("tr-front").setAttribute("aria-label", trK().name + " (front of the card)");
   $("tr-ex").textContent = r.exFr ? r.exFr + (r.exEn ? " · " + r.exEn : "") : "";
   $("tr-say").hidden = !hasSpeech();
   $("tr-note").textContent = r.local ? (r.owned ? "✓ Already one of your cards" : "From the " + r.local + " deck")
@@ -257,7 +268,7 @@ async function useAlt(a) {
   }
   const old = r.front, run = ++trRun;
   showTranslation("Looking up “" + a.text + "”…");
-  const d = await frenchDetails(a.text, a.gender, run);
+  const d = await wordDetails(a.text, a.gender, run);
   if (!d || run !== trRun) return;
   Object.assign(r, { front: d.front, pos: d.pos, gender: d.gender, exFr: d.exFr, exEn: d.exEn });
   delete r.local; delete r.owned;
@@ -265,12 +276,12 @@ async function useAlt(a) {
   showTranslation("");
 }
 
-// the deck dropdown: your own decks, or French (the course's word lists are fixed, so it goes in its personal binder)
+// the deck dropdown: your own decks, or the course (its word lists are fixed, so it goes in its personal binder)
 function fillDecks() {
   const sel = $("tr-deck");
   sel.innerHTML = "";
   const opt = (value, text) => { const o = document.createElement("option"); o.value = value; o.textContent = text; sel.appendChild(o); };
-  opt("", "Add to: French (personal binder)");
+  opt("", "Add to: " + trK().name + " (personal binder)");
   state.decks.forEach(d => opt(d.id, "Add to: " + d.name));
   opt("new", "+ New deck…");
   const want = state.trDeck || (stack && stack.custom ? stack.id : "");
@@ -280,8 +291,8 @@ function fillDecks() {
 // the card you'd add, and whether it's already there
 function cardToAdd() {
   const front = $("tr-front").value.trim(), back = $("tr-back").value.trim();
-  const key = front.toLowerCase();
-  const have = front && state.cards.find(c => wordKey(c) === key || c.front.trim().toLowerCase() === key);
+  const key = langKey(trK().lang, front);   // a card in the course's language
+  const have = front && state.cards.find(c => wordKey(c) === key || langKey(c.lang, c.front) === key);
   const deck = state.decks.find(d => d.id === $("tr-deck").value);
   return { front, back, have, deck, inDeck: have && (deck ? deck.words.includes(wordKey(have)) : true) };
 }
@@ -301,6 +312,7 @@ function addTranslated() {
     card = { front: c.front, back: c.back, part_of_speech: same ? r.pos || "" : "", gender: same ? r.gender || "" : "",
              example_target: same ? r.exFr || "" : "", example_english: same ? r.exEn || "" : "", tags: "translator",
              interval: 1, ease: 2.5, due: today(), reviews: 0, correct: 0 };
+    if (trK().lang !== "fr") card.lang = trK().lang;
     state.cards.push(card);
   }
   if (c.deck) {
@@ -308,7 +320,7 @@ function addTranslated() {
     if (stack && stack.id === c.deck.id) stack.words.add(wordKey(card));
   }
   save();
-  $("tr-note").textContent = "✓ Added “" + card.front + "” to " + (c.deck ? "“" + c.deck.name + "”" : "French's personal binder") + ".";
+  $("tr-note").textContent = "✓ Added “" + card.front + "” to " + (c.deck ? "“" + c.deck.name + "”" : trK().name + "'s personal binder") + ".";
   updateAdd();
 }
 
@@ -340,7 +352,7 @@ $("tr-front").addEventListener("input", updateAdd);
 $("tr-back").addEventListener("input", updateAdd);
 [$("tr-front"), $("tr-back")].forEach(el => el.addEventListener("keydown", e => { if (e.key === "Enter") addTranslated(); }));
 $("tr-add").onclick = addTranslated;
-$("tr-say").onclick = () => { const f = $("tr-front").value.trim(); if (f) speak(f); };
+$("tr-say").onclick = () => { const f = $("tr-front").value.trim(); if (f) speak(f, trK().lang); };
 $("tr-deck").onchange = () => {
   const sel = $("tr-deck");
   if (sel.value === "new") {
