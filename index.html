@@ -6,10 +6,10 @@
 <title>Qarbon</title>
 <!-- Amiri italic for the packs' "Level 1" (the logo's own built-in font only has the letters Q a r b n); offline, Georgia italic stands in -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:ital@1&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=69">
+<link rel="stylesheet" href="css/styles.css?v=70">
 <!-- the atom icons: the little one in the browser tab, and the one iPhones use for "Add to Home Screen" -->
-<link rel="icon" type="image/svg+xml" href="favicon.svg?v=69">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=69">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=70">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=70">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -121,7 +121,7 @@
         <li>Pick what you're doing from the <b>Mode</b> menu at the top: <b>🃏 Review</b>, <b>🗂 Decks</b>, <b>🔥 B.A.R. Exam</b>, <b>⏱ Focus</b>, <b>📖 Reading</b>, <b>🌐 Translate</b> or <b>🎧 Qarbon Media Player</b>.</li>
         <li><b>French</b> is one course: six levels in a row, from <b>Level 1</b> (the 150 most useful words) and <b>Level 2</b> (150 more) through <b>Level 3</b> (300 words for everyday life: home, city, travel, work, health, feelings; A2–B1) to <b>Level 4</b> (B2), <b>Level 5</b> (C1) and <b>Level 6</b> (C2), 75 harder words each, where the rare cards live. You don't pick a level: your packs follow the 🪐 Solar System, and Review has every card you've collected in one queue.</li>
         <li><b>Spanish</b> is a second course that works the same way, with its own trip on the map (it starts at Earth, wherever you are in French) and its own 3 packs a day. It's <b>Mexican Spanish</b> (el carro, la computadora, el boleto) with <b>Level 1</b> to <b>Level 3</b> so far (600 words, the same meanings as French's first three levels, with el / la and an example each); the worlds after Jupiter say <b>Soon</b>.</li>
-        <li><b>Switch decks</b> in <b>🗂 Decks</b> mode: tap <b>Switch ▾</b> at the top and pick French, Spanish or one of your own decks. The deck you're in is highlighted. The map, packs, Translate and the voice follow the course you picked last.</li>
+        <li><b>Switch decks</b> in <b>🗂 Decks</b> mode: tap <b>Switch ▾</b> at the top and pick French, Spanish or one of your own decks. The deck you're in is highlighted. The map, packs, Translate and the voice follow the course you picked last. You can also switch with <b>French | Spanish</b> at the top of the 🪐 Solar System.</li>
         <li><b>Make your own deck:</b> in Decks → Switch ▾, tap <b>+ New deck from a CSV file</b>, pick the file and name it. It stays saved. A word that's in two decks shares one set of progress.</li>
         <li>Your own decks have <b>✎</b> to rename them and <b>🗑</b> to delete them. Deleting a deck keeps its cards and their progress (your own words that aren't in another deck move to their course's personal binder).</li>
         <li><b>CSV format:</b> the first row needs <b>front</b> (French) and <b>back</b> (English). Optional columns: part_of_speech, gender (m, f or m/f), example_target, example_english, tags (levels like A1, A2, B1, B2, separated by <b>;</b>).</li>
@@ -167,7 +167,7 @@
         <li>Your French (or Spanish) as a trip out from Earth to the Black Hole: two worlds per level (Level 1 = Earth and the Moon, Level 2 = Venus and Mars … Level 6 = a Nebula and the Black Hole). Swipe the map sideways, tap a world for its progress.</li>
         <li><b>Reaching a world:</b> 80% of its cards at <b>Familiar</b> or better (you've remembered them across a few days). Then the next world opens.</li>
         <li><b>Packs follow the map:</b> they only deal cards from worlds that are open, so the words further out wait (as silhouettes in your binder) until you get there. Cards already in your binder can always be reviewed, and your own decks are never locked.</li>
-        <li><b>Tap the world you're at</b> to go straight to Review. Tap any other world for its progress, then <b>Review French</b> (or Spanish), <b>Binder</b> (that world's cards) or <b>🔁 Practice</b> (that world's cards, without changing your schedule).</li>
+        <li><b>Tap the world you're at</b> to go straight to Review (‹ brings you back to the map). Tap any other world for its progress, then <b>Review French</b> (or Spanish), <b>Binder</b> (that world's cards) or <b>🔁 Practice</b> (that world's cards, without changing your schedule).</li>
       </ul>
     </div>
 
@@ -501,6 +501,8 @@
   <!-- ===== 🌐 Translate: a word or short phrase, French ⇄ English, shown as the card you'd get (js/translate.js) ===== -->
   <!-- 🪐 Solar System (js/collection.js): your trip from Earth to the Black Hole, a world reached at 80% Familiar -->
   <section id="solar" hidden>
+    <!-- French | Spanish: which course's trip the map shows (filled by renderSolar, js/collection.js) -->
+    <div id="sol-courses" class="sol-courses" role="group" aria-label="Course"></div>
     <p id="sol-where"></p>
     <div id="sol-track"><div id="sol-strip"></div></div>
     <p class="sol-hint">‹ swipe › · Earth to the Black Hole</p>
@@ -832,24 +834,24 @@
 
 
 <!-- the program, in order: packs (data) first, start.js last. Every file shares the same variables.
-     ?v=69 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
+     ?v=70 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
      (Book texts in js/books/ and the PDF viewer only load when you open a book.) -->
-<script src="js/packs.js?v=69"></script>
-<script src="js/basics.js?v=69"></script>
-<script src="js/stars.js?v=69"></script>
-<script src="js/look.js?v=69"></script>
-<script src="js/worlds.js?v=69"></script>
-<script src="js/data.js?v=69"></script>
-<script src="js/cards.js?v=69"></script>
-<script src="js/timer.js?v=69"></script>
-<script src="js/burn.js?v=69"></script>
-<script src="js/music.js?v=69"></script>
-<script src="js/media.js?v=69"></script>
-<script src="js/app.js?v=69"></script>
-<script src="js/collection.js?v=69"></script>
-<script src="js/reading.js?v=69"></script>
-<script src="js/translate.js?v=69"></script>
-<script src="js/account.js?v=69"></script>
-<script src="js/start.js?v=69"></script>
+<script src="js/packs.js?v=70"></script>
+<script src="js/basics.js?v=70"></script>
+<script src="js/stars.js?v=70"></script>
+<script src="js/look.js?v=70"></script>
+<script src="js/worlds.js?v=70"></script>
+<script src="js/data.js?v=70"></script>
+<script src="js/cards.js?v=70"></script>
+<script src="js/timer.js?v=70"></script>
+<script src="js/burn.js?v=70"></script>
+<script src="js/music.js?v=70"></script>
+<script src="js/media.js?v=70"></script>
+<script src="js/app.js?v=70"></script>
+<script src="js/collection.js?v=70"></script>
+<script src="js/reading.js?v=70"></script>
+<script src="js/translate.js?v=70"></script>
+<script src="js/account.js?v=70"></script>
+<script src="js/start.js?v=70"></script>
 </body>
 </html>

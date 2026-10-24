@@ -203,7 +203,7 @@ if (hasSpeech()) speechSynthesis.onvoiceschanged = updateVoiceInfo;   // voices 
 // show one screen and hide the others, with a soft fade in
 function show(screen) {
   ["home", "study", "howto", "focus", "reading"].forEach(s => { $(s).hidden = s !== screen; });
-  if (screen === "home") { worldInfo(); resetWorlds(); }
+  if (screen === "home") { setMapBack(false); worldInfo(); resetWorlds(); }
   miniQpod();   // only on the study screen (js/media.js)
   const el = $(screen);
   el.classList.remove("fadein"); void el.offsetWidth; el.classList.add("fadein");
@@ -283,15 +283,20 @@ function deleteDeck(id) {
   $("stackmsg").textContent = "Deleted the deck “" + d.name + "”. Its cards keep their progress.";
 }
 
-// switch to a deck. stay = true when you picked it in the Decks tab (you stay there); otherwise Review opens
-function chooseStack(s, stay) {
+// make s the deck you're on (also used by the map's French | Spanish switch, which stays on the map)
+function useStack(s) {
   stack = s;
   state.stackId = s.id;   // remembered, so the app opens this deck next time
   if (s.course && state.courseId !== s.id) { state.courseId = s.id; fillVoices(); }   // the map, packs, Translate and the voice follow it
   save();
-  $("msg").textContent = "";
   // a course: add any of its words you don't have yet. They're only silhouettes in your binder until a pack deals them.
   if (s.course) s.texts.forEach(t => importCSV(t, s.lang));
+}
+
+// switch to a deck. stay = true when you picked it in the Decks tab (you stay there); otherwise Review opens
+function chooseStack(s, stay) {
+  useStack(s);
+  $("msg").textContent = "";
   closeEditor(false);
   $("settings").hidden = true;
   $("search").value = "";                        // a new stack starts with a clear search

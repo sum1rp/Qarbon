@@ -78,7 +78,7 @@ function cardHTML(c, m, size, num) {
     : '<div class="top"><span class="pill">' + esc(c.part_of_speech || "word") + '</span><span class="topright">' +
         (m ? "" : '<span class="new">New</span>') + '<span class="tier"><img alt="" src="' + w.img + '"><b>' + w.name + '</b></span></span></div>' +
       '<div class="art">' + photo + '<div class="foil2"></div><div>' + word + '</div></div>' +
-      '<div class="textbox">' + esc(c.back || "") + '</div>' +
+      '<div class="textbox meaning">' + esc(c.back || "") + '</div>' +
       '<div class="pips"><span>' + pipsHTML(m) + '</span><span class="step">' + MASTERY[m] + '</span></div>';
   return '<div class="qcard' + (size === "mini" ? " qmini" : "") + '" data-type="' + esc(c.part_of_speech || "") + '" data-tier="' + w.id + '" data-m="' + m + '">' +
     '<div class="face"><div class="foil"></div><div class="inner">' + inside + '</div><div class="spark"></div></div></div>';
@@ -577,10 +577,33 @@ function journeyCheck(quiet, k = course()) {
 courses().forEach(k => journeyCheck(true, k));   // cards you studied before the Solar System existed count from the start
 
 let solarPick = -1, solarSkyURL = "";
+
+// Review opened from the map: ‹ goes back to the map ("Back to Solar System") instead of home, until you go elsewhere
+let mapBack = false;
+function setMapBack(on) {
+  if (mapBack === on) return;
+  mapBack = on;
+  backLabel(on ? "Back to Solar System" : "Back to home");   // (js/media.js)
+}
+function reviewFromMap() { chooseStack(course()); setMapBack(true); }
+
+// French | Spanish above the map: switching shows that course's trip (and makes it the course you're on)
+function drawCourseSwitch() {
+  const box = $("sol-courses");
+  box.innerHTML = courses().map(k => '<button data-course="' + k.id + '" aria-pressed="' + (k.id === course().id) + '">' + esc(k.name) + '</button>').join("");
+  box.querySelectorAll("button").forEach(b => { b.onclick = () => {
+    const k = courses().find(x => x.id === b.dataset.course);
+    if (k.id === course().id) return;
+    useStack(k);
+    solarPick = -1; renderSolar.scrolled = false;   // the panel and the scroll go to where you are on that trip
+    renderSolar();
+  }; });
+}
 const CEFR_OF_LEVEL = ["A1", "A1–A2", "A2–B1", "B2", "C1", "C2"];
 
 function renderSolar() {
   journeyCheck(true);   // so the map and "You are here" always agree with the cards
+  drawCourseSwitch();
   const k = course(), last = lastWorld(k);
   const stats = WORLDS.map((w, i) => worldStats(i));
   const isReached = i => stats[i].total > 0 && stats[i].fam >= Math.ceil(stats[i].total * REACH);
@@ -615,11 +638,11 @@ function renderSolar() {
   // (its progress already shows when the map opens)
   strip.querySelectorAll(".sol-world").forEach(b => { b.onclick = () => {
     const i = Number(b.dataset.i);
-    if (i === here) { solarPick = -1; chooseStack(course()); return; }
+    if (i === here) { solarPick = -1; reviewFromMap(); return; }
     solarPick = i; renderSolar();
   }; });
   const done = WORLDS.filter((w, i) => isReached(i)).length;
-  $("sol-where").innerHTML = "<b>" + k.name + "</b> · " + (done === WORLDS.length ? "Every world reached. You made it to the Black Hole!"
+  $("sol-where").innerHTML = (done === WORLDS.length ? "Every world reached. You made it to the Black Hole!"
     : done === last + 1 ? "Every world so far reached! Level " + (k.levels.length + 1) + " and beyond are coming soon."
     : "You're at <b>" + named(WORLDS[here]) + "</b> · Level " + (Math.floor(here / 2) + 1) + " · " + done + " of " + (last + 1) + " worlds reached");
   solarPanel(solarPick, stats[solarPick], isReached(solarPick));
@@ -653,7 +676,7 @@ function solarPanel(i, st, isReached) {
     '<p class="sol-note">' + note + '</p>' +
     '<div class="sol-acts"><button id="sol-study">Review ' + k.name + '</button><button id="sol-binder">Binder</button>' + (practiceCards(w).length ? '<button id="sol-practice">🔁 Practice</button>' : '') + '</div>';
   // every world is part of the course: Review it, or open its binder on this world
-  $("sol-study").onclick = () => chooseStack(course());
+  $("sol-study").onclick = reviewFromMap;
   $("sol-binder").onclick = () => { chooseStack(course(), true); binderFilter = w.id; renderBinder(); };
   if ($("sol-practice")) $("sol-practice").onclick = () => { chooseStack(course(), true); practiceWorld(w); };
 }

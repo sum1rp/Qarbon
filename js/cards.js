@@ -66,6 +66,7 @@ function dailyList() {
 }
 
 function setMode(m, list, name) {
+  if (m !== "daily") setMapBack(false);   // ‹ goes back to the map only while you're in the Review the map opened (js/collection.js)
   if (m === "deck" && mode !== "deck") showBinder(true);   // Decks opens on the binder; List is one tap away (js/collection.js)
   mode = m;
   if (m === "deck" || m === "focus" || m === "reading" || m === "media" || m === "translate" || m === "solar") { render(); return; }
@@ -180,8 +181,11 @@ function render() {
   $("speakanswer").hidden = !reverse;
   $("gender").textContent = genders[current.gender] || "";
   $("gender").hidden = !genders[current.gender];
-  $("example").textContent = current.example_target
-    ? current.example_target + " — " + (current.example_english || "") : "";
+  // the example: the sentence in French or Spanish (bigger), then its English (smaller, on its own line)
+  const exT = document.createElement("span"), exEn = document.createElement("span");
+  exT.className = "ex-t"; exEn.className = "ex-en";
+  exT.textContent = current.example_target || ""; exEn.textContent = current.example_english || "";
+  $("example").replaceChildren(...(current.example_target ? [exT, exEn] : []));
   dressCard(current, currentDir);
 }
 

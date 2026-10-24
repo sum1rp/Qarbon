@@ -601,6 +601,12 @@
   #answer { font-size:1.6rem; font-weight:700; color:var(--type); }
   .textbox { margin-top:10px; border:1px solid var(--line); border-radius:10px;
              padding:10px; font-size:.9rem; color:var(--muted); min-height:64px; }
+  /* the example on the card's back (render() in js/cards.js): the French or Spanish sentence big and bold, its English below,
+     nearly as big (the user: no text on a card should be small) */
+  #example .ex-t { display:block; font-size:1.15rem; font-weight:700; line-height:1.3; color:var(--text); }
+  #example .ex-en { display:block; margin-top:4px; font-size:1.05rem; line-height:1.3; color:var(--text); opacity:.8; }
+  /* the meaning on pack and binder cards (cardHTML in js/collection.js): "to have", big and bold */
+  .qcard .textbox.meaning { display:flex; align-items:center; font-size:1.3rem; font-weight:700; line-height:1.25; color:var(--text); }
 
   /* audio buttons */
   .speak, .burnspeak { margin-top:8px; background:none; border:1px solid var(--line-strong);
@@ -794,6 +800,11 @@
   /* ---------- 🪐 the Solar System (js/collection.js): the 12 worlds in a row on the real sky ---------- */
   #solar { width:100%; max-width:560px; display:flex; flex-direction:column; gap:8px; }
   #sol-where { margin:0; font-size:.9rem; color:var(--muted); } #sol-where b { color:var(--text); }
+  /* French | Spanish above the map: which course's trip it shows (renderSolar in js/collection.js) */
+  .sol-courses { display:flex; align-self:center; gap:4px; padding:4px; border:1px solid var(--line); border-radius:999px; background:var(--surface); }
+  .sol-courses button { min-height:36px; padding:0 18px; border:0; border-radius:999px; background:none; color:var(--muted); font:inherit; font-weight:600; cursor:pointer; }
+  .sol-courses button[aria-pressed="true"] { background:var(--accent-fill); color:#fff; }
+  .sol-courses button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
   #sol-track { overflow-x:auto; overflow-y:hidden; border-radius:16px; border:1px solid var(--line); scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; }
   #sol-track::-webkit-scrollbar { height:0; }
   #sol-strip { position:relative; height:300px; background:#030306 0 0 / 100% 100% no-repeat; }
@@ -1014,7 +1025,11 @@
     .top { margin-bottom:6px; }
     .art { min-height:0; padding:6px; }
     .textbox { min-height:0; padding:8px; }
+    /* the answer side: the world and the answer keep at least 40% of the card; a long example scrolls inside its box */
+    .back-face .art { min-height:40%; }
+    .back-face .textbox { flex:0 1 auto; overflow-y:auto; }
   }
+  @media (max-height: 700px) { #example .ex-t { font-size:1.05rem; } #example .ex-en { font-size:1rem; } }   /* short phones (the SE): a little smaller */
   /* very short screens (like the iPhone SE): drop the "tap to flip" hint to make room */
 
   @media (prefers-reduced-motion: reduce) { * { animation:none !important; } #scene { transition:none !important; } }

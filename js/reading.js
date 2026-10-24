@@ -610,7 +610,8 @@ $("readsave").onclick = () => {
 };
 showReadbar();
 // ‹ goes home, unless the mini Qpod brought you into the Qpod: then back to where you were (see miniTap in js/media.js)
-$("gohome").onclick = () => { if (mode === "media" && miniFrom) miniBack(); else show("home"); };
+// ‹: back to where the mini Qpod brought you from, back to the map that opened Review, or home
+$("gohome").onclick = () => { if (mode === "media" && miniFrom) miniBack(); else if (mapBack && mode === "daily") setMode("solar"); else show("home"); };
 $("logo").onclick = () => show("home");   // tapping the Qarbon logo also takes you back home
 
 // ================= the in-app reader =================
