@@ -132,7 +132,10 @@ function render() {
   const practicing = mode === "practice";
   $("status").textContent = practicing
     ? "Practice · " + left + " left · nothing here affects your schedule"
-    : (stack || course()).name + " · " + left + " left today · " + stackCards().filter(inBinder).length + " cards in your binder";
+    : (stack || course()).name + " · " + left + " left today";   // (Binder and List sit at the end of this line)
+  // the hint under the card: how to turn it over, then how to answer by swiping
+  $("cardhint").textContent = !current ? "" : !revealed ? "Tap or swipe up to flip"
+    : practicing ? "Swipe right for Got it, left for Missed" : "Swipe right for Good, left for Again";
   // practice only has two answers; daily review has Anki's four, each showing when you'd see the card next
   const names = practicing ? ["Missed", "", "Got it", ""] : ["Again", "Hard", "Good", "Easy"];
   GRADES.forEach((g, i) => {
@@ -180,12 +183,11 @@ function render() {
   dressCard(current, currentDir);
 }
 
-// phones: tell the CSS how much room the top bars, the bottom buttons and the closed timer under the card take, so the card
-// fills the rest. Only the timer's closed line counts: opening it makes the page longer instead of the card smaller.
+// phones: tell the CSS how much room the top bars, the bottom buttons and the hint under the card take, so the card fills the rest
 function fitCard() {
   const r = document.documentElement.style;
   r.setProperty("--above", Math.round($("scene").getBoundingClientRect().top + scrollY + 8) + "px");
-  r.setProperty("--below", ($("buttons").offsetHeight + $("timer").querySelector("summary").offsetHeight + 18) + "px");
+  r.setProperty("--below", ($("buttons").offsetHeight + $("cardhint").offsetHeight + 18) + "px");
   // the card keeps its card shape, so a short screen makes it narrow: then its top row drops the world's name (css "narrow")
   $("card").classList.toggle("narrow", $("scene").offsetWidth < 290);
 }

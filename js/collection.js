@@ -358,11 +358,12 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("packvi
 // Extra packs only show once you're done with today's cards.
 // When this deck's next cards wait on a world you haven't reached, it says so instead (tap = the Solar System).
 function packBanner() {
-  $("packrow").hidden = mode !== "daily";   // Binder and List show in Review only (not in Practice)
+  $("decklinks").hidden = mode !== "daily";   // Binder and List show in Review only (not in Practice)
   const b = $("packbanner"), ready = mode === "daily" && packReady();
   const done = !current && !queue.length;
   const locked = mode === "daily" && !ready && done && !packsUsedUp() && lockedCards().length;
   b.hidden = !(ready && (ready.daily || done)) && !locked;
+  $("packrow").hidden = b.hidden;   // the row only takes room while there's a pack (or a lock) to show
   b.dataset.locked = locked ? "1" : "";
   if (b.hidden) return;
   b.classList.toggle("extra", !ready || !ready.daily);

@@ -6,10 +6,10 @@
 <title>Qarbon</title>
 <!-- Amiri italic for the packs' "Level 1" (the logo's own built-in font only has the letters Q a r b n); offline, Georgia italic stands in -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:ital@1&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=67">
+<link rel="stylesheet" href="css/styles.css?v=68">
 <!-- the atom icons: the little one in the browser tab, and the one iPhones use for "Add to Home Screen" -->
-<link rel="icon" type="image/svg+xml" href="favicon.svg?v=67">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=67">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=68">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=68">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -203,9 +203,9 @@
     <div class="howsec">
       <h3>⏱ Focus (timer and music for any studying)</h3>
       <ul>
-        <li>Choose <b>⏱ Focus</b> in the Mode menu (or <b>⤢ Focus page</b> in the small timer under the Review card). The Mode menu takes you straight back to Review or anything else.</li>
+        <li>Choose <b>⏱ Focus</b> in the Mode menu. The Mode menu takes you straight back to Review or anything else.</li>
         <li>A big clock with a ring that empties as time passes. <b>Start/Pause</b>, <b>Reset</b>, and <b>Skip</b> (jump to the break, or back to focus; a skipped focus session isn't counted). On a computer, Space starts and pauses.</li>
-        <li>It's the <b>same timer</b> as the small one under the Review card: start it here, go study cards, and it keeps going. Music is in <b>🎧 Qarbon Media Player</b>.</li>
+        <li>Start it here, go study cards, and it keeps going. Music is in <b>🎧 Qarbon Media Player</b>.</li>
       </ul>
     </div>
 
@@ -248,7 +248,7 @@
     <div class="howsec">
       <h3>Timer and music</h3>
       <ul>
-        <li>Tap the time under the Review card to open the small timer, or choose ⏱ Focus in the Mode menu for the big one. Opening it doesn't shrink the card: scroll down a little for its buttons.</li>
+        <li>The timer is in <b>⏱ Focus</b> (Mode menu). It keeps running while you study cards or read.</li>
         <li>Styles: <b>Pomodoro 25/5</b> (a 15 min break every 4th time), <b>Long Pomodoro 50/10</b> (a 30 min break every 3rd time), <b>52/17</b>, <b>Deep work 90/20</b>, <b>15 min</b>, <b>30 min</b>, <b>1 hour</b>, or <b>Custom</b>.</li>
         <li><b>Custom</b> (set in ⏱ Focus): choose the focus, break and long-break lengths, and after how many focus sessions the long break comes.</li>
         <li>A chime plays when time is up, and the next part waits for you to press Start. Finished focus sessions are counted.</li>
@@ -622,15 +622,17 @@
 
 
   <div id="cardview">
-    <div id="status"></div>
-    <!-- "Today's pack is ready" (or "Open another pack" when you're done): opens the pack (js/collection.js).
-         Beside it, Binder and List open this deck in 🗂 Decks on that tab (only in Review) -->
-    <div id="packrow">
-      <button id="packbanner" hidden><span class="pk-icon"></span><span><b id="pb-title"></b><small id="pb-sub"></small></span></button>
+    <!-- "French · 12 left today", and at the end of the line Binder and List: this deck in 🗂 Decks on that tab (only in Review) -->
+    <div id="statusrow">
+      <div id="status"></div>
       <div id="decklinks">
         <button id="rv-binder" title="Your cards in this deck, by world"><span aria-hidden="true">🃏</span>Binder</button>
         <button id="rv-list" title="Every card in this deck, as a list"><span aria-hidden="true">☰</span>List</button>
       </div>
+    </div>
+    <!-- "Today's pack is ready" (or "Open another pack" when you're done): opens the pack (js/collection.js) -->
+    <div id="packrow" hidden>
+      <button id="packbanner" hidden><span class="pk-icon"></span><span><b id="pb-title"></b><small id="pb-sub"></small></span></button>
     </div>
     <div id="scene">
       <!-- "⬆ le magasin · Known" for a moment when an answer moves a word up a step -->
@@ -651,7 +653,6 @@
             <!-- hidden when the English is on the front, so the sound doesn't give the answer away -->
             <button id="speakfront" class="speak" data-speak="front" title="Hear it">🔊</button>
           </div></div>
-          <div class="textbox">Think it through, then tap the card to flip it.</div>
           <div class="pips"><span><i></i><i></i><i></i><i></i></span><span class="step"></span></div>
         </div><div class="spark"></div></div>
         <div class="face back-face"><div class="foil"></div><div class="inner">
@@ -672,6 +673,8 @@
         </div><div class="spark"></div></div>
       </div></div>
     </div>
+    <!-- how to use the card, under it: "Tap or swipe up to flip", then the swipes for Good and Again (render() in js/cards.js) -->
+    <p id="cardhint"></p>
 
     <div id="buttons">
       <button id="show">Show answer</button>
@@ -681,8 +684,9 @@
       <button id="easy" hidden title="Key 4">Easy<small></small></button>
     </div>
 
-    <!-- the small timer, at the bottom of Review. <details> is a built-in dropdown panel: tap the <summary> line to open or close it -->
-    <details id="timer">
+    <!-- the small timer that sat at the bottom of Review. Hidden for good since build 68 (the user's choice: the card gets the room);
+         it stays in the page because js/timer.js still updates it, and ⏱ Focus mode shares the same timer -->
+    <details id="timer" hidden>
       <summary><span id="phase">Focus</span><span id="time">25:00</span><span class="arrow">▾</span></summary>
       <div id="tcontrols">
       <select id="tmode" title="Timer style"></select>   <!-- the styles are filled in by the script -->
@@ -826,24 +830,24 @@
 
 
 <!-- the program, in order: packs (data) first, start.js last. Every file shares the same variables.
-     ?v=67 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
+     ?v=68 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
      (Book texts in js/books/ and the PDF viewer only load when you open a book.) -->
-<script src="js/packs.js?v=67"></script>
-<script src="js/basics.js?v=67"></script>
-<script src="js/stars.js?v=67"></script>
-<script src="js/look.js?v=67"></script>
-<script src="js/worlds.js?v=67"></script>
-<script src="js/data.js?v=67"></script>
-<script src="js/cards.js?v=67"></script>
-<script src="js/timer.js?v=67"></script>
-<script src="js/burn.js?v=67"></script>
-<script src="js/music.js?v=67"></script>
-<script src="js/media.js?v=67"></script>
-<script src="js/app.js?v=67"></script>
-<script src="js/collection.js?v=67"></script>
-<script src="js/reading.js?v=67"></script>
-<script src="js/translate.js?v=67"></script>
-<script src="js/account.js?v=67"></script>
-<script src="js/start.js?v=67"></script>
+<script src="js/packs.js?v=68"></script>
+<script src="js/basics.js?v=68"></script>
+<script src="js/stars.js?v=68"></script>
+<script src="js/look.js?v=68"></script>
+<script src="js/worlds.js?v=68"></script>
+<script src="js/data.js?v=68"></script>
+<script src="js/cards.js?v=68"></script>
+<script src="js/timer.js?v=68"></script>
+<script src="js/burn.js?v=68"></script>
+<script src="js/music.js?v=68"></script>
+<script src="js/media.js?v=68"></script>
+<script src="js/app.js?v=68"></script>
+<script src="js/collection.js?v=68"></script>
+<script src="js/reading.js?v=68"></script>
+<script src="js/translate.js?v=68"></script>
+<script src="js/account.js?v=68"></script>
+<script src="js/start.js?v=68"></script>
 </body>
 </html>
