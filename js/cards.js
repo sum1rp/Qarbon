@@ -1,12 +1,12 @@
-// Qarbon · js/cards.js: Review, Drill and Decks: the queue, card directions, drawing cards, the deck list, the card editor, scheduling, answering, swipes.
+// Qarbon · js/cards.js: Review, Practice and Decks: the queue, card directions, drawing cards, the deck list, the card editor, scheduling, answering, swipes.
 // The script files run in the order index.html lists them, and share one set of variables.
 
-// ================= modes: "daily" (spaced repetition), "deck" (browse), "practice" (🎯 Drill: free review) =================
+// ================= modes: "daily" (spaced repetition), "deck" (browse), "practice" (🔁 Practice: free review) =================
 let mode = "daily";
 // the queue holds { c: card, dir: "fr" or "en" }: the same word can come up French-first or English-first
 let queue = [], current = null, currentDir = "fr", revealed = false;
 let practice = { total: 0, right: 0, missed: new Set(), name: "" };
-// is a flashcard on screen? (Review and Drill show one; Deck, Burn and Focus don't)
+// is a flashcard on screen? (Review and Practice show one; Deck, Burn and Focus don't)
 function cardShowing() { return mode === "daily" || mode === "practice"; }
 
 // ================= card directions =================
@@ -77,10 +77,10 @@ function setMode(m, list, name) {
   next();
 }
 
-// 🎯 Drill (called "practice" in the code): go through one set of cards (a world, your personal binder, the cards you
-// filtered) in random order, as often as you like. Nothing here changes your schedule. name = what you're drilling
+// 🔁 Practice: go through one set of cards (a world, your personal binder, the cards you
+// filtered) in random order, as often as you like. Nothing here changes your schedule. name = what you're practicing
 function startPractice(list, name) {
-  if (!list.length) { $("msg").textContent = "No cards to drill here yet. Open a pack first."; return; }
+  if (!list.length) { $("msg").textContent = "No cards to practice here yet. Open a pack first."; return; }
   $("msg").textContent = "";
   setMode("practice", list, name);
 }
@@ -133,12 +133,12 @@ function render() {
   const left = queue.length + (current ? 1 : 0);
   const practicing = mode === "practice";
   $("status").textContent = practicing
-    ? "Drill" + (practice.name ? " · " + practice.name : "") + " · " + left + " left · your schedule stays the same"
+    ? "Practice" + (practice.name ? " · " + practice.name : "") + " · " + left + " left · your schedule stays the same"
     : (stack || course()).name + " · " + left + " left today";   // (Binder and List sit at the end of this line)
   // the hint under the card: how to turn it over, then how to answer by swiping
   $("cardhint").textContent = !current ? "" : !revealed ? "Tap or swipe up to flip"
     : practicing ? "Swipe right for Got it, left for Missed" : "Swipe right for Good, left for Again";
-  // a drill only has two answers; daily review has Anki's four, each showing when you'd see the card next
+  // practice only has two answers; daily review has Anki's four, each showing when you'd see the card next
   const names = practicing ? ["Missed", "", "Got it", ""] : ["Again", "Hard", "Good", "Easy"];
   GRADES.forEach((g, i) => {
     const b = $(g);
@@ -156,9 +156,9 @@ function render() {
   if (!current) {
     $("card").dataset.type = "";
     $("front").textContent = practicing
-      ? "Drill complete! " + practice.right + " of " + practice.total + " right on the first try"
+      ? "Practice complete! " + practice.right + " of " + practice.total + " right on the first try"
       : !stackCards().length ? "No cards here yet. Pick a deck in 🗂 Decks."
-      : !$("packbanner").hidden ? packDoneText() : "Done for today! To keep going, 🎯 Drill a world in the Binder or on the map.";
+      : !$("packbanner").hidden ? packDoneText() : "Done for today! To keep going, 🔁 Practice a world in the Binder or on the map.";
     $("answer").textContent = $("example").textContent = "";
     $("type1").textContent = $("type2").textContent = "";
     $("newbadge").hidden = $("gender").hidden = $("dirbadge").hidden = true;
@@ -414,7 +414,7 @@ function renderList() {
   $("decksummary").textContent = all.length + " cards · " +
     Object.entries(counts).map(([l, n]) => l + ": " + n).join(" · ") +
     " · " + started + " started · showing " + list.length;
-  $("practicefiltered").textContent = "🎯 Drill these (" + list.filter(drillable).length + ")";
+  $("practicefiltered").textContent = "🔁 Practice these (" + list.filter(practicable).length + ")";
 
   const box = $("decklist");
   box.innerHTML = "";
@@ -449,9 +449,9 @@ function renderDeck() {
 $("search").oninput = renderList;
 $("level").onchange = renderList;
 $("type").onchange = renderList;
-// a drill only takes cards that are yours: collected from a pack (or your own cards); silhouettes aren't yet
-const drillable = c => active(c) && (inBinder(c) || isOwn(c));
-$("practicefiltered").onclick = () => startPractice(filtered().filter(drillable), "your filtered cards");
+// practice only takes cards that are yours: collected from a pack (or your own cards); silhouettes aren't yet
+const practicable = c => active(c) && (inBinder(c) || isOwn(c));
+$("practicefiltered").onclick = () => startPractice(filtered().filter(practicable), "your filtered cards");
 
 // the Mode menu: switch what you're doing
 $("modeselect").onchange = e => {
@@ -531,7 +531,7 @@ $("ed-save").onclick = () => {
   closeEditor();
 };
 
-// suspended cards stay in your deck but never come up in Review, Drill or Burn
+// suspended cards stay in your deck but never come up in Review, Practice or Burn
 $("ed-suspend").onclick = () => {
   editing.suspended = !editing.suspended;
   if (!editing.suspended) delete editing.suspended;
@@ -594,7 +594,7 @@ function applyGrade(c, grade) {
 function rate(grade) {
   if (!current) return;
   if (mode === "practice") {
-    // 🎯 Drill = free review: nothing is saved, missed cards come back at the end
+    // 🔁 Practice = free review: nothing is saved, missed cards come back at the end
     const key = current.front + "|" + currentDir;
     if (grade > 1) { if (!practice.missed.has(key)) practice.right++; }
     else { practice.missed.add(key); queue.push({ c: current, dir: currentDir }); }

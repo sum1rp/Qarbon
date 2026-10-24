@@ -774,8 +774,8 @@
   .bd-sec h3 { margin:6px 0 0; font-size:1rem; display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
   .bd-sec h3 img { width:22px; height:22px; }
   .bd-sec h3 span { color:var(--muted); font-weight:400; font-size:.85rem; font-variant-numeric:tabular-nums; }
-  /* 🎯 Drill: a small pill at the end of a world's heading (margin-left:auto pushes it right; it wraps under on narrow phones) */
-  .bd-sec h3 .bd-drill { margin-left:auto; padding:5px 12px; font-size:.82rem; font-weight:600; border-radius:999px; }
+  /* 🔁 Practice: a small pill at the end of a world's heading (margin-left:auto pushes it right; it wraps under on narrow phones) */
+  .bd-sec h3 .bd-practice { margin-left:auto; padding:5px 12px; font-size:.82rem; font-weight:600; border-radius:999px; }
   .bd-pockets { display:grid; grid-template-columns:repeat(auto-fill, minmax(72px, 1fr)); gap:8px; }
   .bd-pockets > button { all:unset; cursor:pointer; display:block; border-radius:10px; }
   .bd-pockets > button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
