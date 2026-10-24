@@ -186,6 +186,8 @@ function fitCard() {
   const r = document.documentElement.style;
   r.setProperty("--above", Math.round($("scene").getBoundingClientRect().top + scrollY + 8) + "px");
   r.setProperty("--below", ($("buttons").offsetHeight + $("timer").querySelector("summary").offsetHeight + 18) + "px");
+  // the card keeps its card shape, so a short screen makes it narrow: then its top row drops the world's name (css "narrow")
+  $("card").classList.toggle("narrow", $("scene").offsetWidth < 290);
 }
 window.addEventListener("resize", () => { if (cardShowing()) fitCard(); });
 

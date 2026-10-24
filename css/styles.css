@@ -560,6 +560,7 @@
   .tier { display:flex; align-items:center; gap:5px; font-weight:600; font-size:.78rem; letter-spacing:.08em; font-variant:small-caps; white-space:nowrap; }
   .tier img { width:20px; height:20px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 1px rgba(255,255,255,.25), 0 0 8px var(--h1); }
   .tier img:not([src]) { display:none; }
+  #card.narrow .tier b { display:none; }   /* a small card (short phone screens, see fitCard): just the world's picture */
   /* mastery: four little bars + the step's name; the panel's edge turns silver, then gold, and Mastered sparkles */
   .pips { display:flex; justify-content:space-between; align-items:center; gap:6px; margin-top:8px; font-size:.72rem; color:var(--muted); }
   .pips i { display:inline-block; width:16px; height:4px; margin-right:4px; border-radius:2px; background:rgba(255,255,255,.14); }
@@ -854,11 +855,14 @@
   .burnnote, .burncount { color:var(--muted); font-size:.9rem; margin:0; }
   .burnnote:empty { display:none; }
   /* the card: dark inside, with a fiery orange → pink → purple frame */
-  .burncard { width:100%; box-sizing:border-box; padding:28px 16px 20px; border-radius:20px; border:3px solid transparent;
+  /* card-shaped (340 by 440, like the Review card), smaller when the screen is short so Next still shows */
+  .burncard { width:min(100%, 280px, calc((100svh - 345px) * 340 / 440)); min-width:180px; aspect-ratio:340/440;
+              display:flex; flex-direction:column; justify-content:center; align-items:center;
+              box-sizing:border-box; padding:28px 16px 20px; border-radius:20px; border:3px solid transparent;
               background:linear-gradient(var(--card), var(--card)) padding-box,
                          linear-gradient(135deg,#ffb347,#ff5d8f,#7b6cff) border-box;
               box-shadow:0 6px 24px rgba(0,0,0,.5); }
-  .burnfr { font-size:2rem; font-weight:700; }
+  .burnfr { font-size:2rem; font-weight:700; overflow-wrap:anywhere; }
   .burnen { font-size:1.2rem; color:var(--muted); margin-top:8px; }
   .burnbig { width:100%; min-height:56px; font-size:1.1rem; font-weight:600; border:none; color:#1a0c08;
              background:linear-gradient(135deg,#ff8a3d,#ff5d8f); }
@@ -968,8 +972,10 @@
     #timer summary { min-height:44px; padding:0 14px; }
     #modebar { margin-bottom:8px; }
     #status { margin:0; }
-    /* the card takes the height left between the top bars and the bottom buttons (measured in fitCard) */
-    #scene { height:clamp(180px, calc(100svh - var(--above, 230px) - var(--below, 96px)), 440px); margin:8px 0; }
+    /* the card takes the height left between the top bars and the bottom buttons (measured in fitCard),
+       and is as wide as a card that tall (340 by 440, like the pack and the binder's big card), so it never turns square */
+    #scene { --h:clamp(300px, calc(100svh - var(--above, 230px) - var(--below, 96px)), 440px);   /* at least 300 tall: a smaller card is too small to read */
+             height:var(--h); width:min(100%, 340px, calc(var(--h) * 340 / 440)); margin:8px 0; }
     /* Show answer / Again / Good sit at the bottom, where your thumb is */
     #buttons { position:fixed; left:0; right:0; bottom:0; z-index:5; gap:10px;
                padding:10px 16px calc(10px + env(safe-area-inset-bottom));

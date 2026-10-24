@@ -573,7 +573,13 @@ function renderSolar() {
       '<span class="sol-nm">' + w.name + '</span><span class="sol-pc">' + Math.round(own * 100) + '%</span></button>';
   });
   strip.innerHTML = h;
-  strip.querySelectorAll(".sol-world").forEach(b => { b.onclick = () => { solarPick = Number(b.dataset.i); renderSolar(); }; });
+  // tap a world for its progress below the map. The world you're at ("You are here") goes straight to Review
+  // (its progress already shows when the map opens)
+  strip.querySelectorAll(".sol-world").forEach(b => { b.onclick = () => {
+    const i = Number(b.dataset.i);
+    if (i === here) { solarPick = -1; chooseStack(course()); return; }
+    solarPick = i; renderSolar();
+  }; });
   const done = WORLDS.filter((w, i) => isReached(i)).length;
   $("sol-where").innerHTML = done === WORLDS.length ? "Every world reached. You made it to the Black Hole!"
     : "You're at <b>" + named(WORLDS[here]) + "</b> · Level " + (Math.floor(here / 2) + 1) + " · " + done + " of 12 worlds reached";
