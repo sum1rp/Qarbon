@@ -72,11 +72,11 @@ function cardHTML(c, m, size, num) {
       '<div class="textbox">' + esc(c.back || "") + '</div>' +
       '<div class="pips"><span>' + pipsHTML(m) + '</span><span class="step">' + MASTERY[m] + '</span></div>';
   return '<div class="qcard' + (size === "mini" ? " qmini" : "") + '" data-type="' + esc(c.part_of_speech || "") + '" data-tier="' + w.id + '" data-m="' + m + '">' +
-    '<div class="face"><div class="foil"></div><div class="inner">' + inside + '</div><div class="spark"></div><div class="glare"></div></div></div>';
+    '<div class="face"><div class="foil"></div><div class="inner">' + inside + '</div><div class="spark"></div></div></div>';
 }
 // the back of a card: the silver edge around a dark panel with the logo atom (tier = the world, for its glow)
 const cardBackHTML = tier => '<div class="qcard pk-back" data-tier="' + tier + '"><div class="face"><div class="inner">' + atomSVG(3.4) +
-  '<div class="brand">Qarbon</div></div><div class="glare"></div></div></div>';
+  '<div class="brand">Qarbon</div></div></div></div>';
 
 // ================= the pack's look =================
 // The pack is the site's own sky (the real stars of the background, js/look.js), a little brighter, with the logo atom,

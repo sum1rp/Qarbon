@@ -540,9 +540,6 @@
                 background:repeating-linear-gradient(115deg, var(--h1) 0%, var(--h2) 7%, var(--h3) 14%, var(--h1) 21%);
                 background-size:300% 300%; background-position:calc(var(--mx) * 1.2) calc(var(--my) * 1.2); }
   .qcard[data-tier="hole"] .face .foil { background:conic-gradient(from 0deg at var(--mx) var(--my), var(--h1), var(--h2), #0a0a14, var(--h3), var(--h1)); }
-  /* the glare: a soft light where your finger (or the light from the tilt) is */
-  .face .glare { position:absolute; inset:0; z-index:5; pointer-events:none; mix-blend-mode:overlay; opacity:calc(.2 + var(--holo) * .45);
-                 background:radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,.75), rgba(255,255,255,0) 50%); }
   /* the space window: the site's real star sky (--sky, drawn once in js/collection.js) with the tier's real photo in front,
      at full strength, drifting a little against the tilt. "screen" blending lets the stars show through the photo's black sky. */
   .art { position:relative; overflow:hidden; }
@@ -633,7 +630,7 @@
   #packview[hidden] { display:none; }
   html.packing { overflow:hidden; }   /* the page behind the pack doesn't scroll */
   #pk-close { position:absolute; top:max(12px, env(safe-area-inset-top, 0px)); right:max(12px, env(safe-area-inset-right, 0px)); padding:8px 14px; font-size:.9rem; }
-  #pk-stage { position:relative; width:min(320px, 86vw, calc((100svh - 150px) * .727)); aspect-ratio:320/440; perspective:1100px; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
+  #pk-stage { -webkit-tap-highlight-color:transparent; position:relative; width:min(320px, 86vw, calc((100svh - 150px) * .727)); aspect-ratio:320/440; perspective:1100px; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
   #pk-hint, #pk-count { color:var(--muted); font-size:.88rem; text-align:center; min-height:1.3em; margin:0; font-variant-numeric:tabular-nums; }
 
   /* the pack itself: the site's own sky (drawn by packSky), the logo atom, thin silver seals top and bottom */
@@ -963,7 +960,7 @@
 
   /* ---------- swiping the card ---------- */
   /* pan-y: up/down drags still scroll the page, sideways drags are ours */
-  #scene { touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:pointer; }
+  #scene { touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:pointer; -webkit-tap-highlight-color:transparent; }   /* no grey flash on iPhone when you press the card */
   #scene.upswipe { touch-action:none; }   /* before the answer shows: a swipe up on the card shows it (js/cards.js) */
   #scene[data-swipe="good"] .face  { box-shadow:0 0 0 3px #2fbf9b, 0 6px 24px rgba(0,0,0,.5); }
   #scene[data-swipe="again"] .face { box-shadow:0 0 0 3px #ff6b6b, 0 6px 24px rgba(0,0,0,.5); }
