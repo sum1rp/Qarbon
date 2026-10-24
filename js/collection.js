@@ -74,9 +74,10 @@ function cardHTML(c, m, size, num) {
   return '<div class="qcard' + (size === "mini" ? " qmini" : "") + '" data-type="' + esc(c.part_of_speech || "") + '" data-tier="' + w.id + '" data-m="' + m + '">' +
     '<div class="face"><div class="foil"></div><div class="inner">' + inside + '</div><div class="spark"></div></div></div>';
 }
-// the back of a card: the silver edge around a dark panel with the logo atom (tier = the world, for its glow)
-const cardBackHTML = tier => '<div class="qcard pk-back" data-tier="' + tier + '"><div class="face"><div class="inner">' + atomSVG(3.4) +
-  '<div class="brand">Qarbon</div></div></div></div>';
+// the back of a card: the silver edge around a dark panel with the logo atom (tier = the world, for its glow).
+// mini = the binder's small card shape, without the word "Qarbon" (it would sit on the atom at that size)
+const cardBackHTML = (tier, mini) => '<div class="qcard' + (mini ? ' qmini' : '') + ' pk-back" data-tier="' + tier + '"><div class="face"><div class="inner">' + atomSVG(3.4) +
+  (mini ? '' : '<div class="brand">Qarbon</div>') + '</div></div></div>';
 
 // ================= the pack's look =================
 // The pack is the site's own sky (the real stars of the background, js/look.js), a little brighter, with the logo atom,
@@ -358,7 +359,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("packvi
 // Extra packs only show once you're done with today's cards.
 // When this deck's next cards wait on a world you haven't reached, it says so instead (tap = the Solar System).
 function packBanner() {
-  $("decklinks").hidden = mode !== "daily";   // Binder and List show in Review only (not in Practice)
+  $("decklinks").hidden = mode !== "daily";   // Binder and List show in Review only (not in a Drill)
   const b = $("packbanner"), ready = mode === "daily" && packReady();
   const done = !current && !queue.length;
   const locked = mode === "daily" && !ready && done && !packsUsedUp() && lockedCards().length;
@@ -391,7 +392,7 @@ function lockedLine() {
 function packDoneText() {
   if ($("packbanner").dataset.locked) return "Done for today! " + lockedLine() + ".";
   if (packsUsedUp()) return "Done for today! That's " + PACKS_PER_DAY + " packs: more tomorrow.";
-  return packReady().daily ? "Your new words are in today's pack, above." : "Done for today! Open another pack above, or try “Practice”.";
+  return packReady().daily ? "Your new words are in today's pack, above." : "Done for today! Open another pack above, or 🎯 Drill a world in the Binder.";
 }
 
 // ================= the binder =================
@@ -413,6 +414,19 @@ $("tab-list").onclick = () => showBinder(false);
 $("tab-binder").onclick = () => showBinder(true);
 
 const num3 = n => "#" + String(n).padStart(3, "0");
+
+// 🎯 Drill one world's cards (they're all in the French course): only the ones you've collected (silhouettes aren't yours yet).
+// startPractice is in js/cards.js; a drill never changes your schedule
+const drillCards = w => cardsOf(course()).filter(c => active(c) && inBinder(c) && !isOwn(c) && worldOf(c) === w);
+const drillButton = (id, n) => n ? '<button class="bd-drill" data-drill="' + id + '" aria-label="Drill these ' + n + ' cards">🎯 Drill</button>' : '';
+function drillWorld(w) { startPractice(drillCards(w), named(w, true)); }
+// the Drill buttons in the binder: a world's id, or "own" for the personal binder
+function hookDrills(own) {
+  $("binder").querySelectorAll("[data-drill]").forEach(b => {
+    b.onclick = () => b.dataset.drill === "own" ? startPractice(own.filter(active), "Personal binder")
+      : drillWorld(WORLDS.find(w => w.id === b.dataset.drill));
+  });
+}
 
 function renderBinder() {
   if (!binderOn) return;
@@ -444,7 +458,8 @@ function renderBinder() {
     if (binderFilter === "got") list = list.filter(inBinder);
     if (!list.length) return;
     const cut = binderAll || binderFilter !== "all" ? list : list.slice(0, POCKETS);
-    h += '<div class="bd-sec"><h3><img alt="" src="' + w.img + '">' + w.name + ' <span>· cards ' + num3(first) + '–' + num3(lastN) + '</span></h3><div class="bd-pockets">' +
+    h += '<div class="bd-sec"><h3><img alt="" src="' + w.img + '">' + w.name + ' <span>· cards ' + num3(first) + '–' + num3(lastN) + '</span>' +
+      drillButton(w.id, drillCards(w).length) + '</h3><div class="bd-pockets">' +
       cut.map(c => inBinder(c)
         ? '<button data-card="' + numberOf.get(c) + '" aria-label="' + esc(c.front) + ', ' + MASTERY[masteryOf(c, dir)] + '">' + cardHTML(c, masteryOf(c, dir), "mini", num3(numberOf.get(c))) + '</button>'
         : '<div class="bd-silo" aria-label="Card ' + numberOf.get(c) + ', not collected yet"><img alt="" src="' + w.img + '" loading="lazy">' + num3(numberOf.get(c)) + '</div>').join("") +
@@ -462,6 +477,7 @@ function renderBinder() {
   $("binder").innerHTML = h;
 
   $("binder").querySelectorAll("[data-bf]").forEach(b => { b.onclick = () => { binderFilter = b.dataset.bf; renderBinder(); }; });
+  hookDrills(own);
   const more = $("binder").querySelector(".bd-more");
   if (more) more.onclick = () => { binderAll = true; renderBinder(); };
   $("binder").querySelectorAll(".bd-pockets > button").forEach(b => {
@@ -492,7 +508,7 @@ const bestStep = c => Math.max(masteryOf(c, "fr"), c.rev ? masteryOf(c, "en") : 
 function personalHTML(own, dir) {
   const started = own.filter(inBinder).length;
   return '<div class="bd-sec bd-personal"><h3><span class="bd-atom">' + atomSVG(6.5) + '</span>Personal binder <span>· your own cards · ' +
-    started + ' of ' + own.length + ' in Review so far</span></h3><div class="bd-pockets">' +
+    started + ' of ' + own.length + ' in Review so far</span>' + drillButton("own", own.filter(active).length) + '</h3><div class="bd-pockets">' +
     own.map((c, i) => '<button data-own="' + i + '" aria-label="' + esc(c.front) + ', ' + MASTERY[masteryOf(c, dir)] + '">' +
       cardHTML(c, masteryOf(c, dir), "mini", String(i + 1)) + '</button>').join("") + '</div></div>';
 }
@@ -502,6 +518,7 @@ function renderPersonal(own, dir) {
   $("binder").innerHTML = '<div class="bd-head"><div class="bd-big"><b>' + own.length + '</b><span>cards · ' + mastered + ' mastered · ' +
     state.newPerDay + ' new a day come into Review</span></div><div class="bd-bar"><i style="width:' + pct + '%"></i></div></div>' +
     (own.length ? personalHTML(own, dir) : '<p class="bd-note">No cards in this deck yet.</p>');
+  hookDrills(own);
   $("binder").querySelectorAll(".bd-pockets > button").forEach(b => {
     b.onclick = () => {
       const c = own[b.dataset.own];
@@ -612,12 +629,9 @@ function solarPanel(i, st, isReached) {
     '<div class="sol-stat"><span>Familiar or better</span>' + bar(st.fam / st.total, true) + '<span>' + pct(st.fam / st.total) + '</span></div>' +
     '<div class="sol-stat"><span>Mastered</span>' + bar(st.mas / st.total) + '<span>' + st.mas + '</span></div>' +
     '<p class="sol-note">' + note + '</p>' +
-    '<div class="sol-acts"><button id="sol-study">Review French</button><button id="sol-binder">Binder</button>' + (st.got ? '<button id="sol-practice">Practice</button>' : '') + '</div>';
+    '<div class="sol-acts"><button id="sol-study">Review French</button><button id="sol-binder">Binder</button>' + (drillCards(w).length ? '<button id="sol-drill">🎯 Drill</button>' : '') + '</div>';
   // every world is part of the one French course: Review it, or open its binder on this world
   $("sol-study").onclick = () => chooseStack(course());
   $("sol-binder").onclick = () => { chooseStack(course(), true); binderFilter = w.id; renderBinder(); };
-  if (st.got) $("sol-practice").onclick = () => {
-    chooseStack(course(), true);
-    startPractice(stackCards().filter(c => active(c) && inBinder(c) && worldOf(c) === w));
-  };
+  if ($("sol-drill")) $("sol-drill").onclick = () => { chooseStack(course(), true); drillWorld(w); };
 }

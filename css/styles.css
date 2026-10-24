@@ -90,8 +90,11 @@
   #w-earth .photo { mix-blend-mode:normal; border-radius:50%; clip-path:circle(49.5%); }
   #w-earth.live .photo { display:none; }
   #w-earth canvas { left:50%; top:50%; width:112%; height:112%; transform:translate(-50%, -50%); }
-  /* Decks: the Big Dipper, drawn on a canvas a bit wider than the world so the handle fits */
-  #w-dipper canvas { left:-25%; top:-12%; width:150%; height:124%; }
+  /* Decks: five card backs fanned out around one point below them (--k = -2 … 2, 16° apart), over a soft purple glow */
+  #w-decks .fan-glow { position:absolute; left:-25%; top:-15%; width:150%; height:130%; pointer-events:none;
+                       background:radial-gradient(closest-side, rgba(123,108,255,.5), rgba(59,91,208,.14) 55%, transparent); }
+  #w-decks .fan-card { position:absolute; left:50%; top:12%; width:52%; transform-origin:50% 130%;
+                       transform:translateX(-50%) rotate(calc(var(--k) * 16deg)); pointer-events:none; }
   /* Reading: the Moon (an SVG: NASA's full Moon with tonight's shadow masked off) */
   #w-moon svg { inset:0; width:100%; height:100%; overflow:visible; filter:drop-shadow(0 0 18px rgba(220,225,255,.18)); }
   /* B.A.R. Exam: the Sun, with a soft glow around it */
@@ -771,6 +774,8 @@
   .bd-sec h3 { margin:6px 0 0; font-size:1rem; display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
   .bd-sec h3 img { width:22px; height:22px; }
   .bd-sec h3 span { color:var(--muted); font-weight:400; font-size:.85rem; font-variant-numeric:tabular-nums; }
+  /* 🎯 Drill: a small pill at the end of a world's heading (margin-left:auto pushes it right; it wraps under on narrow phones) */
+  .bd-sec h3 .bd-drill { margin-left:auto; padding:5px 12px; font-size:.82rem; font-weight:600; border-radius:999px; }
   .bd-pockets { display:grid; grid-template-columns:repeat(auto-fill, minmax(72px, 1fr)); gap:8px; }
   .bd-pockets > button { all:unset; cursor:pointer; display:block; border-radius:10px; }
   .bd-pockets > button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }

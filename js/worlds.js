@@ -3,7 +3,7 @@
 //
 //   Solar System the logo atom as a sun, with real planet photos circling it (drawn here, below)
 //   Review      the Earth, live: NASA maps on a turning globe, lit where the Sun really is right now
-//   Media       the logo atom wearing headphones · Decks the Big Dipper, drawn from real star positions
+//   Media       the logo atom wearing headphones · Decks a fan of Qarbon card backs
 //   Translate   Bruegel's Tower of Babel · Reading the Moon in tonight's real phase · Focus the Crab Nebula (Hubble photo)
 //   B.A.R. Exam the Sun (Solar Dynamics Observatory; it goes supernova when you tap it, in the styles)
 //
@@ -47,46 +47,12 @@ function moonSVG() {
     <image href="img/moon-full.jpg" x="-1" y="-1" width="102" height="102" mask="url(#moonlit)"/></svg>`;
 }
 
-// ================= the Big Dipper: real stars =================
-// [name, right ascension°, declination°, magnitude (smaller = brighter), color index B−V (bigger = cooler, more orange)].
-// Alcor sits right next to Mizar: the famous "eye test" double star.
-const DIPPER = [
-  ["Dubhe", 165.932, 61.751, 1.79, 1.07], ["Merak", 165.460, 56.382, 2.37, -.02], ["Phecda", 178.458, 53.695, 2.44, 0],
-  ["Megrez", 183.857, 57.033, 3.32, .08], ["Alioth", 193.507, 55.960, 1.77, -.02], ["Mizar", 200.981, 54.925, 2.27, .02],
-  ["Alkaid", 206.885, 49.313, 1.86, -.19], ["Alcor", 201.306, 54.988, 4.01, .16]];
-const DIPPER_LINES = [[0, 1], [1, 2], [2, 3], [3, 0], [3, 4], [4, 5], [5, 6]];   // the bowl, then the handle
-const bvToKelvin = bv => 4600 * (1 / (.92 * bv + 1.7) + 1 / (.92 * bv + .62));   // Ballesteros' formula
-
-function drawDipper(cv, time) {
-  const d = Math.min(devicePixelRatio || 1, 2), W = cv.clientWidth, H = cv.clientHeight;
-  if (!W) return;
-  if (cv.width !== Math.round(W * d)) { cv.width = Math.round(W * d); cv.height = Math.round(H * d); }
-  const g = cv.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, W, H);
-  // a "gnomonic" projection (how a camera sees the sky) around the middle of the Dipper; east is left, like the real sky
-  const rad = Math.PI / 180, ra0 = 186.4 * rad, de0 = 55.6 * rad, s = W * .9 / 26 / rad, cx = W / 2, cy = H / 2;
-  const P = ([, ra, de]) => {
-    ra *= rad; de *= rad;
-    const cc = Math.sin(de0) * Math.sin(de) + Math.cos(de0) * Math.cos(de) * Math.cos(ra - ra0);
-    return [cx - Math.cos(de) * Math.sin(ra - ra0) / cc * s,
-            cy - (Math.cos(de0) * Math.sin(de) - Math.sin(de0) * Math.cos(de) * Math.cos(ra - ra0)) / cc * s];
-  };
-  // the figure's lines, stopping a little short of each star
-  g.strokeStyle = "rgba(170,190,255,.32)"; g.lineWidth = .7;
-  DIPPER_LINES.forEach(([a, b]) => {
-    const [x1, y1] = P(DIPPER[a]), [x2, y2] = P(DIPPER[b]), gap = 5 / Math.hypot(x2 - x1, y2 - y1);
-    g.beginPath(); g.moveTo(x1 + (x2 - x1) * gap, y1 + (y2 - y1) * gap); g.lineTo(x2 - (x2 - x1) * gap, y2 - (y2 - y1) * gap); g.stroke();
-  });
-  // the stars: size from brightness, a soft glow in the star's own color, and a gentle twinkle
-  DIPPER.forEach((st, i) => {
-    const [x, y] = P(st), rgb = starColor(bvToKelvin(st[4])), r = Math.max(.7, 2.6 - st[3] * .55) * W / 150;
-    const tw = stillMotion ? 1 : .85 + .15 * Math.sin(time / 700 + i * 1.7);
-    glow(g, x, y, r * 4.5, rgb, .55 * tw);
-    dot(g, x, y, r * .6, "255,255,255", tw);
-    if (st[3] < 1.9) {   // thin spikes on the three brightest, like in a telescope photo
-      g.strokeStyle = `rgba(${rgb},${.35 * tw})`; g.lineWidth = .5; g.beginPath();
-      g.moveTo(x - r * 5, y); g.lineTo(x + r * 5, y); g.moveTo(x, y - r * 5); g.lineTo(x, y + r * 5); g.stroke();
-    }
-  });
+// ================= Decks: a fan of Qarbon card backs =================
+// Five card backs (cardBackHTML in js/collection.js, in the binder's small card shape) fanned out like a hand of cards:
+// each one turns 16° more around the same point below the fan, over a soft purple glow. It stays still.
+function decksWorldHTML() {
+  return '<div class="fan-glow"></div>' +
+    [-2, -1, 0, 1, 2].map(k => '<div class="fan-card" style="--k:' + k + '">' + cardBackHTML("earth", true) + '</div>').join("");
 }
 
 // ================= the Earth: a live globe (WebGL) =================
@@ -234,7 +200,7 @@ function solarWorldSVG() {
 }
 
 // ================= putting the worlds on the home screen =================
-const liveWorlds = [];   // [world element, draw(time)]: the ones that keep moving (the Earth, the Big Dipper's twinkle)
+const liveWorlds = [];   // [world element, draw(time)]: the ones that keep moving (the live Earth)
 
 function loadScript(src) {   // add a script file to the page, and tell us when it has run
   return new Promise((ok, fail) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = fail; document.head.appendChild(s); });
@@ -248,9 +214,7 @@ function setUpWorlds() {
   document.querySelectorAll(".world img[data-src]").forEach(img => { img.src = img.dataset.src; img.removeAttribute("data-src"); });
   $("w-moon").innerHTML = moonSVG();
   $("w-media").innerHTML = mediaWorldSVG();
-  const dipper = document.createElement("canvas");
-  $("w-dipper").appendChild(dipper);
-  liveWorlds.push([$("w-dipper"), t => drawDipper(dipper, t)]);
+  $("w-decks").innerHTML = decksWorldHTML();
   // the Earth: the still photo shows first; the live globe replaces it once its maps have loaded
   loadScript("js/earth-maps.js?v=" + BUILD.match(/build (\d+)/)[1])
     .then(() => Promise.all([EARTH_MAPS.day, EARTH_MAPS.clouds, EARTH_MAPS.night].map(loadImage)))
