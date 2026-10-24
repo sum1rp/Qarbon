@@ -60,7 +60,9 @@ const pipsHTML = m => [0, 1, 2, 3].map(i => '<i class="' + (i < m ? "on" : "") +
 // one card as HTML. size "big" = like the Review card, "mini" = a binder pocket (num = its number in the deck)
 function cardHTML(c, m, size, num) {
   const w = worldOf(c), word = '<div class="word">' + esc(c.front) + '</div>';
-  const photo = '<img class="photo" alt="" src="' + w.img + '"' + (size === "mini" ? ' loading="lazy"' : '') + '>';
+  // big cards also get a blurred copy of the photo behind it: the glow (binder pockets skip it, a hundred blurs would be slow)
+  const photo = (size === "mini" ? '' : '<img class="photo bloom" alt="" src="' + w.img + '">') +
+    '<img class="photo" alt="" src="' + w.img + '"' + (size === "mini" ? ' loading="lazy"' : '') + '>';
   const inside = size === "mini"
     ? '<div class="art">' + photo + '<div class="foil2"></div><div>' + word + '</div></div>' +
       '<div class="pips"><span>' + pipsHTML(m) + '</span></div><div class="num">' + esc(num || "") + '</div>'
@@ -81,7 +83,7 @@ const cardBackHTML = tier => '<div class="qcard pk-back" data-tier="' + tier + '
 // thin silver seals top and bottom, and the world you're at on the Solar System behind it, with its name ("The Moon"):
 //   Earth = Earth rising, the Black Hole = the black hole, every other world = its photo, large, low in the pack.
 //   Your own decks = just the sky.
-let packSkyURL = "";   // drawn once, the first time a pack opens
+let packSkyURL = "";   // drawn once (when the app starts, for the cards' space window, see below)
 // the big pack pictures have sharper copies (1000–1500 px) in img/pack/, loaded only when a pack opens; others use the card photo
 const PACK_PICS = ["earth", "hole", "venus", "mercury", "saturn", "neptune"];
 const packPic = id => PACK_PICS.includes(id) ? "img/pack/" + id + ".jpg" : WORLDS.find(w => w.id === id).img;
@@ -123,6 +125,9 @@ function packSky(w, h) {
   }
   return c.toDataURL();
 }
+// every card's space window shows this same sky behind its world (--sky, used by .qcard .art in the styles)
+packSkyURL = packSky(300, 420);
+document.documentElement.style.setProperty("--sky", "url(" + packSkyURL + ")");
 
 function packHTML(name, size, look) {
   if (!packSkyURL) packSkyURL = packSky(300, 420);
