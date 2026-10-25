@@ -21,6 +21,8 @@ const lastWorld = (k = course()) => k.levels.length * 2 - 1;
 // deal in trip order (Earth's words first), but never stop at a world you haven't reached. The map stays the same.
 // Your own cards are never in packs (they come straight into Review, see isOwn in js/cards.js).
 const worldOpen = c => true;
+// a world's own unseen cards: a pack you pick on the map (the world's panel, "Open a Venus pack")
+const worldUnseen = w => unseenCards().filter(c => worldOf(c) === w);
 const unseenCards = () => stackCards().filter(c => active(c) && !inBinder(c) && !isOwn(c) && worldOpen(c))
   .sort((a, b) => worldIndex(a) - worldIndex(b) || wordOrder.get(wordKey(a)) - wordOrder.get(wordKey(b)));
 // cards of this deck that wait on a world you haven't reached yet
@@ -98,9 +100,9 @@ const PACK_PICS = ["earth", "hole", "venus", "mercury", "saturn", "neptune"];
 const packPic = id => PACK_PICS.includes(id) ? "img/pack/" + id + ".jpg" : WORLDS.find(w => w.id === id).img;
 
 // which picture the pack shows: { bg, world } (world = where you are, from WORLDS in js/cards.js)
-function packBackground() {
+function packBackground(picked) {
   if (stack && stack.custom) return { bg: "sky" };
-  const w = WORLDS[prog().journey];
+  const w = picked || WORLDS[prog().journey];   // a world pack (from the map) shows the world you picked
   return { bg: w.id === "earth" || w.id === "hole" ? w.id : "world", world: w };
 }
 
@@ -156,11 +158,15 @@ function packHTML(name, sub, look) {
 let pk = null;   // the pack being opened: { cards, i (the card showing, -1 = still sealed), rare, busy }
 const pkStill = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function openPack() {
+// world = a world picked on the map (its panel's "Open a Venus pack"): the pack deals only that world's cards.
+// Without one, the pack deals in trip order. Either way it's one of today's 3 packs.
+function openPack(world) {
+  world = WORLDS.includes(world) ? world : null;   // (a button's click passes an event here: only a world counts)
   journeyCheck(true);   // a world reached since the last answer opens before the pack is dealt
   const ready = packReady();
-  if (!ready) return;
-  const cards = unseenCards().slice(0, ready.size);
+  const from = world ? worldUnseen(world) : unseenCards();
+  if (!ready || !from.length) return;
+  const cards = from.slice(0, PACK_SIZE);
   let rare = null;
   if (ready.daily && Math.random() < RARE_ODDS) {
     rare = pullRare();
@@ -169,13 +175,13 @@ function openPack() {
   // nothing is used yet: Cancel puts the pack back sealed. The cards go into your binder when you tear it (tearPack)
   cards.sort(easiestFirst);
   if (rare) cards.push(cards.splice(cards.indexOf(rare), 1)[0]);   // the rare always comes last
-  pk = { cards, i: -1, rare, busy: false };
+  pk = { cards, i: -1, rare, busy: false, world };
   $("pk-done").hidden = true;
   $("pk-stage").hidden = false;
-  const look = packBackground();   // the course's pack is named after your world ("The Moon"), your own deck's after the deck
+  const look = packBackground(world);   // the course's pack is named after your world ("The Moon"), your own deck's after the deck
   $("pk-stage").innerHTML = packHTML(look.world ? named(look.world, true) : stack.name,
                                      (look.world ? course().name + " · " : "") + cards.length + " cards", look);
-  $("pk-count").textContent = ready.daily ? "Today's pack" : "Another pack";
+  $("pk-count").textContent = (ready.daily ? "Today's pack" : "Another pack") + (world ? " · " + world.name : "");
   $("pk-hint").textContent = "Slide along the top of the pack to tear it open";
   $("pk-close").textContent = "Cancel";
   $("pk-close").hidden = false;
@@ -259,9 +265,12 @@ function packDone() {
   const n = pk.cards.length;
   $("pk-title").textContent = n + " new card" + (n === 1 ? " is" : "s are") + " in your binder" + (pk.rare ? ", one of them rare" : "");
   $("pk-grid").innerHTML = pk.cards.map(c => cardHTML(c, 0, "mini", c === pk.rare ? "★ rare" : "")).join("");
-  const more = packReady();
+  // another pack: from the same world if you picked one on the map (while it has cards left), else in trip order
+  const ready = packReady(), sameWorld = pk.world && worldUnseen(pk.world).length;
+  const more = ready && { size: sameWorld ? Math.min(PACK_SIZE, sameWorld) : ready.size };
+  pk.next = sameWorld ? pk.world : null;
   $("pk-another").hidden = !more;
-  if (more) $("pk-another").textContent = "Open another pack (" + more.size + ")";
+  if (more) $("pk-another").textContent = "Open another " + (pk.next ? pk.next.name + " " : "") + "pack (" + more.size + ")";
   const left = PACKS_PER_DAY - packsOpened();
   $("pk-nudge").textContent = more ? "Extra packs are fine: " + left + " more today. Each one adds " + more.size + " words to your reviews over the next days."
                             : packsUsedUp() ? "That's " + PACKS_PER_DAY + " packs today. More packs tomorrow!"
@@ -360,8 +369,9 @@ $("pk-stage").addEventListener("pointermove", e => {
   $("pk-stage").querySelectorAll(".qcard, .pk-pack").forEach(el => { el.style.setProperty("--mx", x); el.style.setProperty("--my", y); });
 });
 $("pk-close").onclick = closePack;
-$("pk-study").onclick = closePack;
-$("pk-another").onclick = openPack;
+// Study them now: back to Review (from the map: Review with ‹ back to the map, like the map's Review button)
+$("pk-study").onclick = () => { const fromMap = mode === "solar"; closePack(); if (fromMap) reviewFromMap(); };
+$("pk-another").onclick = () => openPack(pk && pk.next);
 // Esc = Cancel (before tearing) or Close (at the end), like the button
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("packview").hidden && !$("pk-close").hidden) closePack(); });
 
@@ -666,16 +676,30 @@ function solarPanel(i, st, isReached) {
   const note = isReached ? "<b>Reached.</b> " + pct(st.fam / st.total) + " of its cards are Familiar or better." + (i < WORLDS.length - 1 ? " " + named(WORLDS[i + 1], true) + " is next." : "")
     : i === here ? "<b>You are here.</b> Get " + need + " more card" + (need === 1 ? "" : "s") + " to Familiar (80%) to reach " + named(w) + ". Keep opening packs and reviewing."
     : i < here ? "<b>Open.</b> " + need + " more card" + (need === 1 ? "" : "s") + " to Familiar to reach it."
-    : "<b>Not reached yet.</b> Reach " + named(WORLDS[i - 1]) + " first. Its cards come in your packs after the worlds before it.";
+    : "<b>Not reached yet.</b> Reach " + named(WORLDS[i - 1]) + " first. You can already open its cards in a pack.";
   $("sol-panel").innerHTML =
     '<div class="sol-ph"><img alt="" src="' + w.img + '"><div><b>' + w.name + '</b><span>' + esc(level) + ' · ' + CEFR_OF_LEVEL[n] + ' · ' + st.total + ' cards</span></div></div>' +
     '<div class="sol-stat"><span>Collected</span>' + bar(st.got / st.total) + '<span>' + st.got + '</span></div>' +
     '<div class="sol-stat"><span>Familiar or better</span>' + bar(st.fam / st.total, true) + '<span>' + pct(st.fam / st.total) + '</span></div>' +
     '<div class="sol-stat"><span>Mastered</span>' + bar(st.mas / st.total) + '<span>' + st.mas + '</span></div>' +
     '<p class="sol-note">' + note + '</p>' +
-    '<div class="sol-acts"><button id="sol-study">Review ' + k.name + '</button><button id="sol-binder">Binder</button>' + (practiceCards(w).length ? '<button id="sol-practice">🔁 Practice</button>' : '') + '</div>';
+    '<div class="sol-acts"><button id="sol-study">Review ' + k.name + '</button>' + worldPackButton(w) + '<button id="sol-binder">Binder</button>' + (practiceCards(w).length ? '<button id="sol-practice">🔁 Practice</button>' : '') + '</div>' +
+    '<p class="sol-packnote" id="sol-packnote"></p>';
   // every world is part of the course: Review it, or open its binder on this world
   $("sol-study").onclick = reviewFromMap;
   $("sol-binder").onclick = () => { chooseStack(course(), true); binderFilter = w.id; renderBinder(); };
   if ($("sol-practice")) $("sol-practice").onclick = () => { chooseStack(course(), true); practiceWorld(w); };
+  if ($("sol-pack")) $("sol-pack").onclick = () => {
+    if (stack !== course()) useStack(course());   // the pack deals from the course, even if you were in one of your own decks
+    if (!packReady()) { $("sol-packnote").textContent = "That's " + PACKS_PER_DAY + " packs today. More packs tomorrow!"; return; }
+    openPack(w);
+  };
+}
+
+// "Open a Venus pack (10)" in a world's panel: a pack of that world's cards you haven't seen yet (any world, even one
+// you haven't reached). It's one of today's 3 packs. Nothing left to deal there = no button.
+function worldPackButton(w) {
+  const left = cardsOf(course()).filter(c => active(c) && !inBinder(c) && !isOwn(c) && worldOf(c) === w).length;
+  if (!left) return "";
+  return '<button id="sol-pack" class="sol-packbtn">Open ' + (/^[AEIOU]/.test(w.name) ? "an " : "a ") + w.name + " pack (" + Math.min(PACK_SIZE, left) + ")</button>";
 }

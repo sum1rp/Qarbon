@@ -256,10 +256,13 @@ function updateProgress() {
 // (so syncing a setting from another device doesn't restart your music).
 function showMusic(autoplay) {
   const host = $("playerhost"), m = musicKind === "link" && state.music ? musicEmbed(state.music) : null;
-  const src = m ? m.src + (autoplay ? (m.kind === "YouTube" ? "&autoplay=1" : "&auto_play=true") : "") : "";
+  // On phones SoundCloud first asks "Play on SoundCloud / Listen in browser", and a blocked auto-start there seemed to
+  // leave "Listen in browser" stuck on the next link (build 72), so on touch screens it never auto-starts: you tap it.
+  const scTouch = m && m.kind === "SoundCloud" && matchMedia("(pointer: coarse)").matches;
+  const src = m ? m.src + (autoplay && !scTouch ? (m.kind === "YouTube" ? "&autoplay=1" : "&auto_play=true") : "") : "";
   if (!autoplay && m && host.dataset.src === m.src) { renderMusic(); return; }
   emptyPlayer();
-  linkPlaying = !!(m && autoplay);   // until the player tells us otherwise
+  linkPlaying = !!(m && autoplay && !scTouch);   // until the player tells us otherwise
   host.dataset.src = m ? m.src : "";
   host.dataset.kind = m ? m.kind : "";   // CSS draws SoundCloud bigger on phones (see #playerhost in css/styles.css)
   if (m) {
