@@ -2,7 +2,8 @@
 // The script files run in the order index.html lists them, and share one set of variables.
 //
 // Music is chosen in one panel, under the 🎧 Media Qpod (build 63: it used to be in the timer dropdown and ⏱ Focus too), and there's ONE player:
-//   - a YouTube or SoundCloud link plays in an iframe inside #playerhost, laid over the slot that's showing (or parked off-screen)
+//   - a YouTube link plays in an iframe inside #playerhost, laid over the slot that's showing (or parked off-screen)
+//   - a SoundCloud link plays in its own normal player, right inside the music panel under the Qpod (build 73, see showMusic)
 //     (placePlayer). It's never moved into a panel, because moving an iframe reloads it and restarts the music.
 //   - your own files play in the one <audio id="songaudio">; the panels only show its controls.
 // musicKind says which one is in use: "link" or "file".
@@ -256,15 +257,14 @@ function updateProgress() {
 // (so syncing a setting from another device doesn't restart your music).
 function showMusic(autoplay) {
   const host = $("playerhost"), m = musicKind === "link" && state.music ? musicEmbed(state.music) : null;
-  // On phones SoundCloud first asks "Play on SoundCloud / Listen in browser", and a blocked auto-start there seemed to
-  // leave "Listen in browser" stuck on the next link (build 72), so on touch screens it never auto-starts: you tap it.
+  // On phones SoundCloud first asks "Play on SoundCloud / Listen in browser": that needs your tap anyway,
+  // so on touch screens it never auto-starts.
   const scTouch = m && m.kind === "SoundCloud" && matchMedia("(pointer: coarse)").matches;
   const src = m ? m.src + (autoplay && !scTouch ? (m.kind === "YouTube" ? "&autoplay=1" : "&auto_play=true") : "") : "";
   if (!autoplay && m && host.dataset.src === m.src) { renderMusic(); return; }
   emptyPlayer();
   linkPlaying = !!(m && autoplay && !scTouch);   // until the player tells us otherwise
   host.dataset.src = m ? m.src : "";
-  host.dataset.kind = m ? m.kind : "";   // CSS draws SoundCloud bigger on phones (see #playerhost in css/styles.css)
   if (m) {
     const f = document.createElement("iframe");
     f.src = src;
@@ -272,11 +272,18 @@ function showMusic(autoplay) {
     f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";   // fullscreen: YouTube's ⛶ button works
     f.referrerPolicy = "strict-origin-when-cross-origin";   // YouTube needs to know which website the player is on
     f.onload = () => listenToPlayer(f, m);
-    host.appendChild(f);
-    startPlacing();
+    // SoundCloud sits right inside the music panel under the Qpod, in its normal size, like before the Qpod (build 73):
+    // on the iPhone its "Listen in browser" didn't react to taps while the player was laid over the panel.
+    // It never moves from there (moving an iframe reloads it), and the Qpod still controls it with messages.
+    // YouTube is still laid over whichever slot shows (the Qpod's screen), see placePlayer below.
+    if (m.kind === "SoundCloud") $("ip-music").querySelector(".playerslot").appendChild(f);
+    else { host.appendChild(f); startPlacing(); }
   }
   renderMusic();
 }
+
+// the one YouTube/SoundCloud player, wherever it is (YouTube in #playerhost, SoundCloud in the panel under the Qpod)
+const playerFrame = () => document.querySelector("#playerhost iframe, .playerslot iframe");
 
 // Keep the player sitting exactly on top of the music panel you can see. When neither panel is
 // showing (dropdowns closed, or another page), it's parked off-screen, still playing.
@@ -287,7 +294,8 @@ let placing = false;   // true while the checking loop is running
 function emptyPlayer() {
   const host = $("playerhost");
   host.innerHTML = "";
-  host.dataset.pos = host.dataset.src = host.dataset.kind = "";
+  document.querySelectorAll(".playerslot iframe").forEach(f => f.remove());   // a SoundCloud player in the panel
+  host.dataset.pos = host.dataset.src = "";
   host.style.left = "-10000px";
 }
 function placePlayer() {
@@ -326,7 +334,7 @@ function listenToPlayer(f, m) {
     }, ms));
 }
 addEventListener("message", e => {
-  const f = $("playerhost").querySelector("iframe");
+  const f = playerFrame();
   if (!f || e.source !== f.contentWindow) return;   // only messages from our own player
   let d;
   try { d = typeof e.data === "string" ? JSON.parse(e.data) : e.data; } catch (err) { return; }
@@ -362,7 +370,7 @@ addEventListener("message", e => {
 
 // ⏮ ⏭ inside a playlist: ask the player to change track, using each site's official message format
 function musicCommand(which) {
-  const f = $("playerhost").querySelector("iframe"), m = state.music && musicEmbed(state.music);
+  const f = playerFrame(), m = state.music && musicEmbed(state.music);
   if (!f || !m) return;
   if (m.kind === "YouTube")
     f.contentWindow.postMessage(JSON.stringify({ event: "command", func: which === "next" ? "nextVideo" : "previousVideo", args: [] }), YT_ORIGIN);
@@ -376,7 +384,7 @@ function musicToggle() {
     if (audio.paused) audio.play().catch(() => {}); else audio.pause();
     return;
   }
-  const f = $("playerhost").querySelector("iframe"), m = state.music && musicEmbed(state.music);
+  const f = playerFrame(), m = state.music && musicEmbed(state.music);
   if (!f || !m) return;
   if (m.kind === "YouTube")
     f.contentWindow.postMessage(JSON.stringify({ event: "command", func: linkPlaying ? "pauseVideo" : "playVideo", args: [] }), YT_ORIGIN);

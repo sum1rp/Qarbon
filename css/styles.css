@@ -233,14 +233,8 @@
   .playerslot.yt { display:block; aspect-ratio:16/9; }   /* YouTube: video shape */
   .playerslot.sc { display:block; height:166px; }        /* SoundCloud: its standard player height */
   #playerhost { position:absolute; left:-10000px; top:0; z-index:4; border-radius:10px; overflow:hidden; }
-  #playerhost iframe { display:block; width:100%; height:100%; border:0; }
-  /* phones: SoundCloud's player asks "Play on SoundCloud / Listen in browser" first, and its "Listen in browser" link
-     was too small to tap. We can't restyle inside SoundCloud's player, so on touch screens the whole player is drawn
-     1.3× bigger (a smaller iframe, scaled up) in a taller slot (166px × 1.3 ≈ 216px). Build 71. */
-  @media (pointer: coarse) {
-    .playerslot.sc { height:216px; }
-    #playerhost[data-kind="SoundCloud"] iframe { width:calc(100% / 1.3); height:calc(100% / 1.3); transform:scale(1.3); transform-origin:0 0; }
-  }
+  #playerhost iframe, .playerslot iframe { display:block; width:100%; height:100%; border:0; }
+  .playerslot iframe { border-radius:10px; }   /* SoundCloud's player, right in the panel (build 73) */
   .musicnav { display:flex; gap:8px; }
   .musicnav button { flex:1; min-width:0; padding:8px 4px; }
   .musicnav[hidden] { display:none; }
@@ -1216,10 +1210,7 @@
 /* a YouTube video plays right in the screen; the player is laid over this black box (placePlayer in js/music.js) */
 #media .ip-video { position:absolute; inset:0; background:#000; color:#fff; display:flex; flex-direction:column; justify-content:center; }
 #media .ip-video .playerslot { display:block; width:100%; aspect-ratio:16 / 9; height:auto; }
-/* full screen: SoundCloud's player (its standard 166px tall) in the same spot, on white like the iPod's menus */
-#media .ip-video.ip-sc { background:#fff; color:#000; }
-#media .ip-video.ip-sc .playerslot { aspect-ratio:auto; height:166px; flex:0 1 auto; min-height:0; }
-@media (pointer: coarse) { #media .ip-video.ip-sc .playerslot { height:216px; } }   /* SoundCloud drawn 1.3× on phones (see #playerhost) */
+
 
 /* ----- Add a Link: a link box above the Paste and Play rows ----- */
 #media .ip-form { position:absolute; left:0; right:0; top:0; height:calc(52.2cqw / 7 * 4); box-sizing:border-box;

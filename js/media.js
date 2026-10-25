@@ -468,14 +468,13 @@ function renderMedia() {
   const s = ipTop();
   $("ip-title").textContent = s.title;
   $("ip-state").innerHTML = nowPlaying() ? (isPlaying() ? ICONS.play : ICONS.pause) : "";
-  // YouTube plays in the screen; SoundCloud too in full screen (the screen is wide enough for its player there)
-  const inScreen = nowPlaying() === "YouTube" || (ipFull && nowPlaying() === "SoundCloud");
+  // YouTube plays in the screen. SoundCloud always stays in its own player under the iPod (build 73): the screen shows its title
+  const inScreen = nowPlaying() === "YouTube";
   $("ip-list").hidden = !!(s.now || s.info || s.viz);
   $("ip-viz").hidden = !s.viz;
   $("ip-vz").setAttribute("aria-pressed", !!s.viz);
   $("ip-now").hidden = !s.now || inScreen;            // a song, SoundCloud under the iPod, or "Nothing playing"
   $("ip-video").hidden = !s.now || !inScreen;         // a video (or SoundCloud's player), in the screen
-  $("ip-video").classList.toggle("ip-sc", nowPlaying() === "SoundCloud");
   $("ip-form").hidden = !s.form;
   $("ip-text").hidden = !s.info;
   if (!s.viz) ipod.classList.remove("ip-nohead");

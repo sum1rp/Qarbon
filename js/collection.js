@@ -168,7 +168,7 @@ function openPack(world) {
   if (!ready || !from.length) return;
   const cards = from.slice(0, PACK_SIZE);
   let rare = null;
-  if (ready.daily && Math.random() < RARE_ODDS) {
+  if (ready.daily && !world && Math.random() < RARE_ODDS) {   // a world pack stays that world's (no rare pull)
     rare = pullRare();
     if (rare) cards[cards.length - 1] = rare;   // the card it replaces stays for your next pack
   }
