@@ -17,11 +17,10 @@ const prog = (k = course()) => k.id === COURSE_ID ? state : state.courses[k.id];
 // the last world a course has words for (French: the Black Hole, 11; Spanish with 3 Levels so far: Jupiter, 5)
 const lastWorld = (k = course()) => k.levels.length * 2 - 1;
 
-// cards a pack can deal: built-in words not seen yet, on a world that's open (they follow the Solar System).
-// Your own cards are never in packs (they come straight into Review, see isOwn in js/cards.js) and never locked.
-function worldOpen(c) {
-  return isOwn(c) || WORLDS.indexOf(worldOf(c)) <= prog(courseOf(c)).journey;
-}
+// cards a pack can deal: built-in words not seen yet. Since build 71 no card is locked (the user's choice): packs still
+// deal in trip order (Earth's words first), but never stop at a world you haven't reached. The map stays the same.
+// Your own cards are never in packs (they come straight into Review, see isOwn in js/cards.js).
+const worldOpen = c => true;
 const unseenCards = () => stackCards().filter(c => active(c) && !inBinder(c) && !isOwn(c) && worldOpen(c))
   .sort((a, b) => worldIndex(a) - worldIndex(b) || wordOrder.get(wordKey(a)) - wordOrder.get(wordKey(b)));
 // cards of this deck that wait on a world you haven't reached yet
@@ -566,7 +565,7 @@ function journeyCheck(quiet, k = course()) {
   save();
   if (!quiet) {   // "⬆ Earth reached! The Moon is open" for a few seconds above the card
     const el = $("levelup");
-    el.textContent = "🪐 " + named(WORLDS[p.journey - 1], true) + " reached! " + named(WORLDS[p.journey], true) + " is open in your packs";
+    el.textContent = "🪐 " + named(WORLDS[p.journey - 1], true) + " reached! " + named(WORLDS[p.journey], true) + " is next on your trip";
     el.hidden = false;
     el.classList.remove("show"); void el.offsetWidth; el.classList.add("show");
     clearTimeout(noteLevelUp.timer);
@@ -664,10 +663,10 @@ function solarPanel(i, st, isReached) {
   const pct = v => Math.round(v * 100) + "%";
   const bar = (v, goal) => '<div class="sol-bar"><i style="width:' + Math.min(100, v * 100) + '%"></i>' + (goal ? '<span class="goal"></span>' : '') + '</div>';
   const need = Math.max(0, Math.ceil(st.total * REACH) - st.fam);
-  const note = isReached ? "<b>Reached.</b> " + pct(st.fam / st.total) + " of its cards are Familiar or better." + (i < WORLDS.length - 1 ? " " + named(WORLDS[i + 1], true) + " is open." : "")
-    : i === here ? "<b>You are here.</b> Get " + need + " more card" + (need === 1 ? "" : "s") + " to Familiar (80%) to reach " + named(w) + (i < WORLDS.length - 1 ? " and open " + named(WORLDS[i + 1]) : "") + ". Keep opening packs and reviewing."
+  const note = isReached ? "<b>Reached.</b> " + pct(st.fam / st.total) + " of its cards are Familiar or better." + (i < WORLDS.length - 1 ? " " + named(WORLDS[i + 1], true) + " is next." : "")
+    : i === here ? "<b>You are here.</b> Get " + need + " more card" + (need === 1 ? "" : "s") + " to Familiar (80%) to reach " + named(w) + ". Keep opening packs and reviewing."
     : i < here ? "<b>Open.</b> " + need + " more card" + (need === 1 ? "" : "s") + " to Familiar to reach it."
-    : "<b>Not open yet.</b> Its cards come in packs once you reach " + named(WORLDS[i - 1]) + ". They wait as silhouettes in your binder.";
+    : "<b>Not reached yet.</b> Reach " + named(WORLDS[i - 1]) + " first. Its cards come in your packs after the worlds before it.";
   $("sol-panel").innerHTML =
     '<div class="sol-ph"><img alt="" src="' + w.img + '"><div><b>' + w.name + '</b><span>' + esc(level) + ' · ' + CEFR_OF_LEVEL[n] + ' · ' + st.total + ' cards</span></div></div>' +
     '<div class="sol-stat"><span>Collected</span>' + bar(st.got / st.total) + '<span>' + st.got + '</span></div>' +

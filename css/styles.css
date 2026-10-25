@@ -234,6 +234,13 @@
   .playerslot.sc { display:block; height:166px; }        /* SoundCloud: its standard player height */
   #playerhost { position:absolute; left:-10000px; top:0; z-index:4; border-radius:10px; overflow:hidden; }
   #playerhost iframe { display:block; width:100%; height:100%; border:0; }
+  /* phones: SoundCloud's player asks "Play on SoundCloud / Listen in browser" first, and its "Listen in browser" link
+     was too small to tap. We can't restyle inside SoundCloud's player, so on touch screens the whole player is drawn
+     1.3× bigger (a smaller iframe, scaled up) in a taller slot (166px × 1.3 ≈ 216px). Build 71. */
+  @media (pointer: coarse) {
+    .playerslot.sc { height:216px; }
+    #playerhost[data-kind="SoundCloud"] iframe { width:calc(100% / 1.3); height:calc(100% / 1.3); transform:scale(1.3); transform-origin:0 0; }
+  }
   .musicnav { display:flex; gap:8px; }
   .musicnav button { flex:1; min-width:0; padding:8px 4px; }
   .musicnav[hidden] { display:none; }
@@ -598,7 +605,7 @@
   .art { flex:1; display:flex; align-items:center; justify-content:center; text-align:center; padding:12px;
          border-radius:10px; background:linear-gradient(160deg, rgba(255,255,255,.03), rgba(0,0,0,.35)); }
   #front { font-size:2rem; font-weight:700; color:var(--text); }
-  #answer { font-size:1.6rem; font-weight:700; color:var(--type); }
+  #answer { font-size:1.6rem; font-weight:700; color:var(--text); }   /* white, like the front (build 71); the type color is the band and the pill */
   .textbox { margin-top:10px; border:1px solid var(--line); border-radius:10px;
              padding:10px; font-size:.9rem; color:var(--muted); min-height:64px; }
   /* the example on the card's back (render() in js/cards.js): the French or Spanish sentence big and bold, its English below,
@@ -1209,6 +1216,7 @@
 /* full screen: SoundCloud's player (its standard 166px tall) in the same spot, on white like the iPod's menus */
 #media .ip-video.ip-sc { background:#fff; color:#000; }
 #media .ip-video.ip-sc .playerslot { aspect-ratio:auto; height:166px; flex:0 1 auto; min-height:0; }
+@media (pointer: coarse) { #media .ip-video.ip-sc .playerslot { height:216px; } }   /* SoundCloud drawn 1.3× on phones (see #playerhost) */
 
 /* ----- Add a Link: a link box above the Paste and Play rows ----- */
 #media .ip-form { position:absolute; left:0; right:0; top:0; height:calc(52.2cqw / 7 * 4); box-sizing:border-box;

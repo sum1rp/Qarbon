@@ -573,14 +573,34 @@ $("ed-delete").onclick = () => {
 // Every card has an "ease" (starts at 2.5): how much its wait grows after a Good. Hard words get a lower ease.
 const GRADES = ["again", "hard", "good", "easy"];
 
+// Anki's default numbers, in whole days (build 71, the user's choice: no minute steps):
+//   new card: Again = again today, Hard/Good = 1 day, Easy = 4 days
+//   Again = forgot it: back to 1 day, ease − 0.2
+//   Hard  = wait × 1.2 (at least 1 day more), ease − 0.15
+//   Good  = (wait + half the days you were late) × ease (at least 1 day more than Hard)
+//   Easy  = (wait + the days you were late) × ease × 1.3 (at least 1 day more than Good), ease + 0.15
+// Like Anki, a card you answer late counts the extra days you still remembered it.
 function schedule(c, grade) {
   let ease = c.ease || 2.5, days;
   if (c.reviews === 0) days = grade === 4 ? 4 : 1;                              // brand-new card
   else if (grade === 1) { days = 1; ease -= 0.2; }                             // forgot it: start over
-  else if (grade === 2) { days = Math.max(c.interval * 1.2, c.interval); ease -= 0.15; }
-  else if (grade === 3) days = Math.max(c.interval * ease, c.interval + 1);
-  else { days = Math.max(c.interval * ease * 1.3, c.interval + 2); ease += 0.15; }
+  else {
+    const ivl = c.interval, late = daysLate(c);
+    const hard = Math.max(Math.round(ivl * 1.2), ivl + 1);
+    const good = Math.max(Math.round((ivl + late / 2) * ease), hard + 1);
+    const easy = Math.max(Math.round((ivl + late) * ease * 1.3), good + 1);
+    if (grade === 2) { days = hard; ease -= 0.15; }
+    else if (grade === 3) days = good;
+    else { days = easy; ease += 0.15; }
+  }
   return { interval: Math.max(1, Math.round(days)), ease: Math.max(1.3, Math.round(ease * 100) / 100) };
+}
+
+// how many days after its due day you're seeing this card (0 if it's on time or early)
+function daysLate(c) {
+  if (!c.due) return 0;
+  const [y, m, d] = c.due.split("-").map(Number), [ty, tm, td] = today().split("-").map(Number);
+  return Math.max(0, Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(y, m - 1, d)) / 864e5));
 }
 
 // a card you pressed Again on earlier today (it's already scheduled for a later day)

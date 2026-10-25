@@ -6,10 +6,10 @@
 <title>Qarbon</title>
 <!-- Amiri italic for the packs' "Level 1" (the logo's own built-in font only has the letters Q a r b n); offline, Georgia italic stands in -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:ital@1&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=70">
+<link rel="stylesheet" href="css/styles.css?v=71">
 <!-- the atom icons: the little one in the browser tab, and the one iPhones use for "Add to Home Screen" -->
-<link rel="icon" type="image/svg+xml" href="favicon.svg?v=70">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=70">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=71">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=71">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -140,7 +140,7 @@
         <li><b>Rate it:</b> Again, Hard, Good or Easy (keys 1 to 4). The small text under each button is when you'll see the card next.</li>
         <li><b>Swipe up</b> on the card to show the answer, then <b>swipe</b> right for Good, left for Again.</li>
         <li><b>Again</b> brings the card back a few cards later today, and again tomorrow.</li>
-        <li><b>Scheduling works like Anki:</b> every card has an "ease" (starts at 2.5). Good multiplies the wait by it. Hard grows the wait a little and lowers the ease. Easy jumps further and raises it. Again resets the card to 1 day. Words you find hard come back more often.</li>
+        <li><b>Scheduling uses Anki's numbers</b> (in whole days): a new card comes back in 1 day (Easy: 4 days). After that every card has an "ease" (starts at 2.5): Good multiplies the wait by it, Hard grows it 1.2× and lowers the ease, Easy multiplies it by the ease × 1.3 and raises it. Again sends the card back to 1 day and lowers its ease. If you answer a card a few days late and still know it, those days count too, like in Anki.</li>
         <li>🔊 says the word or the example sentence. The color band along the top of the card (and the word-type label) shows the word type: noun green, verb pink, adjective orange, adverb purple, pronoun blue.</li>
         <li><b>Every word is a world.</b> The cards are collectibles on a trip out from Earth: each level has two worlds, its easier half and its harder half. Level A1 is <b>Earth</b>, then the <b>Moon</b>; A2 is <b>Venus</b>, then <b>Mars</b>; B1 is <b>Mercury</b>, then <b>Jupiter</b>; B2 (Level 4) is <b>Saturn</b>, then <b>Uranus</b>; C1 (Level 5) is <b>Neptune</b>, then the <b>Sun</b>; and the rarest cards, C2 (Level 6), are <b>Nebulas</b> and <b>Black Holes</b>. The world's real photo is behind the word, and its name is at the top right. "Harder" is worked out from the word itself: its level, accents, and length (or several words).</li>
         <li><b>Mastery:</b> the four little bars at the bottom show how well you know a word: <b>New</b>, <b>Learning</b> (after your first right answer), <b>Familiar</b>, <b>Known</b> and <b>Mastered</b>, from how long until the card's next review. Easy worlds master fast (one Easy on a new Earth word masters it); Black Holes take 60 days. As a word moves up, its holo foil gets stronger, the panel's edge turns silver, then gold, and Mastered cards sparkle. A gold "⬆" note says when an answer moved a word up.</li>
@@ -166,7 +166,7 @@
       <ul>
         <li>Your French (or Spanish) as a trip out from Earth to the Black Hole: two worlds per level (Level 1 = Earth and the Moon, Level 2 = Venus and Mars … Level 6 = a Nebula and the Black Hole). Swipe the map sideways, tap a world for its progress.</li>
         <li><b>Reaching a world:</b> 80% of its cards at <b>Familiar</b> or better (you've remembered them across a few days). Then the next world opens.</li>
-        <li><b>Packs follow the map:</b> they only deal cards from worlds that are open, so the words further out wait (as silhouettes in your binder) until you get there. Cards already in your binder can always be reviewed, and your own decks are never locked.</li>
+        <li><b>Packs follow the map's order:</b> they deal Earth's words first, then the Moon's, and so on, but never stop at a world you haven't reached: every card can come in your packs. The map still shows how far you've really got.</li>
         <li><b>Tap the world you're at</b> to go straight to Review (‹ brings you back to the map). Tap any other world for its progress, then <b>Review French</b> (or Spanish), <b>Binder</b> (that world's cards) or <b>🔁 Practice</b> (that world's cards, without changing your schedule).</li>
       </ul>
     </div>
@@ -834,24 +834,24 @@
 
 
 <!-- the program, in order: packs (data) first, start.js last. Every file shares the same variables.
-     ?v=70 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
+     ?v=71 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
      (Book texts in js/books/ and the PDF viewer only load when you open a book.) -->
-<script src="js/packs.js?v=70"></script>
-<script src="js/basics.js?v=70"></script>
-<script src="js/stars.js?v=70"></script>
-<script src="js/look.js?v=70"></script>
-<script src="js/worlds.js?v=70"></script>
-<script src="js/data.js?v=70"></script>
-<script src="js/cards.js?v=70"></script>
-<script src="js/timer.js?v=70"></script>
-<script src="js/burn.js?v=70"></script>
-<script src="js/music.js?v=70"></script>
-<script src="js/media.js?v=70"></script>
-<script src="js/app.js?v=70"></script>
-<script src="js/collection.js?v=70"></script>
-<script src="js/reading.js?v=70"></script>
-<script src="js/translate.js?v=70"></script>
-<script src="js/account.js?v=70"></script>
-<script src="js/start.js?v=70"></script>
+<script src="js/packs.js?v=71"></script>
+<script src="js/basics.js?v=71"></script>
+<script src="js/stars.js?v=71"></script>
+<script src="js/look.js?v=71"></script>
+<script src="js/worlds.js?v=71"></script>
+<script src="js/data.js?v=71"></script>
+<script src="js/cards.js?v=71"></script>
+<script src="js/timer.js?v=71"></script>
+<script src="js/burn.js?v=71"></script>
+<script src="js/music.js?v=71"></script>
+<script src="js/media.js?v=71"></script>
+<script src="js/app.js?v=71"></script>
+<script src="js/collection.js?v=71"></script>
+<script src="js/reading.js?v=71"></script>
+<script src="js/translate.js?v=71"></script>
+<script src="js/account.js?v=71"></script>
+<script src="js/start.js?v=71"></script>
 </body>
 </html>

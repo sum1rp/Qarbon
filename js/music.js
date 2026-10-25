@@ -261,6 +261,7 @@ function showMusic(autoplay) {
   emptyPlayer();
   linkPlaying = !!(m && autoplay);   // until the player tells us otherwise
   host.dataset.src = m ? m.src : "";
+  host.dataset.kind = m ? m.kind : "";   // CSS draws SoundCloud bigger on phones (see #playerhost in css/styles.css)
   if (m) {
     const f = document.createElement("iframe");
     f.src = src;
@@ -283,7 +284,7 @@ let placing = false;   // true while the checking loop is running
 function emptyPlayer() {
   const host = $("playerhost");
   host.innerHTML = "";
-  host.dataset.pos = host.dataset.src = "";
+  host.dataset.pos = host.dataset.src = host.dataset.kind = "";
   host.style.left = "-10000px";
 }
 function placePlayer() {
