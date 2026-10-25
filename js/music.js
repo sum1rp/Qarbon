@@ -3,7 +3,7 @@
 //
 // Music is chosen in one panel, under the 🎧 Media Qpod (build 63: it used to be in the timer dropdown and ⏱ Focus too), and there's ONE player:
 //   - a YouTube link plays in an iframe inside #playerhost, laid over the slot that's showing (or parked off-screen)
-//   - a SoundCloud link plays in its own normal player, right inside the music panel under the Qpod (build 73, see showMusic)
+//   - a SoundCloud link plays in its own normal player (#ip-sc), right under the Qpod, outside the menus (build 74, see showMusic)
 //     (placePlayer). It's never moved into a panel, because moving an iframe reloads it and restarts the music.
 //   - your own files play in the one <audio id="songaudio">; the panels only show its controls.
 // musicKind says which one is in use: "link" or "file".
@@ -169,8 +169,9 @@ function renderMusic() {
   // ⏮ ⏭ go through: the playlist (YouTube/SoundCloud), your files, or the Played list
   const pl = plActive();
   const hasNav = !!pl || (m && m.playlist) || (file && mySongs.length > 1) || (!file && played.length > 1);
+  $("ip-sc").hidden = !(m && m.kind === "SoundCloud");
   musicPanels().forEach(p => {
-    p.querySelector(".playerslot").className = "playerslot" + (m ? (m.kind === "YouTube" ? " yt" : " sc") : "");
+    p.querySelector(".playerslot").className = "playerslot" + (m && m.kind === "YouTube" ? " yt" : "");   // (SoundCloud: #ip-sc)
     p.querySelector(".filecard").hidden = !file;
     if (file) {
       p.querySelector(".cover").innerHTML = coverURL ? `<img alt="" src="${coverURL}">` : atomSVG(4.5);   // no picture: the Qarbon atom
@@ -272,18 +273,22 @@ function showMusic(autoplay) {
     f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";   // fullscreen: YouTube's ⛶ button works
     f.referrerPolicy = "strict-origin-when-cross-origin";   // YouTube needs to know which website the player is on
     f.onload = () => listenToPlayer(f, m);
-    // SoundCloud sits right inside the music panel under the Qpod, in its normal size, like before the Qpod (build 73):
-    // on the iPhone its "Listen in browser" didn't react to taps while the player was laid over the panel.
+    // SoundCloud gets its own spot #ip-sc right under the Qpod, in its normal size, outside every menu (build 74, the user:
+    // squeezed into the panel, a playlist's player was cut short and Qarbon's buttons sat where the rest of it should be,
+    // so "Listen in browser" never worked on the iPhone). 450px for a playlist (its track list shows), 166px for a song.
     // It never moves from there (moving an iframe reloads it), and the Qpod still controls it with messages.
     // YouTube is still laid over whichever slot shows (the Qpod's screen), see placePlayer below.
-    if (m.kind === "SoundCloud") $("ip-music").querySelector(".playerslot").appendChild(f);
+    if (m.kind === "SoundCloud") {
+      $("ip-sc").classList.toggle("set", m.playlist);
+      $("ip-sc").appendChild(f);
+    }
     else { host.appendChild(f); startPlacing(); }
   }
   renderMusic();
 }
 
-// the one YouTube/SoundCloud player, wherever it is (YouTube in #playerhost, SoundCloud in the panel under the Qpod)
-const playerFrame = () => document.querySelector("#playerhost iframe, .playerslot iframe");
+// the one YouTube/SoundCloud player, wherever it is (YouTube in #playerhost, SoundCloud in #ip-sc under the Qpod)
+const playerFrame = () => document.querySelector("#playerhost iframe, #ip-sc iframe");
 
 // Keep the player sitting exactly on top of the music panel you can see. When neither panel is
 // showing (dropdowns closed, or another page), it's parked off-screen, still playing.
@@ -294,7 +299,7 @@ let placing = false;   // true while the checking loop is running
 function emptyPlayer() {
   const host = $("playerhost");
   host.innerHTML = "";
-  document.querySelectorAll(".playerslot iframe").forEach(f => f.remove());   // a SoundCloud player in the panel
+  $("ip-sc").innerHTML = "";   // SoundCloud's player under the Qpod
   host.dataset.pos = host.dataset.src = "";
   host.style.left = "-10000px";
 }

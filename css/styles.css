@@ -231,10 +231,12 @@
   /* the slot is an empty space the size of the player; the real player is laid on top of it (see placePlayer) */
   .playerslot { width:100%; display:none; }
   .playerslot.yt { display:block; aspect-ratio:16/9; }   /* YouTube: video shape */
-  .playerslot.sc { display:block; height:166px; }        /* SoundCloud: its standard player height */
   #playerhost { position:absolute; left:-10000px; top:0; z-index:4; border-radius:10px; overflow:hidden; }
-  #playerhost iframe, .playerslot iframe { display:block; width:100%; height:100%; border:0; }
-  .playerslot iframe { border-radius:10px; }   /* SoundCloud's player, right in the panel (build 73) */
+  #playerhost iframe, .playerslot iframe, #ip-sc iframe { display:block; width:100%; height:100%; border:0; }
+  /* SoundCloud's own player under the Qpod (build 74): its normal embed sizes, 166px a song, 450px a playlist */
+  .ip-scplayer { width:100%; max-width:340px; height:166px; border-radius:12px; overflow:hidden; }
+  .ip-scplayer.set { height:450px; }
+  .ip-scplayer[hidden] { display:none; }
   .musicnav { display:flex; gap:8px; }
   .musicnav button { flex:1; min-width:0; padding:8px 4px; }
   .musicnav[hidden] { display:none; }
