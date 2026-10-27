@@ -145,7 +145,7 @@ function packHTML(name, sub, look) {
   if (!packSkyURL) packSkyURL = packSky(300, 420);
   const pic = look.world ? packPic(look.world.id) : "";
   return '<div class="pk-pack" data-bg="' + look.bg + '" data-world="' + (look.world ? look.world.id : "") + '" role="button" tabindex="0" aria-label="Open the pack">' +
-    '<div class="pk-crimp top"></div><div class="pk-tear"></div><div class="pk-cut"></div>' +
+    '<div class="pk-crimp top"></div><div class="pk-tear"></div><div class="pk-leak"></div><div class="pk-cut"></div><div class="pk-burst"></div>' +
     '<div class="pk-body"><img class="pk-sky" alt="" src="' + packSkyURL + '">' +
       (pic ? '<img class="pk-pic" alt="" src="' + pic + '">' : '') +
       '<div class="pk-gloss"></div><div class="pk-glow"></div><div class="pk-atom">' + atomSVG(3.4) + '</div>' +
@@ -217,7 +217,9 @@ function tearPack() {
   }
   save();
   $("pk-close").hidden = true;
-  $("pk-stage").querySelector(".pk-pack").classList.add("open");
+  const pack = $("pk-stage").querySelector(".pk-pack");
+  pack.classList.add("open");   // the burst of light, the top flies off, the pack drops away (css)
+  for (let k = 0; k < 6; k++) sparks(pack, pack.offsetWidth * (.1 + k * .16), pack.offsetHeight * .059, 6, 1.6);   // a spray along the whole cut
   setTimeout(() => { pk.busy = false; showPackCard(0); }, pkStill ? 0 : 850);
 }
 
@@ -360,6 +362,30 @@ let cut = null;   // { x: where the slide started, id: which finger, w: the pack
 function setCut(pack, f, fromRight) {
   pack.style.setProperty("--cut", f.toFixed(3));
   pack.querySelector(".pk-cut").classList.toggle("right", fromRight);
+  pack.querySelector(".pk-leak").classList.toggle("right", fromRight);
+}
+
+// sparks (build 76, the user: "more like Pokémon TCG, with a glow on the drag"): little bits of light that fly off
+// the end of the cut while you slide, and a spray of them when the pack tears. Each is a tiny <i> that flies
+// out (--dx, --dy) and fades, then removes itself. Not with Reduce Motion.
+let lastSpark = 0;
+function sparks(pack, x, y, n, power) {
+  if (pkStill) return;
+  for (let k = 0; k < n; k++) {
+    const s = document.createElement("i"), a = Math.random() * Math.PI * 2, d = (20 + Math.random() * 50) * power;
+    s.className = "pk-spark";
+    s.style.left = x + "px"; s.style.top = y + "px";
+    s.style.setProperty("--dx", Math.cos(a) * d + "px");
+    s.style.setProperty("--dy", Math.sin(a) * d * .7 - 10 * power + "px");   // mostly up and out
+    s.style.setProperty("--s", (.5 + Math.random() * .9).toFixed(2));
+    s.addEventListener("animationend", () => s.remove());
+    pack.appendChild(s);
+  }
+}
+// where the cut ends right now (its glowing tip), in the pack's own pixels
+function cutTip(pack, f, fromRight) {
+  const w = pack.offsetWidth, y = pack.offsetHeight * .059;
+  return [fromRight ? w * (1 - f) : w * f, y];
 }
 $("pk-stage").addEventListener("pointerdown", e => {
   const pack = e.target.closest(".pk-pack");
@@ -368,18 +394,22 @@ $("pk-stage").addEventListener("pointerdown", e => {
   if (e.clientY - r.top > r.height * TEAR_ZONE) return;   // below the top band: a tap there gets the hint (endCut won't see it)
   cut = { x: e.clientX, id: e.pointerId, w: pack.offsetWidth, pack };
   pack.classList.remove("snap");
+  pack.classList.add("cutting");   // the pack glows and trembles while you cut (css)
   pack.setPointerCapture(e.pointerId);   // keep following the finger even past the pack's edge
 });
 $("pk-stage").addEventListener("pointermove", e => {
   if (!cut || e.pointerId !== cut.id) return;
-  const f = Math.min(1, Math.abs(e.clientX - cut.x) / (cut.w * .7));
-  setCut(cut.pack, f, e.clientX < cut.x);
-  if (f >= 1) { cut = null; tearPack(); }
+  const f = Math.min(1, Math.abs(e.clientX - cut.x) / (cut.w * .7)), fromRight = e.clientX < cut.x;
+  setCut(cut.pack, f, fromRight);
+  const now = performance.now();
+  if (f > .02 && now - lastSpark > 35) { lastSpark = now; sparks(cut.pack, ...cutTip(cut.pack, f, fromRight), 3, .8 + f); }
+  if (f >= 1) { cut.pack.classList.remove("cutting"); cut = null; tearPack(); }
 });
 function endCut(e) {
   if (!cut || e.pointerId !== cut.id) return;
   const { pack, x } = cut;
   cut = null;
+  pack.classList.remove("cutting");
   pack.classList.add("snap");   // not far enough: the cut slides back
   setCut(pack, 0, false);
 }

@@ -688,9 +688,41 @@
   .pk-pack[data-bg="hole"] .pk-glow { opacity:.4; }
   /* sliding to tear (--cut = 0 to 1, set while your finger moves): a glowing cut along the tear line, the top seal lifts a little */
   .pk-pack { touch-action:none; }   /* the finger slides the cut instead of scrolling the page */
-  .pk-cut { position:absolute; z-index:5; top:5.9%; left:0; height:2px; margin-top:-1px; width:calc(var(--cut, 0) * 100%); pointer-events:none;
-            background:linear-gradient(90deg, rgba(255,255,255,.2), #fff); box-shadow:0 0 6px #fff, 0 0 14px var(--accent); border-radius:1px; }
-  .pk-cut.right { left:auto; right:0; background:linear-gradient(270deg, rgba(255,255,255,.2), #fff); }
+  /* build 76 (the user: "more like Pokémon TCG"): a white-hot cut with a bright tip, light leaking out of the slit,
+     the pack glowing and trembling more the further you cut, sparks (js: sparks()), and a burst of light when it tears */
+  .pk-cut { position:absolute; z-index:5; top:5.9%; left:0; height:3px; margin-top:-1.5px; width:calc(var(--cut, 0) * 100%); pointer-events:none;
+            background:linear-gradient(90deg, rgba(255,214,140,.35), #fff6dc 70%, #fff); border-radius:2px;
+            box-shadow:0 0 4px #fff, 0 0 12px #ffd38a, 0 0 26px rgba(255,170,80,.9), 0 0 48px rgba(123,108,255,.8); }
+  .pk-cut.right { left:auto; right:0; background:linear-gradient(270deg, rgba(255,214,140,.35), #fff6dc 70%, #fff); }
+  /* the tip: a small star of light where the cut is right now */
+  .pk-cut::after { content:""; position:absolute; top:50%; right:0; width:22px; height:22px; transform:translate(50%,-50%); border-radius:50%;
+                   background:radial-gradient(circle, #fff 0 18%, rgba(255,230,170,.95) 30%, rgba(255,160,70,.5) 55%, transparent 72%);
+                   opacity:min(1, calc(var(--cut, 0) * 20)); }
+  .pk-cut.right::after { right:auto; left:0; transform:translate(-50%,-50%); }
+  .pk-pack.cutting .pk-cut::after { animation:pk-tip .18s ease-in-out infinite alternate; }
+  @keyframes pk-tip { to { width:30px; height:30px; } }
+  /* light coming through the slit, into the pack */
+  .pk-leak { position:absolute; z-index:4; top:5.9%; left:0; height:30%; width:calc(var(--cut, 0) * 100%); pointer-events:none; mix-blend-mode:screen;
+             background:linear-gradient(180deg, rgba(255,236,190,.75), rgba(255,180,90,.35) 25%, rgba(123,108,255,.18) 60%, transparent);
+             opacity:min(1, calc(var(--cut, 0) * 3));
+             -webkit-mask-image:linear-gradient(90deg, #000 55%, transparent); mask-image:linear-gradient(90deg, #000 55%, transparent); }   /* fades out toward the tip */
+  .pk-leak.right { left:auto; right:0; -webkit-mask-image:linear-gradient(270deg, #000 55%, transparent); mask-image:linear-gradient(270deg, #000 55%, transparent); }
+  /* the whole pack lights up as you cut: a warm aura and a brighter glow inside */
+  .pk-pack:not(.open) { filter:drop-shadow(0 18px 30px rgba(0,0,0,.7)) drop-shadow(0 0 calc(var(--cut, 0) * 26px) rgba(255,190,110,calc(var(--cut, 0) * .9))); }
+  .pk-pack:not(.open) .pk-glow { opacity:calc(1 + var(--cut, 0) * 1.5); }
+  .pk-pack.cutting { animation:pk-tremble .09s linear infinite; }
+  @keyframes pk-tremble { 25% { translate:calc(var(--cut, 0) * 1.6px) calc(var(--cut, 0) * -.8px); } 75% { translate:calc(var(--cut, 0) * -1.6px) calc(var(--cut, 0) * .8px); } }
+  /* sparks: fly out from where they start (--dx, --dy) and fade */
+  .pk-spark { position:absolute; z-index:6; width:8px; height:8px; margin:-4px 0 0 -4px; border-radius:50%; pointer-events:none;
+              background:#fff; box-shadow:0 0 6px 2px #fff, 0 0 14px 4px #ffc477, 0 0 24px 6px rgba(255,140,60,.7);
+              animation:pk-spark .85s cubic-bezier(.15,.7,.35,1) forwards; }
+  @keyframes pk-spark { from { transform:translate(0,0) scale(var(--s, 1)); opacity:1; }
+                        to { transform:translate(var(--dx), var(--dy)) scale(0); opacity:0; } }
+  /* the tear: a burst of light out of the top of the pack */
+  .pk-burst { position:absolute; z-index:6; left:50%; top:5.9%; width:160%; aspect-ratio:1; transform:translate(-50%,-50%) scale(0); pointer-events:none; opacity:0;
+              background:radial-gradient(circle, #fff 0 6%, rgba(255,236,190,.9) 14%, rgba(255,170,80,.45) 32%, rgba(123,108,255,.25) 50%, transparent 68%); }
+  .pk-pack.open .pk-burst { animation:pk-burst .75s ease-out forwards; }
+  @keyframes pk-burst { 0% { opacity:1; transform:translate(-50%,-50%) scale(.1); } 40% { opacity:1; } 100% { opacity:0; transform:translate(-50%,-50%) scale(1.3); } }
   .pk-pack:not(.open) .pk-crimp.top { transform:translateY(calc(var(--cut, 0) * -4px)) rotate(calc(var(--cut, 0) * -1.5deg)); }
   .pk-pack.snap .pk-cut { transition:width .25s ease; }
   .pk-pack.snap .pk-crimp.top { transition:transform .25s ease; }
@@ -742,7 +774,7 @@
   #pk-nudge { color:var(--muted); font-size:.85rem; max-width:40ch; margin:0; }
   @media (prefers-reduced-motion: reduce) {
     .pk-flip, .pk-flip > .qcard { transition:none; }
-    .pk-in, .pk-flash.go, .pk-pack:not(.open) .pk-tear, .pk-pack.open .pk-crimp.top, .pk-pack.open .pk-body, .pk-pack.open .pk-crimp.bottom, .pk-atom .orbits, .pk-flip.down.charged > .pk-back .face { animation:none; }
+    .pk-in, .pk-flash.go, .pk-pack:not(.open) .pk-tear, .pk-pack.cutting, .pk-pack.cutting .pk-cut::after, .pk-pack.open .pk-crimp.top, .pk-pack.open .pk-body, .pk-pack.open .pk-crimp.bottom, .pk-atom .orbits, .pk-flip.down.charged > .pk-back .face { animation:none; }
   }
 
   /* small cards: the binder's pockets and the end of a pack */
