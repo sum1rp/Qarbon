@@ -612,7 +612,7 @@
   .qcard .textbox.meaning { display:flex; align-items:center; font-size:1.3rem; font-weight:700; line-height:1.25; color:var(--text); }
 
   /* audio buttons */
-  .speak, .burnspeak { margin-top:8px; background:none; border:1px solid var(--line-strong);
+  .speak { margin-top:8px; background:none; border:1px solid var(--line-strong);
            border-radius:999px; padding:4px 12px; font-size:1.1rem; cursor:pointer; }
   .textbox .speak { margin:0 0 0 6px; padding:2px 8px; font-size:1rem; }
 
@@ -878,6 +878,26 @@
   /* the small line under Again/Hard/Good/Easy: when you'd see the card next */
   #buttons small { display:block; font-size:.75rem; font-weight:400; opacity:.9; }
   #buttons small:empty { display:none; }
+  #buttons button.suggest { box-shadow:0 0 0 3px #fff, 0 0 18px rgba(255,255,255,.45); }   /* the grade your typed answer suggests */
+
+  /* ---------- typing the answer (⚙ Type the answer, js/cards.js) ---------- */
+  #typerow { display:flex; gap:8px; width:100%; max-width:440px; margin:0 auto 6px; }
+  #typerow[hidden], #typeres[hidden] { display:none; }
+  #typein { flex:1; min-width:0; min-height:48px; padding:8px 12px; font-size:1.15rem; border-radius:12px;
+            border:1px solid var(--line); background:var(--surface); color:var(--text); }
+  #typein:focus { outline:2px solid var(--accent); outline-offset:1px; }
+  #typecheck { min-height:48px; padding:0 18px; font-weight:600; background:var(--accent-fill); color:#fff; border-color:var(--accent); }
+  #typeres { width:100%; max-width:440px; margin:0 auto 6px; padding:8px 12px; box-sizing:border-box; border-radius:12px;
+             border:1px solid var(--line); background:var(--surface); font-size:1.1rem; line-height:1.5; text-align:left; }
+  #typeres .tl { display:inline-block; min-width:5.5em; color:var(--muted); font-size:.9rem; }
+  #typeres .tw { font-weight:600; letter-spacing:.02em; overflow-wrap:anywhere; }
+  #typeres .tn { color:var(--muted); font-size:.9rem; }
+  .tc-yes { color:#5fe0b8; }
+  /* a letter: wrong or extra (red), left out (green), right letter with the wrong accent (yellow); dark text on each */
+  .tc-bad, .tc-miss, .tc-acc { border-radius:3px; padding:0 1px; color:#10101a; }
+  .tc-bad { background:#ff8f8f; text-decoration:line-through; }
+  .tc-miss { background:#6ee7b7; }
+  .tc-acc { background:#ffd166; }
 
   /* ---------- Burn After Reading ---------- */
   #burnview { width:100%; max-width:420px; text-align:center; }
@@ -887,16 +907,6 @@
   .burnpanel { display:flex; flex-direction:column; align-items:center; gap:12px; }
   .burnnote, .burncount { color:var(--muted); font-size:.9rem; margin:0; }
   .burnnote:empty { display:none; }
-  /* the card: dark inside, with a fiery orange → pink → purple frame */
-  /* card-shaped (340 by 440, like the Review card), smaller when the screen is short so Next still shows */
-  .burncard { width:min(100%, 280px, calc((100svh - 345px) * 340 / 440)); min-width:180px; aspect-ratio:340/440;
-              display:flex; flex-direction:column; justify-content:center; align-items:center;
-              box-sizing:border-box; padding:28px 16px 20px; border-radius:20px; border:3px solid transparent;
-              background:linear-gradient(var(--card), var(--card)) padding-box,
-                         linear-gradient(135deg,#ffb347,#ff5d8f,#7b6cff) border-box;
-              box-shadow:0 6px 24px rgba(0,0,0,.5); }
-  .burnfr { font-size:2rem; font-weight:700; overflow-wrap:anywhere; }
-  .burnen { font-size:1.2rem; color:var(--muted); margin-top:8px; }
   .burnbig { width:100%; min-height:56px; font-size:1.1rem; font-weight:600; border:none; color:#1a0c08;
              background:linear-gradient(135deg,#ff8a3d,#ff5d8f); }
   .burnprompt { font-size:1.6rem; font-weight:700; }
@@ -905,11 +915,41 @@
   #burn-options button:disabled { cursor:default; opacity:1; color:var(--text); -webkit-text-fill-color:var(--text); }
   #burn-options button.right { background:rgba(47,191,155,.3); border-color:#2fbf9b; }
   #burn-options button.wrong { background:rgba(255,107,107,.3); border-color:#ff6b6b; }
-  .burnfeedback { min-height:1.4em; margin:0; font-weight:600; }
   .burnscore { font-size:1.6rem; font-weight:700; margin-top:8px; }
+  /* B.A.R. 2.0: the start screen's levels (with your best), the clock, the typing box, the answers at the end */
+  #burn-start, #burn-test, #burn-end { width:100%; }
+  #burn-levels { width:100%; display:grid; gap:8px; }
+  .barlevel { display:grid; grid-template-columns:auto 1fr; align-items:baseline; gap:2px 10px; padding:12px 14px; text-align:left;
+              border-radius:14px; border:1px solid var(--line); background:var(--surface); }
+  .barlevel b { font-size:1.1rem; }
+  .barlevel span { color:var(--muted); font-size:.9rem; }
+  .barlevel em { grid-column:1 / -1; font-style:normal; font-size:.9rem; color:var(--muted); }
+  .barlevel[aria-pressed="true"] { border-color:#ff8a3d; box-shadow:0 0 0 1px #ff8a3d inset; background:rgba(255,138,61,.1); }
+  .barlevel[aria-pressed="true"] em { color:#ffb37a; }
+  #burn-go:disabled { opacity:.5; }
+  #burn-last { width:100%; text-align:left; font-size:.95rem; }
+  #burn-last .row { display:grid; grid-template-columns:1fr auto auto; gap:12px; padding:6px 2px; border-top:1px solid var(--line); color:var(--muted); }
+  #burn-last .row span:nth-child(2) { color:var(--text); font-weight:600; }
+  .burntop { width:100%; display:flex; justify-content:space-between; align-items:center; }
+  .burntimer { font-size:1.4rem; font-weight:700; font-variant-numeric:tabular-nums; color:#ffb37a; }
+  .burntimer.low { color:#ff6b6b; animation:barpulse 1s infinite; }
+  @keyframes barpulse { 50% { opacity:.55; } }
+  @media (prefers-reduced-motion: reduce) { .burntimer.low { animation:none; } }
+  .burntyperow { width:100%; display:flex; gap:8px; }
+  .burntyperow[hidden] { display:none; }
+  #burn-type { flex:1; min-width:0; min-height:56px; padding:8px 12px; font-size:1.3rem; border-radius:12px;
+               border:1px solid var(--line); background:var(--surface); color:var(--text); }
+  #burn-typego { min-height:56px; padding:0 18px; font-weight:600; }
+  .burnplain { width:100%; min-height:48px; }
   #burn-missed { width:100%; text-align:left; color:var(--muted); }
-  #burn-missed .row { border:1px solid var(--line); border-radius:10px; margin-top:6px; }
-  #burn-missed .w { color:var(--text); }   /* the French spelling stands out; the English stays dim */
+  #burn-missed .row { display:grid; grid-template-columns:1fr; gap:2px; padding:8px 12px; border:1px solid var(--line); border-radius:10px; margin-top:6px; }
+  #burn-missed .row.ok { border-color:rgba(47,191,155,.5); }
+  #burn-missed .row.bad { border-color:rgba(255,107,107,.5); }
+  #burn-missed .m { font-size:.95rem; }
+  #burn-missed .mine { color:var(--text); font-size:1.1rem; }
+  #burn-missed .row.bad .mine { color:#ffb0b0; }
+  #burn-missed .none { font-style:italic; color:var(--muted); }
+  #burn-missed .w { color:#8ff0cf; font-size:1.1rem; font-weight:700; }   /* the right spelling stands out */
 
   /* the meteor: a little card stack that catches fire (::after), grows a tail (::before), and shoots off */
   #meteor { position:relative; width:90px; height:120px; margin:70px auto 40px; border-radius:12px;
@@ -1019,7 +1059,7 @@
     #filters select, #filters input, #practicefiltered, #deckactions button, #edbuttons button { min-height:44px; }
     #editor input, #editor select { min-height:44px; font-size:16px; }
     select { height:44px; }   /* iPhone ignores min-height on dropdowns */
-    .speak, .textbox .speak, .burnspeak { min-width:44px; min-height:44px; }
+    .speak, .textbox .speak { min-width:44px; min-height:44px; }
     /* iPhone zooms in on any text box smaller than 16px when you tap it */
     #filters select, #filters input, #settings select { font-size:16px; }
     .musicform input, .searchrow input, #fcustom input { font-size:16px; min-height:44px; }

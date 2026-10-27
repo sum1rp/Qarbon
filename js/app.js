@@ -60,14 +60,14 @@ document.addEventListener("click", e => {
 });
 
 // ================= buttons and keyboard =================
-$("show").onclick = () => { revealed = true; render(); };
+$("show").onclick = reveal;
 GRADES.forEach((g, i) => { $(g).onclick = () => rate(i + 1); });
 document.addEventListener("keydown", e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   // on the Focus page, Space starts and pauses the timer (unless you're typing in a box)
   if (!$("focus").hidden && e.key === " " && e.target === document.body) { e.preventDefault(); $("fstart").click(); return; }
   if ($("study").hidden || !$("packview").hidden || !cardShowing() || !current || ["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)) return;
-  if (!revealed && (e.key === " " || e.key === "Enter")) { e.preventDefault(); $("show").click(); }
+  if (!revealed && (e.key === " " || e.key === "Enter")) { e.preventDefault(); reveal(); }
   else if (revealed && /^[1-4]$/.test(e.key)) {
     const grade = Number(e.key);
     if (mode !== "practice" || grade === 1 || grade === 3) rate(grade);   // practice only has Missed (1) and Got it (3)
@@ -318,6 +318,7 @@ function toggleSettings(open) {
   if (open) {   // the direction list belongs to the stack you're in (in the course's language), the voices to the course
     setOptions($("direction"), Object.keys(DIRECTIONS).map(d => [d, dirLabel(d, course().name)]), state.directions[(stack || course()).id] || "fr");
     fillVoices();
+    typeBtnText();
   }
   if (cardShowing()) fitCard();   // the panel pushes the card down
 }
@@ -331,6 +332,15 @@ $("tiltbtn").onclick = async () => {
   else $("msg").textContent = "Tilt wasn't allowed. Dragging a card still moves its shine.";
   save();
   tiltBtnText();
+};
+// ⚙ Type the answer (this deck): a box under the Review card (js/cards.js). Saved per course or deck, and synced
+const typeBtnText = () => { $("typebtn").textContent = "Type the answer (" + (stack || course()).name + "): " + (state.typeAnswer[(stack || course()).id] ? "on" : "off"); };
+$("typebtn").onclick = () => {
+  const id = (stack || course()).id;
+  if (state.typeAnswer[id]) delete state.typeAnswer[id]; else state.typeAnswer[id] = true;
+  save();
+  typeBtnText();
+  if (cardShowing()) render();
 };
 $("gosettings").onclick = () => toggleSettings($("settings").hidden);
 $("setdone").onclick = () => toggleSettings(false);

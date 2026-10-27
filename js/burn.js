@@ -2,11 +2,16 @@
 // The script files run in the order index.html lists them, and share one set of variables.
 
 // ================= Burn After Reading =================
-// 1. read up to 10 new cards once (no going back)  2. watch them burn up as a meteor
-// 3. for each English word, pick the exact French (or Spanish) spelling out of 4  4. see how many "survived"
-// Right answers count like Good, wrong ones like Hard, and missed words go first in your next Review.
-const BURN_SIZE = 10;
-let burn = null;   // the current round: { cards, order, i, right, missed }
+// B.A.R. Exam 2.0 (build 75):
+// 0. the start screen: pick a level (Easy / Medium / Hard), see your best score per level and your last 10 rounds
+// 1. the round opens like a pack (js/collection.js): tear it, read each card once as you swipe it away (no going back)
+// 2. the cards burn up as a meteor  3. the test: 1:30 on the clock, every answer saved for the end
+//    Easy = pick the word out of 4 real words · Medium = out of 4 with accent and spelling traps · Hard = type it, accents count
+// 4. the results: every answer with the right spelling, the score, and a new best if you beat it
+// Right answers count like Good, wrong or unanswered ones like Hard, and missed words go first in your next Review.
+const BURN_SIZE = 10, BAR_TIME = 90;   // up to 10 cards a round, 90 seconds for the test
+const BAR_LEVEL_INFO = { easy: ["Easy", "4 real words, no tricks"], medium: ["Medium", "accent and spelling traps"], hard: ["Hard", "type it, accents count"] };
+let burn = null;   // the current round: { key, level, cards, order, i, answers: [{ c, given }], t0, timer }
 
 const pick = list => list[Math.floor(Math.random() * list.length)];
 const stripAccents = w => w.normalize("NFD").replace(/[̀-ͯ]/g, "").normalize("NFC");
@@ -76,9 +81,9 @@ function spellingTrap(word) {
   return chars.join("");
 }
 
-// the 4 answers for one card: correct, accent trap, spelling trap, another real word. All different.
-// The real words come from cards in the same language (Spanish cards get Spanish words).
-function burnOptions(card) {
+// the 4 answers for one card. Medium: correct, accent trap, spelling trap, another real word. Easy: correct + 3 other real words.
+// All different. The real words come from cards in the same language (Spanish cards get Spanish words).
+function burnOptions(card, level) {
   const right = card.front, options = [right], lang = cardLang(card);
   const sameLang = state.cards.filter(c => cardLang(c) === lang);
   const realWords = new Set(state.cards.map(c => c.front));   // traps are never real words, in any language ("tú" → "tu" is a French card)
@@ -91,6 +96,15 @@ function burnOptions(card) {
     }
     return false;
   };
+  // a real word from your deck, of the same type (noun, verb...) if there is one
+  const sameType = sameLang.filter(c => c.part_of_speech === card.part_of_speech && c.front !== right).map(c => c.front);
+  const anyWord = sameLang.filter(c => c.front !== right).map(c => c.front);
+  const realWord = () => add(() => pick(sameType.length ? sameType : anyWord), true) || add(() => pick(anyWord), true);
+  if (level === "easy") {   // no tricks: three other real words
+    for (let k = 0; k < 3; k++) realWord();
+    while (options.length < 4 && add(() => spellingTrap(right))) {}   // (a deck with fewer than 4 words: a spelling trap fills in)
+    return shuffle(options);
+  }
   // a spelling trap must change the letters themselves ("l'ideé" only moves the accent, so it doesn't count)
   // (Spanish: half the time a letter that sounds the same, like b for v)
   const letterTrap = () => {
@@ -99,54 +113,72 @@ function burnOptions(card) {
   };
   if (!add(() => accentTrap(right, lang))) add(letterTrap);   // no accent possible? another spelling trap
   add(letterTrap);
-  // a real word from your deck, of the same type (noun, verb...) if there is one
-  const sameType = sameLang.filter(c => c.part_of_speech === card.part_of_speech && c.front !== right).map(c => c.front);
-  const anyWord = sameLang.filter(c => c.front !== right).map(c => c.front);
-  if (!add(() => pick(sameType.length ? sameType : anyWord), true)) add(() => pick(anyWord), true);
+  realWord();
   while (options.length < 4 && add(() => spellingTrap(right))) {}   // safety net: always 4 options
   while (options.length < 4 && add(() => pick(anyWord), true)) {}   // (a one-letter word like "y" has only one spelling trap)
   return shuffle(options);
 }
 
-// show one of the four Burn panels and hide the rest
+// show one of the B.A.R. panels and hide the rest
 function burnShow(panel) {
-  ["burn-read", "burn-fire", "burn-test", "burn-end"].forEach(p => { $(p).hidden = p !== panel; });
+  ["burn-start", "burn-fire", "burn-test", "burn-end"].forEach(p => { $(p).hidden = p !== panel; });
   scrollTo(0, 0);
 }
 
-// the 🔥 Burn tab: pick up to 10 cards you've never studied from this stack and start reading
+// scores belong to the course or deck you're in (state.bar, js/data.js: best per level + the last 10 rounds, synced)
+const barKey = () => (stack || course()).id;
+const barScores = () => state.bar[barKey()] || { best: {}, last: [] };
+const mmss = secs => Math.floor(secs / 60) + ":" + String(Math.floor(secs % 60)).padStart(2, "0");
+const roundText = r => r.right + "/" + r.total + " · " + mmss(r.secs);
+// the cards a round can use: new ones from your binder, or ones a pack could deal
+const burnFresh = () => stackCards().filter(c => active(c) && c.reviews === 0 && (inBinder(c) || worldOpen(c))).slice(0, BURN_SIZE);
+
+// the B.A.R. Exam mode: the start screen
 function startBurn() {
   mode = "burn";
   $("msg").textContent = "";
-  // new cards from your binder, or ones a pack could deal (not on a world you haven't reached: js/collection.js)
-  const fresh = stackCards().filter(c => active(c) && c.reviews === 0 && (inBinder(c) || worldOpen(c))).slice(0, BURN_SIZE);
-  burn = { cards: fresh, order: [], i: 0, right: 0, missed: [] };
-  fresh.forEach(c => { c.got = c.got || today(); });   // seen for the first time: they go into your binder (js/collection.js)
+  barStop();
   render();
-  if (!fresh.length) {   // nothing new left: say so and offer the way back
-    burnShow("burn-end");
-    $("burn-score").textContent = "No new cards left in this stack.";
-    $("burn-missed").textContent = "Pick another stack, or keep going with Review.";
-    return;
-  }
-  $("burn-note").textContent = fresh.length < BURN_SIZE
-    ? "Only " + fresh.length + " new card" + (fresh.length === 1 ? "" : "s") + " left in this stack, so this round has " + fresh.length + "."
-    : "Read each card carefully. Once they burn, they're gone.";
-  burnRead();
+  burnStart();
 }
 
-// read phase: French word, English meaning, and the word read aloud in your chosen voice
-function burnRead() {
-  const c = burn.cards[burn.i];
-  burnShow("burn-read");
-  $("burn-count").textContent = "Card " + (burn.i + 1) + " of " + burn.cards.length;
-  $("burn-fr").textContent = c.front;
-  $("burn-en").textContent = c.back || "";
-  $("burn-next").textContent = burn.i + 1 < burn.cards.length ? "Next" : "Burn them";
-  speak(c.front, cardLang(c));
+// the start screen: the levels (with your best on each), Start, and your last rounds
+function burnStart() {
+  burnShow("burn-start");
+  const sc = barScores();
+  $("burn-deck").textContent = (stack || course()).name;
+  $("burn-levels").innerHTML = BAR_LEVELS.map(lv => {
+    const [name, about] = BAR_LEVEL_INFO[lv], best = sc.best[lv];
+    return '<button class="barlevel" data-level="' + lv + '" aria-pressed="' + (state.barLevel === lv) + '">' +
+      '<b>' + name + '</b><span>' + about + '</span><em>' + (best ? "Best " + roundText(best) : "No rounds yet") + '</em></button>';
+  }).join("");
+  $("burn-levels").querySelectorAll(".barlevel").forEach(b => { b.onclick = () => { state.barLevel = b.dataset.level; save(); burnStart(); }; });
+  const n = burnFresh().length;
+  $("burn-go").disabled = !n;
+  $("burn-go").textContent = n ? "Open the pack (" + n + " card" + (n === 1 ? "" : "s") + ")" : "No new cards left";
+  $("burn-startnote").textContent = n ? "Read each card once as you swipe it away. Then they burn, and you have " + mmss(BAR_TIME) + "."
+                                      : "Every card here has been studied. Open a pack in Review, or pick another deck.";
+  $("burn-last").innerHTML = sc.last.length
+    ? "<b>Last rounds</b>" + sc.last.map(r => '<div class="row"><span>' + BAR_LEVEL_INFO[r.level][0] + '</span><span>' + roundText(r) + '</span><span>' + esc(r.date) + '</span></div>').join("")
+    : "";
 }
 
-// burn phase: play the meteor animation, then shuffle the cards and start the test
+// Start: the round's cards come in a pack. Tearing it puts them in your binder; the last swipe burns them (barPackDone)
+$("burn-go").onclick = () => {
+  const cards = burnFresh();
+  if (!cards.length) return;
+  burn = { key: barKey(), level: state.barLevel, cards, order: [], i: 0, answers: [] };
+  openBarPack(cards, BAR_LEVEL_INFO[burn.level][0]);
+};
+
+// the pack's last card was swiped away: the round goes on with these cards (the pack sorted them easiest first)
+function barPackDone(cards) {
+  if (!burn || mode !== "burn") return;
+  burn.cards = cards;
+  burnFire();
+}
+
+// burn phase: play the meteor animation, then shuffle the cards and start the test (and its clock)
 function burnFire() {
   const round = burn, meteor = $("meteor");
   burnShow("burn-fire");
@@ -158,68 +190,97 @@ function burnFire() {
     if (burn !== round || mode !== "burn") return;   // you left the round while it was burning
     burn.order = shuffle(burn.cards);
     burn.i = 0;
+    burn.t0 = Date.now();
+    burn.timer = setInterval(barTick, 250);
+    barTick();
     burnQuestion();
   }, wait);
 }
 
-// test phase: the English word and 4 French (or Spanish) spellings to choose from
+// the clock: 1:30 counting down. At 0 the round ends; questions you didn't get to count as missed
+function barTick() {
+  if (!burn) return;
+  if (mode !== "burn") { barStop(); burn = null; return; }   // you left in the middle: the round is dropped
+  const left = Math.max(0, BAR_TIME - (Date.now() - burn.t0) / 1000);
+  $("burn-timer").textContent = mmss(Math.ceil(left));
+  $("burn-timer").classList.toggle("low", left <= 15);
+  if (left <= 0) finishRound(true);
+}
+function barStop() { if (burn && burn.timer) { clearInterval(burn.timer); burn.timer = null; } }
+
+// test phase: the English, then 4 choices (Easy, Medium) or a box to type it in (Hard)
 function burnQuestion() {
-  const c = burn.order[burn.i], box = $("burn-options");
+  const c = burn.order[burn.i], hard = burn.level === "hard", box = $("burn-options");
   burnShow("burn-test");
-  $("burn-ask").textContent = "Which is the correct " + courseOf(c).name + " spelling?";
+  const name = isOwn(c) && !c.lang ? "" : courseOf(c).name + " ";
+  $("burn-ask").textContent = hard ? "Type the " + name + "word (accents count)" : "Which is the correct " + name + "spelling?";
   $("burn-qcount").textContent = "Question " + (burn.i + 1) + " of " + burn.order.length;
   $("burn-prompt").textContent = c.back || "";
-  $("burn-feedback").textContent = "";
+  $("burn-typerow").hidden = !hard;
+  box.hidden = hard;
   box.innerHTML = "";
-  burnOptions(c).forEach(o => {
+  if (hard) {
+    $("burn-type").value = "";
+    $("burn-type").focus({ preventScroll: true });
+    return;
+  }
+  burnOptions(c, burn.level).forEach(o => {
     const b = document.createElement("button");
     b.textContent = o;
-    b.onclick = () => burnAnswer(c, o, b);
+    b.onclick = () => burnAnswer(o);
     box.appendChild(b);
   });
 }
 
-// check the answer, color the buttons, save the result, then move on after a moment
-function burnAnswer(c, chosen, button) {
-  const round = burn, ok = chosen === c.front;   // only the exact spelling, accents included, counts
-  [...$("burn-options").children].forEach(b => {
-    b.disabled = true;
-    if (b.textContent === c.front) b.classList.add("right");
-  });
-  if (!ok) button.classList.add("wrong");
-  $("burn-feedback").textContent = ok ? "Correct! " + c.front : "Not quite. It's spelled: " + c.front;
-  applyGrade(c, ok ? 3 : 2);   // right = Good, wrong = Hard
-  journeyCheck(true);          // a world reached opens the next one (js/collection.js)
-  if (ok) burn.right++;
-  else { c.burnMissed = true; burn.missed.push(c); }   // first in line next Review
-  save();   // saved after every answer, so a refresh doesn't lose anything
-  setTimeout(() => {
-    if (burn !== round || mode !== "burn") return;
-    burn.i++;
-    if (burn.i < burn.order.length) burnQuestion(); else burnEnd();
-  }, ok ? 1400 : 2600);   // a little longer when wrong, so you can read the right spelling
-}
-
-// results: score, plus every missed word with its correct spelling
-function burnEnd() {
-  burnShow("burn-end");
-  $("burn-score").textContent = burn.right + "/" + burn.order.length + " survived the burn";
-  const box = $("burn-missed");
-  box.innerHTML = "";
-  if (!burn.missed.length) { box.textContent = "Nothing lost to the flames!"; return; }
-  box.append("Missed (they'll be first in your next Review):");
-  burn.missed.forEach(c => {
-    const row = document.createElement("div"); row.className = "row";
-    const fr = document.createElement("span"); fr.className = "w"; fr.textContent = c.front;
-    const en = document.createElement("span"); en.className = "m"; en.textContent = c.back || "";
-    row.append(fr, en);
-    box.appendChild(row);
-  });
-}
-
-$("burn-next").onclick = () => {   // forward only: there's no Back button on purpose
+// an answer: kept for the end (no right or wrong yet), and on to the next question
+function burnAnswer(given) {
+  if (!burn || burn.i >= burn.order.length) return;
+  burn.answers.push({ c: burn.order[burn.i], given });
   burn.i++;
-  if (burn.i < burn.cards.length) burnRead(); else burnFire();
-};
-$("burn-hear").onclick = () => speak(burn.cards[burn.i].front, cardLang(burn.cards[burn.i]));
+  if (burn.i < burn.order.length) burnQuestion(); else finishRound(false);
+}
+$("burn-typego").onclick = () => burnAnswer($("burn-type").value);
+$("burn-type").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); burnAnswer($("burn-type").value); } });
+
+// is an answer right? Choices: the exact spelling. Typed (Hard): the same letters and accents (capitals and spaces don't matter)
+const barRight = (c, given, level) => given != null && (level === "hard" ? compareTyped(given, c.front).ok : given === c.front);
+
+// the end of a round (all answered, or the clock ran out): grade every card, keep the score, show the answers
+function finishRound(timeUp) {
+  barStop();
+  const round = burn, secs = Math.min(BAR_TIME, Math.round((Date.now() - round.t0) / 1000));
+  const results = round.order.map(c => {
+    const a = round.answers.find(x => x.c === c), given = a ? a.given : null, ok = barRight(c, given, round.level);
+    applyGrade(c, ok ? 3 : 2);   // right = Good, wrong or not answered = Hard
+    if (!ok) c.burnMissed = true;   // first in line next Review
+    return { c, given, ok };
+  });
+  journeyCheck(true);   // a world reached opens the next one (js/collection.js)
+  const right = results.filter(r => r.ok).length;
+  const r = { id: Date.now(), level: round.level, right, total: results.length, secs, date: today() };
+  const sc = state.bar[round.key] || (state.bar[round.key] = { best: {}, last: [] });
+  const newBest = betterRound(r, sc.best[r.level]);
+  if (newBest) sc.best[r.level] = r;
+  sc.last = [r, ...sc.last].slice(0, BAR_KEEP);
+  save();
+  burnEnd(round, results, r, timeUp, newBest && sc.last.length > 1);
+}
+
+// results: the score, a new best, and every answer with the right spelling
+function burnEnd(round, results, r, timeUp, newBest) {
+  burnShow("burn-end");
+  $("burn-score").textContent = r.right + "/" + r.total + " survived the burn";
+  $("burn-sub").textContent = BAR_LEVEL_INFO[r.level][0] + " · " + (timeUp ? "time's up" : "done in " + mmss(r.secs)) + (newBest ? " · 🏆 new best!" : "");
+  $("burn-missed").innerHTML = results.map(({ c, given, ok }) => {
+    let mine;
+    if (given == null || given === "") mine = '<span class="none">' + (given == null ? "no time left" : "nothing typed") + '</span>';
+    else if (round.level === "hard" && !ok) mine = compareTyped(given, c.front).typedHTML;
+    else mine = esc(given);
+    return '<div class="row ' + (ok ? "ok" : "bad") + '"><span class="m">' + esc(c.back || "") + '</span>' +
+      '<span class="mine">' + (ok ? "✓ " : "✗ ") + mine + '</span>' +
+      (ok ? "" : '<span class="w">' + (round.level === "hard" && given ? compareTyped(given, c.front).rightHTML : esc(c.front)) + '</span>') + '</div>';
+  }).join("") + (results.some(x => !x.ok) ? '<p class="burnnote">Missed words come first in your next Review.</p>' : "");
+}
+
+$("burn-again").onclick = burnStart;
 $("burn-back").onclick = () => setMode("daily");

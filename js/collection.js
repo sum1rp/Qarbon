@@ -176,12 +176,25 @@ function openPack(world) {
   cards.sort(easiestFirst);
   if (rare) cards.push(cards.splice(cards.indexOf(rare), 1)[0]);   // the rare always comes last
   pk = { cards, i: -1, rare, busy: false, world };
+  const look = packBackground(world);   // the course's pack is named after your world ("The Moon"), your own deck's after the deck
+  showSealed(packHTML(look.world ? named(look.world, true) : stack.name, (look.world ? course().name + " · " : "") + cards.length + " cards", look),
+             (ready.daily ? "Today's pack" : "Another pack") + (world ? " · " + world.name : ""));
+}
+
+// a B.A.R. Exam round opens like a pack (js/burn.js): the same tear and swipes, then the cards burn instead of the end grid.
+// It isn't one of today's 3 packs (B.A.R. deals its own new cards). level = "Easy", "Medium" or "Hard", on the pack
+function openBarPack(cards, level) {
+  pk = { cards: [...cards].sort(easiestFirst), i: -1, rare: null, busy: false, world: null, bar: true };
+  const look = { bg: "world", world: WORLDS.find(w => w.id === "sun") };   // the Sun: B.A.R.'s world on home (the user's pick)
+  showSealed(packHTML("B.A.R. Exam", (stack || course()).name + " · " + cards.length + " cards · " + level, look), "Burn After Reading");
+}
+
+// the sealed pack on the full-screen layer, waiting to be torn (count = the small line above it)
+function showSealed(html, count) {
   $("pk-done").hidden = true;
   $("pk-stage").hidden = false;
-  const look = packBackground(world);   // the course's pack is named after your world ("The Moon"), your own deck's after the deck
-  $("pk-stage").innerHTML = packHTML(look.world ? named(look.world, true) : stack.name,
-                                     (look.world ? course().name + " · " : "") + cards.length + " cards", look);
-  $("pk-count").textContent = (ready.daily ? "Today's pack" : "Another pack") + (world ? " · " + world.name : "");
+  $("pk-stage").innerHTML = html;
+  $("pk-count").textContent = count;
   $("pk-hint").textContent = "Slide along the top of the pack to tear it open";
   $("pk-close").textContent = "Cancel";
   $("pk-close").hidden = false;
@@ -196,10 +209,12 @@ function tearPack() {
   if (!pk || pk.busy) return;
   pk.busy = true;
   const t = today();
-  pk.cards.forEach(c => { c.got = t; });
+  pk.cards.forEach(c => { c.got = c.got || t; });
   if (pk.rare) pk.rare.pulled = true;
-  prog().packCount = packsOpened() + 1;
-  prog().packDate = t;
+  if (!pk.bar) {   // a B.A.R. pack isn't one of today's 3
+    prog().packCount = packsOpened() + 1;
+    prog().packDate = t;
+  }
   save();
   $("pk-close").hidden = true;
   $("pk-stage").querySelector(".pk-pack").classList.add("open");
@@ -216,7 +231,8 @@ function showPackCard(i) {
   flip.setAttribute("aria-label", last ? "Turn over the last card" : c.front + ": " + (c.back || "") + ". Next card");
   $("pk-count").textContent = (i + 1) + " of " + pk.cards.length;
   if (last) $("pk-hint").textContent = c === pk.rare ? "Something rare is glowing… tap to turn it over" : "The hardest card of the pack. Tap to turn it over";
-  else $("pk-hint").textContent = "Swipe it away for the next card";
+  else $("pk-hint").textContent = pk.bar ? "Read it well, then swipe it away. There's no going back" : "Swipe it away for the next card";
+  if (pk.bar && !last) speak(c.front, cardLang(c));   // B.A.R. reads each word aloud, like the old reading screen
   flip.focus({ preventScroll: true });
 }
 
@@ -237,7 +253,8 @@ function packTap() {
       badge.textContent = "RARE PULL · " + worldOf(c).name.toUpperCase();
       $("pk-stage").appendChild(badge);
     }
-    $("pk-hint").textContent = "Swipe it away to see your pack";
+    $("pk-hint").textContent = pk.bar ? "Swipe it away, and the cards burn" : "Swipe it away to see your pack";
+    if (pk.bar) speak(c.front, cardLang(c));
     return;
   }
   nextPackCard(-1);
@@ -252,7 +269,14 @@ function nextPackCard(dir) {
   flip.style.opacity = "0";
   setTimeout(() => {
     pk.busy = false;
-    if (pk.i === pk.cards.length - 1) packDone(); else showPackCard(pk.i + 1);
+    if (pk.i < pk.cards.length - 1) showPackCard(pk.i + 1);
+    else if (pk.bar) {   // B.A.R.: no end grid, the cards go straight to the burn (js/burn.js)
+      const cards = pk.cards;
+      $("packview").hidden = true;
+      document.documentElement.classList.remove("packing");
+      pk = null;
+      barPackDone(cards);
+    } else packDone();
   }, pkStill ? 0 : 300);
 }
 

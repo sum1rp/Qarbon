@@ -5,7 +5,8 @@
 let storageOK = true;
 try { localStorage.setItem("_qtest", "1"); localStorage.removeItem("_qtest"); } catch (e) { storageOK = false; }
 
-const FRESH = { cards: [], decks: [], playlists: [], music: "", directions: {}, books: [], readingBook: "", stackId: "", courseId: COURSE_ID, courses: {}, newPerDay: 10, newDate: "", newDone: 0, packDate: "", packCount: 0, journey: 0, voice: "female", sessions: 0, timerMode: "pomodoro" };
+const FRESH = { cards: [], decks: [], playlists: [], music: "", directions: {}, books: [], readingBook: "", stackId: "", courseId: COURSE_ID, courses: {}, newPerDay: 10, newDate: "", newDone: 0, packDate: "", packCount: 0, journey: 0, voice: "female", sessions: 0, timerMode: "pomodoro",
+                bar: {}, barLevel: "medium", typeAnswer: {} };
 
 // where you stopped reading a book: { ch: chapter (from 0), y: how far down it (0 to 1) } or { page } for a PDF
 function cleanPlace(p) {
@@ -37,6 +38,45 @@ function cleanMeta(m) {
 // or one of your own songs { k: "song", id, title, artist, album }. A song's file stays on the device it was added on,
 // so the item keeps enough to find it again (its id there, or its title + artist + album on another device).
 const str = (v, n) => typeof v === "string" ? v.slice(0, n) : "";
+// B.A.R. Exam scores, per course or deck: { french: { best: { easy: round, medium: round, hard: round }, last: [round, …] } }
+// A round = { id (when it ended, ms), level, right, total, secs (time used on the test), date }. At most the last 10 are kept.
+const BAR_LEVELS = ["easy", "medium", "hard"], BAR_KEEP = 10;
+function cleanRound(r) {
+  if (!r || typeof r !== "object" || !BAR_LEVELS.includes(r.level)) return null;
+  const total = Math.round(Number(r.total)), right = Math.round(Number(r.right));
+  if (!(total >= 1 && total <= 50 && right >= 0 && right <= total)) return null;
+  return { id: Number(r.id) || 0, level: r.level, right, total, secs: Math.max(0, Math.min(999, Math.round(Number(r.secs) || 0))),
+           date: typeof r.date === "string" ? r.date.slice(0, 10) : "" };
+}
+function cleanBar(b) {
+  const out = {};
+  for (const [k, v] of Object.entries(b && typeof b === "object" ? b : {})) {
+    if (!v || typeof v !== "object" || k.length > 80) continue;
+    const best = {};
+    for (const lv of BAR_LEVELS) { const r = cleanRound(v.best && v.best[lv]); if (r && r.level === lv) best[lv] = r; }
+    const last = (Array.isArray(v.last) ? v.last : []).map(cleanRound).filter(Boolean).sort((x, y) => y.id - x.id).slice(0, BAR_KEEP);
+    out[k] = { best, last };
+  }
+  return out;
+}
+// is round a better than round b? More right (as a share of the round), then faster
+const betterRound = (a, b) => !b || a.right / a.total > b.right / b.total || (a.right / a.total === b.right / b.total && a.secs < b.secs);
+// two devices' scores: the better best of each level, and the newest 10 rounds from both
+function mergeBar(a, b) {
+  const out = {};
+  for (const k of new Set([...Object.keys(a || {}), ...Object.keys(b || {})])) {
+    const x = (a || {})[k] || { best: {}, last: [] }, y = (b || {})[k] || { best: {}, last: [] };
+    const best = {};
+    for (const lv of BAR_LEVELS) {
+      const p = x.best[lv], q = y.best[lv];
+      if (p || q) best[lv] = p && q ? (betterRound(q, p) ? q : p) : p || q;
+    }
+    const seen = new Map([...x.last, ...y.last].map(r => [r.id, r]));
+    out[k] = { best, last: [...seen.values()].sort((m, n) => n.id - m.id).slice(0, BAR_KEEP) };
+  }
+  return out;
+}
+
 function cleanPlaylists(list) {
   return (Array.isArray(list) ? list : [])
     .filter(p => p && typeof p.name === "string" && p.name.trim() && Array.isArray(p.items))
@@ -154,6 +194,11 @@ function clean(data) {
                   packCount: Number.isInteger(p.packCount) && p.packCount > 0 ? p.packCount : 0 }];
   }));
   s.sessions = Number(s.sessions) || 0;
+  s.bar = cleanBar(s.bar);   // B.A.R. Exam scores (js/burn.js)
+  s.barLevel = BAR_LEVELS.includes(s.barLevel) ? s.barLevel : "medium";   // the level you picked last (this device)
+  // "Type the answer" in Review, per deck: { french: true, "d-…": true } (⚙, synced with your settings)
+  s.typeAnswer = Object.fromEntries(Object.entries(s.typeAnswer && typeof s.typeAnswer === "object" ? s.typeAnswer : {})
+    .filter(([k, v]) => v === true && k.length < 80));
   if (!VOICES.fr[s.voice]) s.voice = "female";
   if (!TIMER_MODES[s.timerMode] && s.timerMode !== "custom") s.timerMode = "pomodoro";
   // your Custom timer: each length is kept between its smallest and largest allowed value
@@ -176,7 +221,7 @@ function load() {
 // spelling in two languages ("piano") is two different cards
 const langKey = (lang, word) => (lang && lang !== "fr" ? lang + ":" : "") + word.trim().toLowerCase();
 const cardKey = c => c.key || langKey(c.lang, c.front);   // same as wordKey(): the key a card is known by
-const SYNCED_SETTINGS = ["newPerDay", "voice", "timerMode", "customTimer", "music", "directions"];
+const SYNCED_SETTINGS = ["newPerDay", "voice", "timerMode", "customTimer", "music", "directions", "typeAnswer"];
 const settingsOf = s => Object.fromEntries(SYNCED_SETTINGS.map(k => [k, s[k]]));
 
 // a "fingerprint" (JSON text) of every item, without its t, by "kind:id"
@@ -188,7 +233,7 @@ function snapshot(s) {
   s.playlists.forEach(p => add("playlist:" + p.id, p));
   s.books.forEach(b => add("book:" + b.id, b));
   out.settings = JSON.stringify(settingsOf(s));
-  out.counters = JSON.stringify([s.sessions, s.newDate, s.newDone, s.packDate, s.packCount, s.journey, s.courses]);   // not stamped, but worth syncing
+  out.counters = JSON.stringify([s.sessions, s.newDate, s.newDone, s.packDate, s.packCount, s.journey, s.courses, s.bar]);   // not stamped, but worth syncing
   return out;
 }
 let snap = {};   // the fingerprints at the last save
@@ -342,7 +387,8 @@ function mergeStates(a, b) {   // a = this device, b = online (both already clea
     newDate: later.newDate,                        // new cards started today: the bigger count, if it's the same day
     newDone: a.newDate === b.newDate ? Math.max(a.newDone, b.newDone) : later.newDone,
     ...mergeProgress(a, b),   // French's packs and place on the map
-    courses: Object.fromEntries(Object.keys(a.courses).map(id => [id, mergeProgress(a.courses[id], b.courses[id] || {})]))   // Spanish's
+    courses: Object.fromEntries(Object.keys(a.courses).map(id => [id, mergeProgress(a.courses[id], b.courses[id] || {})])),   // Spanish's
+    bar: mergeBar(a.bar, b.bar)   // B.A.R. Exam scores: best of both, newest 10 rounds
   };
 }
 // one course's packs today and place on the map, from two devices

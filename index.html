@@ -6,10 +6,10 @@
 <title>Qarbon</title>
 <!-- Amiri italic for the packs' "Level 1" (the logo's own built-in font only has the letters Q a r b n); offline, Georgia italic stands in -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:ital@1&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=74">
+<link rel="stylesheet" href="css/styles.css?v=75">
 <!-- the atom icons: the little one in the browser tab, and the one iPhones use for "Add to Home Screen" -->
-<link rel="icon" type="image/svg+xml" href="favicon.svg?v=74">
-<link rel="apple-touch-icon" href="apple-touch-icon.png?v=74">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=75">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=75">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -138,6 +138,7 @@
         <li><b>Your own cards</b> (your CSV decks, + Add card, Translate) skip the packs and come straight into Review like an Anki deck: 10 new ones a day per deck. <b>New cards a day (your own decks)</b> in ⚙ makes it 20 or 30. They live in their own <b>personal binder</b>, not the course's worlds, and never count on the Solar System map.</li>
         <li><b>Flip:</b> tap the card, tap <b>Show answer</b>, or press Space/Enter. Tap again to peek back at the front.</li>
         <li><b>Rate it:</b> Again, Hard, Good or Easy (keys 1 to 4). The small text under each button is when you'll see the card next.</li>
+        <li><b>Type the answer</b> (⚙, for the deck you're in): a box under the card asks for the answer. Type it and press <b>Check</b> (or Enter): the card turns over and your letters are compared with the answer (wrong or extra letters red, missing ones green, the right letter with the wrong accent yellow). For an English answer, any one of its meanings counts. You still choose Again, Hard, Good or Easy yourself; the one that fits is lit up. Tap the card instead to just see the answer.</li>
         <li><b>Swipe up</b> on the card to show the answer, then <b>swipe</b> right for Good, left for Again.</li>
         <li><b>Again</b> brings the card back a few cards later today, and again tomorrow.</li>
         <li><b>Scheduling uses Anki's numbers</b> (in whole days): a new card comes back in 1 day (Easy: 4 days). After that every card has an "ease" (starts at 2.5): Good multiplies the wait by it, Hard grows it 1.2× and lowers the ease, Easy multiplies it by the ease × 1.3 and raises it. Again sends the card back to 1 day and lowers its ease. If you answer a card a few days late and still know it, those days count too, like in Anki.</li>
@@ -195,10 +196,10 @@
     <div class="howsec">
       <h3>🔥 B.A.R. Exam (Burn After Reading)</h3>
       <ul>
-        <li>Choose <b>🔥 B.A.R. Exam</b> in the Mode menu. It takes 10 cards you've never studied from the stack (fewer if that's all that's left).</li>
-        <li><b>Read</b> each one once, and hear it. There's no going back.</li>
-        <li>The cards <b>burn up</b>. Then for each English word, pick the exact French (or Spanish) spelling out of 4: the right one, an accent trap, a spelling trap, and another real word. Spanish traps drop or move an accent (á é í ó ú, ñ → n) or swap letters that sound alike (b / v, ll / y, c / z / s, a silent h).</li>
-        <li>Right counts as Good, wrong as Hard, and missed words go <b>first in your next Review</b>. The end screen shows how many "survived the burn".</li>
+        <li>Choose <b>🔥 B.A.R. Exam</b> in the Mode menu (or tap the Sun on home). Pick a level: <b>Easy</b> (pick the word out of 4 real words), <b>Medium</b> (out of 4 with traps: an accent trap, a spelling trap and another real word) or <b>Hard</b> (type it; accents count, capitals don't). Each level shows your best score.</li>
+        <li><b>Open the pack:</b> up to 10 cards you've never studied come in a B.A.R. pack. Tear it open like a daily pack, then read each card once (you hear it too) and swipe it away. There's no going back. B.A.R. packs don't count toward your 3 packs a day.</li>
+        <li>The cards <b>burn up</b>, and you have <b>1:30</b> for the test. Your answers aren't marked yet: you see them all at the end, with the right spelling under each one you missed (on Hard, wrong letters red, missing ones green, accent slips yellow). Spanish traps drop or move an accent (á é í ó ú, ñ → n) or swap letters that sound alike (b / v, ll / y, c / z / s, a silent h).</li>
+        <li>Right counts as Good; wrong, or not reached before the time ran out, counts as Hard, and those words go <b>first in your next Review</b>. The start screen keeps your best on each level and your last 10 rounds, for each course or deck, synced between your devices.</li>
       </ul>
     </div>
 
@@ -336,6 +337,8 @@
       <select id="perday"><option>10</option><option>20</option><option>30</option></select>
     </label>
     <label>Card direction (this deck) <select id="direction"></select></label>
+    <!-- Anki-style typed answers in Review, for the deck you're in (synced) -->
+    <button id="typebtn">Type the answer: off</button>
     <label>Voice <select id="voice"></select></label>
     <!-- the cards' holo shine can follow the phone's tilt (iPhone asks permission once); this device only -->
     <button id="tiltbtn" hidden>Card shine: follow tilt</button>
@@ -682,6 +685,12 @@
     </div>
     <!-- how to use the card, under it: "Tap or swipe up to flip", then the swipes for Good and Again (render() in js/cards.js) -->
     <p id="cardhint"></p>
+    <!-- ⚙ "Type the answer": type it, then Check (or Enter) turns the card and compares your letters (js/cards.js) -->
+    <div id="typerow" hidden>
+      <input id="typein" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" aria-label="Your answer">
+      <button id="typecheck">Check</button>
+    </div>
+    <div id="typeres" hidden></div>
 
     <div id="buttons">
       <button id="show">Show answer</button>
@@ -768,17 +777,15 @@
   <div id="burnview" hidden>
     <h2 class="burntitle">Burn After Reading</h2>
 
-    <!-- 1. read phase: one card at a time, no going back -->
-    <div id="burn-read" class="burnpanel">
-      <p id="burn-note" class="burnnote"></p>
-      <p id="burn-count" class="burncount"></p>
-      <div class="burncard">
-        <div id="burn-fr" class="burnfr"></div>
-        <div id="burn-en" class="burnen"></div>
-        <button id="burn-hear" class="burnspeak" title="Hear it again">🔊</button>
-      </div>
-      <button id="burn-next" class="burnbig">Next</button>
+    <!-- 0. the start screen: pick a level, see your best per level and your last rounds (js/burn.js) -->
+    <div id="burn-start" class="burnpanel">
+      <p class="burnnote"><span id="burn-deck"></span> · 1:30 on the clock</p>
+      <div id="burn-levels"></div>
+      <button id="burn-go" class="burnbig">Open the pack</button>
+      <p id="burn-startnote" class="burnnote"></p>
+      <div id="burn-last"></div>
     </div>
+    <!-- 1. the round's cards come in a pack (#packview, js/collection.js): tear it and read each card as you swipe it away -->
 
     <!-- 2. burn phase: the stack catches fire and flies off as a meteor -->
     <div id="burn-fire" class="burnpanel" hidden>
@@ -786,20 +793,25 @@
       <p class="burnnote">The cards are gone. What do you remember?</p>
     </div>
 
-    <!-- 3. test phase: English word, pick the exact French spelling out of 4 -->
+    <!-- 3. test phase: English word, then pick the spelling out of 4 (Easy, Medium) or type it (Hard). The clock runs -->
     <div id="burn-test" class="burnpanel" hidden>
-      <p id="burn-qcount" class="burncount"></p>
+      <div class="burntop"><p id="burn-qcount" class="burncount"></p><span id="burn-timer" class="burntimer">1:30</span></div>
       <p id="burn-ask" class="burnnote">Which is the correct French spelling?</p>
       <div id="burn-prompt" class="burnprompt"></div>
       <div id="burn-options"></div>
-      <p id="burn-feedback" class="burnfeedback"></p>
+      <div id="burn-typerow" class="burntyperow" hidden>
+        <input id="burn-type" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="Type it here">
+        <button id="burn-typego">Next ›</button>
+      </div>
     </div>
 
     <!-- 4. results -->
     <div id="burn-end" class="burnpanel" hidden>
       <div id="burn-score" class="burnscore"></div>
+      <p id="burn-sub" class="burnnote"></p>
       <div id="burn-missed"></div>
-      <button id="burn-back" class="burnbig">Back to review</button>
+      <button id="burn-again" class="burnbig">Play again</button>
+      <button id="burn-back" class="burnplain">Back to review</button>
     </div>
   </div>
 
@@ -837,24 +849,24 @@
 
 
 <!-- the program, in order: packs (data) first, start.js last. Every file shares the same variables.
-     ?v=74 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
+     ?v=75 is the version: bump it with BUILD (js/basics.js) so phones load the new files.
      (Book texts in js/books/ and the PDF viewer only load when you open a book.) -->
-<script src="js/packs.js?v=74"></script>
-<script src="js/basics.js?v=74"></script>
-<script src="js/stars.js?v=74"></script>
-<script src="js/look.js?v=74"></script>
-<script src="js/worlds.js?v=74"></script>
-<script src="js/data.js?v=74"></script>
-<script src="js/cards.js?v=74"></script>
-<script src="js/timer.js?v=74"></script>
-<script src="js/burn.js?v=74"></script>
-<script src="js/music.js?v=74"></script>
-<script src="js/media.js?v=74"></script>
-<script src="js/app.js?v=74"></script>
-<script src="js/collection.js?v=74"></script>
-<script src="js/reading.js?v=74"></script>
-<script src="js/translate.js?v=74"></script>
-<script src="js/account.js?v=74"></script>
-<script src="js/start.js?v=74"></script>
+<script src="js/packs.js?v=75"></script>
+<script src="js/basics.js?v=75"></script>
+<script src="js/stars.js?v=75"></script>
+<script src="js/look.js?v=75"></script>
+<script src="js/worlds.js?v=75"></script>
+<script src="js/data.js?v=75"></script>
+<script src="js/cards.js?v=75"></script>
+<script src="js/timer.js?v=75"></script>
+<script src="js/burn.js?v=75"></script>
+<script src="js/music.js?v=75"></script>
+<script src="js/media.js?v=75"></script>
+<script src="js/app.js?v=75"></script>
+<script src="js/collection.js?v=75"></script>
+<script src="js/reading.js?v=75"></script>
+<script src="js/translate.js?v=75"></script>
+<script src="js/account.js?v=75"></script>
+<script src="js/start.js?v=75"></script>
 </body>
 </html>

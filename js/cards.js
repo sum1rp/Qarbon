@@ -94,6 +94,8 @@ function next() {
   current = it ? it.c : null;
   currentDir = it ? it.dir : "fr";
   revealed = false;
+  typed = null;              // a new card: nothing typed yet
+  $("typein").value = "";
   const c = $("card");
   c.classList.add("noanim");       // un-flip instantly so the next answer never peeks through
   c.classList.remove("flipped");
@@ -147,7 +149,12 @@ function render() {
     b.firstChild.textContent = names[i];
     b.lastChild.textContent = current && revealed && !practicing ? preview(sideOf(current, currentDir), i + 1) : "";
   });
-  $("show").hidden = !current || revealed;
+  // "Type the answer" (⚙, per deck): a box under the card instead of Show answer, then your letters compared
+  const typing = !!current && typeOn();
+  $("show").hidden = !current || revealed || typing;
+  $("typerow").hidden = !typing || revealed;
+  $("typein").placeholder = "Type the " + answerLang() + "…";
+  showTyped(typing && revealed);
   $("buttons").hidden = !current;
   $("card").classList.toggle("flipped", revealed);
   setUpSwipe();
@@ -193,7 +200,7 @@ function render() {
 function fitCard() {
   const r = document.documentElement.style;
   r.setProperty("--above", Math.round($("scene").getBoundingClientRect().top + scrollY + 8) + "px");
-  r.setProperty("--below", ($("buttons").offsetHeight + $("cardhint").offsetHeight + 18) + "px");
+  r.setProperty("--below", ($("buttons").offsetHeight + $("cardhint").offsetHeight + $("typerow").offsetHeight + $("typeres").offsetHeight + 18) + "px");
   // the card keeps its card shape, so a short screen makes it narrow: then its top row drops the world's name (css "narrow")
   $("card").classList.toggle("narrow", $("scene").offsetWidth < 290);
 }
@@ -603,6 +610,83 @@ function daysLate(c) {
   return Math.max(0, Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(y, m - 1, d)) / 864e5));
 }
 
+// ================= typing the answer (Anki-style) =================
+// ⚙ "Type the answer" (state.typeAnswer, per course or deck): in Review and Practice a box under the card asks for the
+// answer. Check (or Enter) turns the card over and compares your letters with the answer, letter by letter:
+// right letters stay plain, wrong or extra ones are red, missing ones green, and accent slips (e for é) yellow.
+// You still choose Again / Hard / Good / Easy yourself; the button that fits is lit up (exact = Good, only accents = Hard,
+// else Again). Tapping or swiping the card without typing just shows the answer, like before.
+let typed = null;   // the check for the card showing: { ok, accentOnly, typedHTML, rightHTML, text }
+const typeOn = () => !!state.typeAnswer[(stack || course()).id] && (mode === "daily" || mode === "practice");
+// the language of the side you have to type: the course's word, or the English meaning
+const answerLang = () => currentDir === "en" ? (stack && stack.custom ? "answer" : course().name) : "English";
+
+// tidy for comparing: one kind of apostrophe, single spaces, no capitals
+const tidyTyped = s => String(s || "").normalize("NFC").replace(/[’ʼ`´]/g, "'").replace(/\s+/g, " ").trim().toLowerCase();
+const baseLetter = ch => ch.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+// compare what you typed with the right answer. Returns { ok, accentOnly, typedHTML, rightHTML }.
+// It lines the two up the way a spell checker does (the fewest changes), where a letter with the wrong accent costs
+// only half, so "ecole" for "école" shows one yellow letter instead of a red one.
+function compareTyped(typedText, right) {
+  const a = [...tidyTyped(typedText)], b = [...tidyTyped(right)];
+  const cost = (x, y) => x === y ? 0 : baseLetter(x) === baseLetter(y) ? .5 : 1;
+  const d = Array.from({ length: a.length + 1 }, (_, i) => Array.from({ length: b.length + 1 }, (_, j) => i + j));
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost(a[i - 1], b[j - 1]));
+  // walk back from the end: each step says what happened to one letter
+  const ta = [], tb = [];
+  let i = a.length, j = b.length;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && d[i][j] === d[i - 1][j - 1] + cost(a[i - 1], b[j - 1])) {
+      const k = a[i - 1] === b[j - 1] ? "ok" : baseLetter(a[i - 1]) === baseLetter(b[j - 1]) ? "acc" : "bad";
+      ta.unshift([a[i - 1], k]); tb.unshift([b[j - 1], k === "bad" ? "miss" : k]); i--; j--;
+    } else if (i > 0 && d[i][j] === d[i - 1][j] + 1) { ta.unshift([a[i - 1], "bad"]); i--; }   // a letter too many
+    else { tb.unshift([b[j - 1], "miss"]); j--; }                                             // a letter you left out
+  }
+  const html = list => list.map(([ch, k]) => k === "ok" ? esc(ch) : '<span class="tc-' + k + '">' + esc(ch === " " ? "␣" : ch) + "</span>").join("");
+  const ok = a.join("") === b.join("");
+  return { ok, accentOnly: !ok && baseLetter(a.join("")) === baseLetter(b.join("")), typedHTML: html(ta), rightHTML: html(tb) };
+}
+
+// the answer to compare with. The course's word: exactly. English: any one of its meanings ("to go, to leave" →
+// "go" or "leave" both count), without "to", "the", "a" or anything in brackets. The closest meaning is the one shown.
+function checkTyped(card, dir, text) {
+  if (dir === "en") return compareTyped(text, card.front);
+  const plain = s => tidyTyped(s).replace(/\([^)]*\)/g, "").replace(/^(to|the|a|an) /, "").trim();
+  const metas = (card.back || "").split(/[,;\/]| or /).map(plain).filter(Boolean);
+  const mine = plain(text);
+  const tries = [tidyTyped(card.back || ""), ...metas].map(m => ({ m, r: compareTyped(m === tidyTyped(card.back || "") ? tidyTyped(text) : mine, m) }));
+  const score = x => x.r.ok ? 0 : x.r.accentOnly ? .5 : 1 + x.r.typedHTML.split("tc-").length;   // fewest marks wins
+  return tries.sort((x, y) => score(x) - score(y))[0].r;
+}
+
+// turn the card over: if you typed something, check it first (Show answer, a tap, a swipe up, Enter, Check)
+function reveal() {
+  if (!current || revealed) return;
+  const text = $("typein").value;
+  typed = typeOn() && text.trim() ? { ...checkTyped(current, currentDir, text), text } : null;
+  $("typein").blur();   // the keyboard goes away, so 1–4 and the buttons work
+  revealed = true;
+  render();
+}
+
+// after turning over: what you typed against the answer, and the grade button that fits lit up
+function showTyped(on) {
+  const box = $("typeres");
+  box.hidden = !on || !typed;
+  const suggest = !on || !typed ? 0 : typed.ok ? 3 : typed.accentOnly && mode !== "practice" ? 2 : 1;   // (Practice: Got it or Missed)
+  GRADES.forEach((g, i) => $(g).classList.toggle("suggest", suggest === i + 1));
+  if (box.hidden) return;
+  box.innerHTML = typed.ok ? '<b class="tc-yes">✓ Exactly right</b>'
+    : '<div><span class="tl">You typed</span> <span class="tw">' + typed.typedHTML + '</span></div>' +
+      '<div><span class="tl">Answer</span> <span class="tw">' + typed.rightHTML + '</span></div>' +
+      (typed.accentOnly ? '<div class="tn">Only the accents were off</div>' : "");
+}
+$("typein").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); reveal(); } });
+$("typecheck").onclick = reveal;
+
 // a card you pressed Again on earlier today (it's already scheduled for a later day)
 const relearning = c => c.reviews > 0 && c.due > today();
 
@@ -671,7 +755,7 @@ function slide(x, animate) {
 
 // tap: show the answer, or once it's showing, flip back and forth to look again
 function flip() {
-  if (!revealed) { revealed = true; render(); }
+  if (!revealed) { reveal(); return; }
   else $("card").classList.toggle("flipped");
 }
 
