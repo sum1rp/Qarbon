@@ -6,7 +6,7 @@ let storageOK = true;
 try { localStorage.setItem("_qtest", "1"); localStorage.removeItem("_qtest"); } catch (e) { storageOK = false; }
 
 const FRESH = { cards: [], decks: [], playlists: [], music: "", directions: {}, books: [], readingBook: "", stackId: "", courseId: COURSE_ID, courses: {}, newPerDay: 10, newDate: "", newDone: 0, packDate: "", packCount: 0, journey: 0, voice: "female", sessions: 0, timerMode: "pomodoro",
-                bar: {}, barLevel: "medium", typeAnswer: {}, habits: {}, goal: "10-20", session: null, wf: {} };
+                bar: {}, barLevel: "medium", typeAnswer: {}, habits: {}, goal: "10-20", session: null, wf: {}, duels: {} };
 
 // where you stopped reading a book: { ch: chapter (from 0), y: how far down it (0 to 1) } or { page } for a PDF
 function cleanPlace(p) {
@@ -118,6 +118,16 @@ function mergeBest(a, b) {
   for (const [k, v] of Object.entries(b || {})) out[k] = Math.max(out[k] || 0, v);
   return out;
 }
+// ⚔️ World Duels (js/duels.js): the worlds you've beaten, per course: { french: [0, 1, 3] } (world numbers, 0 = Earth).
+// Two devices: every world either one has beaten.
+const cleanDuels = d => Object.fromEntries(Object.entries(d && typeof d === "object" ? d : {})
+  .filter(([k, v]) => k.length < 80 && Array.isArray(v))
+  .map(([k, v]) => [k, [...new Set(v.filter(i => Number.isInteger(i) && i >= 0 && i < 12))].sort((a, b) => a - b)]));
+function mergeDuels(a, b) {
+  const out = { ...a };
+  for (const [k, v] of Object.entries(b || {})) out[k] = [...new Set([...(out[k] || []), ...v])].sort((x, y) => x - y);
+  return out;
+}
 // a session running on this device (js/habits.js): { act, start, end (0 = open-ended), counted (time counted up to), timer (the Focus timer) }
 function cleanSession(x) {
   if (!x || typeof x !== "object" || !/^[a-z]{1,12}$/.test(x.act) || !(Number(x.start) > 0)) return null;
@@ -165,6 +175,7 @@ function clean(data) {
       // pulled = it came as a rare pull from a harder deck
       if (typeof c.got !== "string" || !/^\d{4}-\d\d-\d\d$/.test(c.got)) delete c.got;
       if (c.pulled !== true) delete c.pulled;
+      if (c.shiny !== true) delete c.shiny;   // a shiny won in ⚔️ World Duels (js/duels.js): a rare look, nothing else changes
       c.t = Number(c.t) || 0;   // when this card last changed (for syncing)
       return c;
     });
@@ -248,6 +259,7 @@ function clean(data) {
   // "Type the answer" in Review, per deck: { french: true, "d-…": true } (⚙, synced with your settings)
   s.typeAnswer = Object.fromEntries(Object.entries(s.typeAnswer && typeof s.typeAnswer === "object" ? s.typeAnswer : {})
     .filter(([k, v]) => v === true && k.length < 80));
+  s.duels = cleanDuels(s.duels);       // ⚔️ World Duels: the worlds you've beaten per course (synced)
   s.wf = cleanBest(s.wf);              // 👾 Wordfighter: your best score per course (synced)
   s.habits = cleanHabits(s.habits);   // 🌍 Habits: study time per day (synced)
   s.goal = GOALS[s.goal] ? s.goal : "10-20";   // the daily goal range (synced with your settings)
@@ -286,7 +298,7 @@ function snapshot(s) {
   s.playlists.forEach(p => add("playlist:" + p.id, p));
   s.books.forEach(b => add("book:" + b.id, b));
   out.settings = JSON.stringify(settingsOf(s));
-  out.counters = JSON.stringify([s.sessions, s.newDate, s.newDone, s.packDate, s.packCount, s.journey, s.courses, s.bar, s.wf]);   // not stamped, but worth syncing
+  out.counters = JSON.stringify([s.sessions, s.newDate, s.newDone, s.packDate, s.packCount, s.journey, s.courses, s.bar, s.wf, s.duels]);   // not stamped, but worth syncing
   return out;
 }
 let snap = {};   // the fingerprints at the last save
@@ -446,7 +458,8 @@ function mergeStates(a, b) {   // a = this device, b = online (both already clea
     courses: Object.fromEntries(Object.keys(a.courses).map(id => [id, mergeProgress(a.courses[id], b.courses[id] || {})])),   // Spanish's
     bar: mergeBar(a.bar, b.bar),   // B.A.R. Exam scores: best of both, newest 10 rounds
     habits: mergeHabits(a.habits, b.habits),  // 🌍 study time: every device's own record
-    wf: mergeBest(a.wf, b.wf)                 // 👾 Wordfighter: the higher best score
+    wf: mergeBest(a.wf, b.wf),                // 👾 Wordfighter: the higher best score
+    duels: mergeDuels(a.duels, b.duels)       // ⚔️ World Duels: worlds beaten on either device
   };
 }
 // one course's packs today and place on the map, from two devices

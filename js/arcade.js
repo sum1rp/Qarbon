@@ -12,6 +12,8 @@ function renderArcade() {
   const wf = state.wf[course().id];
   $("ar-wfbest").textContent = wf ? "Best: " + fmtScore(wf) + " (" + course().name + ")" : "No score yet in " + course().name;
   $("ar-bar").classList.remove("go");
+  const won = (state.duels[course().id] || []).length;
+  $("ar-duelwon").textContent = won ? "Worlds won: " + won + " of " + (lastWorld() + 1) + " (" + course().name + ")" : "No worlds won yet in " + course().name;
   // the tiles' pixel pictures (the sprites are in js/worlds.js)
   $("ar-wfpic").innerHTML = `<svg viewBox="0 0 40 40" shape-rendering="crispEdges">
     ${pixelSVG(WF_SPRITES.noun, { C: "#6FB7FF" }, 4, 5, 1.3)}${pixelSVG(WF_SPRITES.verb, { C: "#5CE1A6" }, 21.7, 5, 1.3)}
@@ -40,10 +42,36 @@ $("ar-bar").onclick = () => {
   }, calm() ? 0 : 1500);
 };
 $("ar-wf").onclick = () => setMode("fighter");
+$("ar-duel").onclick = () => setMode("duel");
 
-// ================= Wordfighter: loaded the first time it opens =================
-// The game is in its own file (js/wordfighter.js), so it doesn't slow down starting Qarbon.
-// render() calls this while the mode is "fighter".
+// the games' pixel fonts (Press Start 2P, VT323) come from Google Fonts, added the first time a game opens; offline, Courier stands in
+let arcadeFontsOn = false;
+function arcadeFonts() {
+  if (arcadeFontsOn) return;
+  arcadeFontsOn = true;
+  const l = document.createElement("link");
+  l.rel = "stylesheet"; l.href = "https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap";
+  document.head.appendChild(l);
+  if (document.fonts) document.fonts.ready.then(() => { if (mode === "fighter" && typeof wfFit === "function") wfFit(); });
+}
+
+// ================= the games, each loaded the first time it opens =================
+// Each game is in its own file (js/wordfighter.js, js/duels.js), so they don't slow down starting Qarbon.
+// render() calls openDuels while the mode is "duel", openFighter while it's "fighter".
+// ⚔️ World Duels. duelWorld = a world to duel right away (from its panel on the map)
+let duelWorld = null;
+function openDuels() {
+  const w = duelWorld; duelWorld = null;
+  if (typeof dlOpen === "function") { dlOpen(w); return; }
+  $("dl-app").textContent = "Loading…";
+  loadScript("js/duels.js?v=" + VERSION)
+    .then(() => { if (mode === "duel") dlOpen(w); })
+    .catch(() => { $("dl-app").textContent = "Couldn't load World Duels. Check your connection and try again."; });
+}
+// the ⚔️ Duel button on a world's panel on the Solar System map (js/collection.js)
+function duelFromMap(i) { duelWorld = i; setMode("duel"); }
+
+// 👾 Wordfighter
 function openFighter() {
   if (typeof wfOpen === "function") { wfOpen(); return; }
   $("wf-en").textContent = "Loading…";

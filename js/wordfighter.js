@@ -346,16 +346,8 @@ function wfGameOver() {
 }
 
 // ----- opening Wordfighter (from the Arcade; openFighter in js/arcade.js) -----
-let wfFonts = false;
 function wfOpen() {
-  // the pixel fonts (Press Start 2P, VT323) come from Google Fonts, only once you play; offline, Courier stands in
-  if (!wfFonts) {
-    wfFonts = true;
-    const l = document.createElement("link");
-    l.rel = "stylesheet"; l.href = "https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap";
-    document.head.appendChild(l);
-    if (document.fonts) document.fonts.ready.then(() => { if (wfActive()) wfFit(); });
-  }
+  arcadeFonts();   // the pixel fonts (js/arcade.js)
   scrollTo(0, 0);
   const k = course(), n = wfCards().length, best = state.wf[k.id];
   $("wf-lab").innerHTML = "SHOOT<br>THE<br>" + k.name.toUpperCase();

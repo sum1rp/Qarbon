@@ -199,8 +199,9 @@
     <div class="howsec">
       <h3>🔥 B.A.R. Exam (Burn After Reading)</h3>
       <ul>
-        <li><b>🕹 The Arcade</b> (the cabinet on home, or the Mode menu) holds the games: <b>B.A.R. Exam</b>, <b>👾 Wordfighter</b> and, soon, World Duels. They use the cards in your binder and never change your review schedule.</li>
+        <li><b>🕹 The Arcade</b> (the cabinet on home, or the Mode menu) holds the games: <b>B.A.R. Exam</b>, <b>👾 Wordfighter</b> and <b>⚔️ World Duels</b>. They use the cards in your binder and never change your review schedule.</li>
         <li><b>👾 Wordfighter:</b> an 8-bit shooter. An English word shows at the bottom; shoot the ship carrying its French (or Spanish) word. Six ships a wave, swaying in formation; one swoops down and fires every few seconds, and each wave (named after a world of the Solar System) is faster. Hit the wrong ship and it shows its English and dives at you. You have 3 lives, lost when a ship or a shot hits you. Points: 100 a word, 200 if it was diving, times your streak (up to ×5), +500 for clearing a wave. Phone: drag on the field to fly, tap it or FIRE to shoot. Mac: ← → to fly, Space to shoot. The words you missed are listed at the end, and your best score per course syncs. Leaving mid-game pauses it. You need at least 4 cards in your binder.</li>
+        <li><b>⚔️ World Duels:</b> 8-bit word battles against the worlds of your Solar System (pick one in the Arcade, or tap ⚔️ Duel on a world's panel on the map). On your turn an English word shows: <b>Translate</b> (pick the French of 4, 20 damage) or <b>Spell</b> (type it, 35; only an accent slip or a wrong le / la = 15). On their turn they show a word: pick its English to block, or take the hit. Pick the difficulty first: <b>Review</b> (only cards in your binder), <b>Stretch</b> (your binder plus a few new words) or <b>Challenge</b> (mostly new words, which only come as Translate). A world gets stronger the more of its cards you collect and master. Win and one card from the duel goes into your binder, and about 1 time in 10 (1 in 5 on Challenge) a card you already own turns <b>shiny</b> (a gold edge and a ★ in the binder and on the Review card). Lose and nothing is taken; you see the words that got you. Beaten worlds get a WON mark. Duels never change your review schedule.</li>
         <li>Tap the <b>Sun</b> in the 🕹 Arcade (it goes supernova) to start B.A.R. Exam. Pick a level: <b>Easy</b> (pick the word out of 4 real words), <b>Medium</b> (out of 4 with traps: an accent trap, a spelling trap and another real word) or <b>Hard</b> (type it; accents count, capitals don't). Each level shows your best score.</li>
         <li><b>Open the pack:</b> up to 10 cards you've never studied come in a B.A.R. pack. Tear it open like a daily pack, then read each card once (you hear it too) and swipe it away. There's no going back. B.A.R. packs don't count toward your 3 packs a day.</li>
         <li>The cards <b>burn up</b>, and you have <b>1:30</b> for the test. Your answers aren't marked yet: you see them all at the end, with the right spelling under each one you missed (on Hard, wrong letters red, missing ones green, accent slips yellow). Spanish traps drop or move an accent (á é í ó ú, ñ → n) or swap letters that sound alike (b / v, ll / y, c / z / s, a silent h).</li>
@@ -388,6 +389,7 @@
       <!-- the Arcade's games: started from its tiles, so they're not choices here; each line only shows while you're in it -->
       <option value="burn" hidden disabled>🔥 B.A.R. Exam</option>
       <option value="fighter" hidden disabled>👾 Wordfighter</option>
+      <option value="duel" hidden disabled>⚔️ World Duels</option>
       <option value="focus">⏱ Focus</option>
       <option value="reading">📖 Reading</option>
       <option value="media">🎧 Qarbon Media Player</option>
@@ -843,9 +845,9 @@
         <span class="ar-pic ar-px" id="ar-wfpic" aria-hidden="true"></span>
         <span class="ar-text"><b>Wordfighter</b><span>An 8-bit shooter: shoot the ship carrying the word for the English at the bottom.</span><small id="ar-wfbest"></small></span>
       </button>
-      <button class="ar-game ar-soon" disabled>
+      <button class="ar-game" id="ar-duel">
         <span class="ar-pic ar-px" id="ar-duelpic" aria-hidden="true"></span>
-        <span class="ar-text"><b>World Duels</b><span>8-bit battles against the worlds of your Solar System.</span><small>Coming soon</small></span>
+        <span class="ar-text"><b>World Duels</b><span>8-bit word battles against the worlds of your Solar System. Win cards, sometimes a shiny.</span><small id="ar-duelwon"></small></span>
       </button>
     </div>
     <p class="ar-note">The games use the cards in your binder and never change your review schedule.</p>
@@ -879,6 +881,9 @@
     <div class="wf-prompt" id="wf-prompt"><span class="wf-lab" id="wf-lab">SHOOT<br>THE<br>FRENCH</span><span class="wf-en" id="wf-en">…</span></div>
     <div class="wf-controls" id="wf-controls"><button class="wf-back" id="wf-back">‹ Arcade</button><button class="wf-fire" id="wf-fire" aria-label="Fire">FIRE</button></div>
   </section>
+
+  <!-- ===== ⚔️ World Duels (js/duels.js, loaded the first time you open it): the world picker and the battles are drawn in here ===== -->
+  <section id="duels" hidden><div id="dl-app"></div></section>
 
   <!-- ===== 🌍 Habits: today's goal, sessions, your streak and stats (js/habits.js) ===== -->
   <section id="habits" hidden>

@@ -81,7 +81,8 @@ function cardHTML(c, m, size, num) {
       '<div class="art">' + photo + '<div class="foil2"></div><div>' + word + '</div></div>' +
       '<div class="textbox meaning">' + esc(c.back || "") + '</div>' +
       '<div class="pips"><span>' + pipsHTML(m) + '</span><span class="step">' + MASTERY[m] + '</span></div>';
-  return '<div class="qcard' + (size === "mini" ? " qmini" : "") + '" data-type="' + esc(c.part_of_speech || "") + '" data-tier="' + w.id + '" data-m="' + m + '">' +
+  return '<div class="qcard' + (size === "mini" ? " qmini" : "") + '" data-type="' + esc(c.part_of_speech || "") + '" data-tier="' + w.id + '" data-m="' + m + '"' +
+    (c.shiny ? ' data-shiny="1"' : '') + '>' +
     '<div class="face"><div class="foil"></div><div class="inner">' + inside + '</div><div class="spark"></div></div></div>';
 }
 // the back of a card: the silver edge around a dark panel with the logo atom (tier = the world, for its glow).
@@ -737,12 +738,14 @@ function solarPanel(i, st, isReached) {
     '<div class="sol-stat"><span>Familiar or better</span>' + bar(st.fam / st.total, true) + '<span>' + pct(st.fam / st.total) + '</span></div>' +
     '<div class="sol-stat"><span>Mastered</span>' + bar(st.mas / st.total) + '<span>' + st.mas + '</span></div>' +
     '<p class="sol-note">' + note + '</p>' +
-    '<div class="sol-acts"><button id="sol-study">Review ' + k.name + '</button>' + worldPackButton(w) + '<button id="sol-binder">Binder</button>' + (practiceCards(w).length ? '<button id="sol-practice">🔁 Practice</button>' : '') + '</div>' +
+    '<div class="sol-acts"><button id="sol-study">Review ' + k.name + '</button>' + worldPackButton(w) + '<button id="sol-binder">Binder</button>' + (practiceCards(w).length ? '<button id="sol-practice">🔁 Practice</button>' : '') +
+      '<button id="sol-duel">⚔️ Duel</button></div>' +
     '<p class="sol-packnote" id="sol-packnote"></p>';
   // every world is part of the course: Review it, or open its binder on this world
   $("sol-study").onclick = reviewFromMap;
   $("sol-binder").onclick = () => { chooseStack(course(), true); binderFilter = w.id; renderBinder(); };
   if ($("sol-practice")) $("sol-practice").onclick = () => { chooseStack(course(), true); practiceWorld(w); };
+  $("sol-duel").onclick = () => duelFromMap(i);   // ⚔️ World Duels against this world (js/arcade.js)
   if ($("sol-pack")) $("sol-pack").onclick = () => {
     if (stack !== course()) useStack(course());   // the pack deals from the course, even if you were in one of your own decks
     if (!packReady()) { $("sol-packnote").textContent = "That's " + PACKS_PER_DAY + " packs today. More packs tomorrow!"; return; }

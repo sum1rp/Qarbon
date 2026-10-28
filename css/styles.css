@@ -1657,3 +1657,115 @@ html.spacefull-on .ipod { visibility:hidden; }   /* (it's under the stars anyway
 .wf-controls { display:flex; justify-content:space-between; align-items:center; gap:8px; }
 .wf-back { font-size:1rem; padding:10px 16px; border-radius:999px; }
 .wf-fire { padding:16px 28px; }
+
+/* ---------- ⚔️ World Duels (js/duels.js), build 77: an 8-bit handheld battle (the user's approved color preview) ---------- */
+#duels { width:100%; max-width:460px; --dl-bg:#05050c; --dl-panel:#0d0d1a; --dl-ink:#f4f4ff; --dl-dim:#9a9ac0; --dl-good:#3ee08f; --dl-bad:#ff4f6a; --dl-gold:#ffd23f;
+         --dl-pix:"Press Start 2P", "Courier New", monospace; --dl-txt:VT323, "Courier New", monospace;
+         color:var(--dl-ink); font-family:var(--dl-txt); font-size:22px; -webkit-tap-highlight-color:transparent; }
+#dl-app { display:flex; flex-direction:column; gap:14px; }
+#duels canvas { image-rendering:pixelated; display:block; }
+.dl-top { display:flex; align-items:center; gap:10px; }
+.dl-top h2 { font-family:var(--dl-pix); font-size:12px; margin:0 0 0 auto; line-height:1.4; font-weight:400; color:var(--accent); }
+.dl-btn { font-family:var(--dl-pix); font-size:10px; line-height:1.4; color:var(--dl-ink); background:var(--dl-panel); border:3px solid var(--dl-ink);
+          border-radius:0; padding:8px 10px; box-shadow:3px 3px 0 var(--dl-dim); }
+.dl-btn:active { transform:translate(2px, 2px); box-shadow:1px 1px 0 var(--dl-dim); }
+.dl-btn[aria-pressed="true"] { background:var(--dl-ink); color:var(--dl-panel); }
+#duels button:focus-visible, #duels input:focus-visible { outline:3px dashed var(--accent); outline-offset:3px; }
+/* a pixel window: a thick border with a thin inner line, square corners */
+.dl-box { background:var(--dl-panel); border:4px solid var(--dl-ink); box-shadow:inset 0 0 0 3px var(--dl-panel), inset 0 0 0 5px var(--dl-dim); padding:14px 16px; }
+.dl-intro { line-height:1.05; }
+.dl-note { color:var(--dl-dim); font-size:19px; line-height:1.05; margin:0; grid-column:1 / -1; }
+
+/* the world picker: the difficulty, then 12 worlds */
+.dl-levels { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; }
+.dl-levels .dl-btn { display:flex; flex-direction:column; gap:6px; padding:8px 6px; text-align:left; }
+.dl-levels small { font-family:var(--dl-txt); font-size:16px; line-height:1; color:var(--dl-dim); }
+.dl-levels [aria-pressed="true"] small { color:var(--dl-panel); }
+.dl-grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; }
+.dl-tile { position:relative; display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 4px; border-radius:0;
+           background:var(--dl-panel); border:3px solid var(--dl-ink); color:var(--dl-ink); font:inherit; }
+.dl-tile canvas { width:80%; aspect-ratio:1; }
+.dl-tile b { font-family:var(--dl-pix); font-size:8px; font-weight:400; line-height:1.5; text-align:center; }
+.dl-tile small { font-size:18px; color:var(--dl-dim); line-height:1; }
+.dl-tile:disabled { cursor:default; border-style:dashed; }
+.dl-tile:disabled canvas { opacity:.35; }
+.dl-badge { position:absolute; top:4px; right:4px; font-family:var(--dl-pix); font-size:7px; padding:3px 4px; background:var(--dl-gold); color:var(--dl-bg); }
+
+/* the arena: the rival top right, you bottom left, name plates with HP bars */
+.dl-arena { position:relative; aspect-ratio:1 / .9; border:4px solid var(--dl-ink); overflow:hidden; background:var(--dl-bg); }
+.dl-sky { position:absolute; inset:0; width:100%; height:100%; }
+.dl-arena.shake { animation:dlshake .4s steps(4); }
+@keyframes dlshake { 25% { transform:translate(-6px, 3px); } 50% { transform:translate(6px, -3px); } 75% { transform:translate(-3px, 0); } }
+.dl-foe { position:absolute; right:5%; top:5%; width:44%; aspect-ratio:1; overflow:hidden; }
+.dl-foe canvas, .dl-me canvas { width:100%; height:100%; }
+.dl-foe.blink canvas { animation:dlblink .6s steps(1); }
+@keyframes dlblink { 0%, 34%, 68% { visibility:hidden; } 17%, 51%, 85% { visibility:visible; } }
+.dl-foe.down canvas { transition:transform .7s steps(7); transform:translateY(100%); }
+.dl-me { position:absolute; left:6%; bottom:6%; width:36%; aspect-ratio:1; }
+.dl-ground { position:absolute; height:10%; border-radius:50%; background:rgba(244,244,255,.14); }
+.dl-ground.g1 { right:4%; top:42%; width:46%; }
+.dl-ground.g2 { left:4%; bottom:3%; width:40%; }
+.dl-plate { position:absolute; width:46%; box-sizing:border-box; padding:8px 10px; background:var(--dl-panel); border:3px solid var(--dl-ink); box-shadow:3px 3px 0 var(--dl-dim); }
+.dl-plate.foe { left:4%; top:6%; }
+.dl-plate.me { right:4%; bottom:8%; }
+.dl-nm { font-family:var(--dl-pix); font-size:9px; line-height:1.5; display:flex; justify-content:space-between; gap:6px; }
+.dl-nm span:last-child { color:var(--dl-dim); white-space:nowrap; }
+.dl-hprow { display:flex; align-items:center; gap:6px; margin-top:6px; }
+.dl-hprow em { font-family:var(--dl-pix); font-size:7px; font-style:normal; background:var(--dl-ink); color:var(--dl-panel); padding:2px 3px; }
+.dl-hp { flex:1; height:8px; border:2px solid var(--dl-ink); background:var(--dl-bg); }
+.dl-hp i { display:block; height:100%; width:100%; background:var(--dl-good); transition:width .6s steps(10); }
+.dl-hp i.mid { background:var(--dl-gold); }
+.dl-hp i.low { background:var(--dl-bad); }
+.dl-hpnum { margin-top:4px; font-family:var(--dl-pix); font-size:8px; text-align:right; font-variant-numeric:tabular-nums; }
+.dl-dmg { position:absolute; font-family:var(--dl-pix); font-size:14px; pointer-events:none; animation:dlrise 1s steps(8) forwards; text-shadow:2px 2px 0 var(--dl-bg); }
+@keyframes dlrise { to { transform:translateY(-36px); opacity:0; } }
+.dl-bolt { position:absolute; width:12px; height:12px; margin:-6px 0 0 -6px; pointer-events:none; background:var(--dl-ink); box-shadow:0 0 0 3px var(--accent); }
+
+/* the text box and the moves */
+.dl-dialog { min-height:104px; line-height:1.05; font-size:24px; cursor:pointer; }
+.dl-who { font-family:var(--dl-pix); font-size:10px; }
+.dl-word { display:block; margin-top:8px; font-size:34px; line-height:1; }
+.dl-newtag { display:inline-block; margin-top:6px; font-family:var(--dl-pix); font-size:8px; padding:3px 5px; background:var(--accent-fill); color:#fff; }
+.dl-dialog .ok { color:var(--dl-good); }
+.dl-dialog .no { color:var(--dl-bad); }
+.dl-moves { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
+.dl-moves.one { grid-template-columns:1fr; }
+.dl-move { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px; padding:12px; border-radius:0; background:var(--dl-panel); border:3px solid var(--dl-ink);
+           color:var(--dl-ink); font:inherit; font-size:24px; line-height:1; text-align:left; min-height:56px; box-shadow:3px 3px 0 var(--dl-dim); min-width:0; overflow-wrap:anywhere; }
+.dl-move::before { content:"▶"; font-size:14px; opacity:0; }
+.dl-move:hover:not(:disabled)::before, .dl-move:focus-visible::before { opacity:1; }
+.dl-move small { flex-basis:100%; font-size:18px; color:var(--dl-dim); padding-left:20px; }
+.dl-move:active { transform:translate(2px, 2px); box-shadow:1px 1px 0 var(--dl-dim); }
+.dl-move:disabled { opacity:.45; cursor:default; }
+.dl-move.right { background:var(--dl-good); color:var(--dl-bg); }
+.dl-move.wrong { background:var(--dl-bad); color:var(--dl-bg); }
+.dl-move.right small, .dl-move.wrong small { color:inherit; }
+.dl-typed { display:flex; gap:8px; grid-column:1 / -1; }
+.dl-typed input { flex:1; min-width:0; font:inherit; font-size:26px; padding:8px 12px; background:var(--dl-bg); color:var(--dl-ink); border:3px solid var(--dl-ink); border-radius:0; }
+
+/* the end of a duel: the cards you won, or the words that got you */
+.dl-result { display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; }
+.dl-result h3 { font-family:var(--dl-pix); font-size:13px; line-height:1.6; margin:0; font-weight:400; }
+.dl-result p { margin:0; color:var(--dl-dim); line-height:1.05; max-width:30ch; }
+.dl-prizes { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+.dl-prize { width:150px; max-width:42vw; display:flex; flex-direction:column; background:var(--dl-panel); border:4px solid var(--dl-ink); box-shadow:4px 4px 0 var(--dl-dim); animation:dlpop .5s steps(5); }
+@keyframes dlpop { from { transform:scale(.2); } }
+.dl-tag { font-family:var(--dl-pix); font-size:7px; padding:6px; background:var(--dl-ink); color:var(--dl-panel); text-align:left; }
+.dl-prize canvas { width:78%; margin:8px auto 4px; aspect-ratio:1; }
+.dl-prize .fr { font-size:26px; padding:0 8px; line-height:1; overflow-wrap:anywhere; }
+.dl-prize .en { font-size:20px; color:var(--dl-dim); padding:4px 8px 10px; line-height:1; }
+.dl-prize.shiny { border-color:var(--dl-gold); animation:dlpop .5s steps(5), dlshine 1.2s steps(2) infinite; }
+.dl-prize.shiny .dl-tag { background:var(--dl-gold); color:var(--dl-bg); }
+@keyframes dlshine { 50% { box-shadow:4px 4px 0 var(--dl-gold), 0 0 0 4px var(--accent); } }
+.dl-lost { list-style:none; padding:0; margin:0; width:100%; max-width:320px; text-align:left; }
+.dl-lost li { display:flex; justify-content:space-between; gap:12px; padding:4px 0; border-bottom:2px dotted var(--dl-dim); }
+.dl-lost li span:last-child { color:var(--dl-dim); text-align:right; }
+.dl-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+@media (prefers-reduced-motion: reduce) { #duels *, #duels *::before, #duels *::after { animation:none !important; transition:none !important; } }
+
+/* a shiny card (won in a duel): a gold edge with a rainbow sheen, in the binder and on the Review card */
+.qcard[data-shiny] .face { box-shadow:0 0 0 2px #ffd23f, 0 0 14px rgba(255,210,63,.55); }
+.qcard[data-shiny] .face::after { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; mix-blend-mode:color-dodge; opacity:.35;
+  background:linear-gradient(115deg, transparent 20%, #ff6ad5 35%, #ffd23f 45%, #3ee08f 55%, #6fb7ff 65%, transparent 80%); }
+.qcard[data-shiny] .face::before { content:"★"; position:absolute; z-index:5; top:6px; right:6px; width:20px; height:20px; border-radius:50%; display:grid; place-items:center;
+  font-size:12px; color:#2a2000; background:#ffd23f; box-shadow:0 0 8px rgba(255,210,63,.8); }

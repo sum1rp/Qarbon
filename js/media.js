@@ -1358,7 +1358,7 @@ let miniAway = false;   // swiped away (until you open the Qpod again, or nothin
 function miniQpod() {
   if (miniFrom && (mode !== "media" || $("study").hidden)) miniForget();
   if (mode === "media" || !nowPlaying()) miniAway = false;
-  const show = !$("study").hidden && mode !== "media" && mode !== "fighter" && !!nowPlaying() && !miniAway;   // (not over the game)
+  const show = !$("study").hidden && mode !== "media" && mode !== "fighter" && mode !== "duel" && !!nowPlaying() && !miniAway;   // (not over the game)
   qmini.hidden = !show;
   if (!show) return;
   qmini.classList.toggle("qm-playing", isPlaying());   // its atom turns while music plays

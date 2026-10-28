@@ -11,7 +11,7 @@
 const ACTS = { review: "Review", decks: "Decks", map: "Solar System", translate: "Translate", bar: "B.A.R. Exam", arcade: "Arcade", focus: "Focus",
                reading: "Reading", study: "Studying", writing: "Writing", listening: "Listening", other: "Other" };
 // the mode you're in → its activity (modes not listed, like 🎧 Media and Habits itself, don't count)
-const MODE_ACT = { daily: "review", practice: "review", deck: "decks", solar: "map", translate: "translate", burn: "bar", arcade: "arcade", fighter: "arcade", focus: "focus", reading: "reading" };
+const MODE_ACT = { daily: "review", practice: "review", deck: "decks", solar: "map", translate: "translate", burn: "bar", arcade: "arcade", fighter: "arcade", duel: "arcade", focus: "focus", reading: "reading" };
 // what you can start a session for, and for how long (0 = open-ended: it runs until you stop it)
 const SESSION_ACTS = [["reading", "📖 Reading"], ["study", "✏️ Studying"], ["writing", "✍️ Writing"], ["listening", "🎧 Listening"], ["other", "✨ Other"]];
 const SESSION_LENGTHS = [[0, "Until I stop it"], [15, "15 min"], [25, "25 min"], [30, "30 min"], [45, "45 min"], [60, "1 hour"], [90, "1 h 30"]];

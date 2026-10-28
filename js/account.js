@@ -89,13 +89,13 @@ async function signIn(create) {
 function syncedPart() {
   return { v: 1, cards: state.cards, decks: state.decks, playlists: state.playlists, books: state.books, deleted: state.deleted,
            settings: settingsOf(state), settingsT: state.settingsT, sessions: state.sessions,
-           newDate: state.newDate, newDone: state.newDone, packDate: state.packDate, packCount: state.packCount, journey: state.journey, courses: state.courses, bar: state.bar, habits: state.habits, wf: state.wf };
+           newDate: state.newDate, newDone: state.newDone, packDate: state.packDate, packCount: state.packCount, journey: state.journey, courses: state.courses, bar: state.bar, habits: state.habits, wf: state.wf, duels: state.duels };
 }
 
 // tidy up the online copy the same way a loaded save is tidied (see clean)
 function cleanRemote(d) {
   return clean({ ...(d.settings || {}), cards: d.cards, decks: d.decks, playlists: d.playlists, books: d.books, deleted: d.deleted,
-                 settingsT: d.settingsT, sessions: d.sessions, newDate: d.newDate, newDone: d.newDone, packDate: d.packDate, packCount: d.packCount, journey: d.journey, courses: d.courses, bar: d.bar, habits: d.habits, wf: d.wf });
+                 settingsT: d.settingsT, sessions: d.sessions, newDate: d.newDate, newDone: d.newDone, packDate: d.packDate, packCount: d.packCount, journey: d.journey, courses: d.courses, bar: d.bar, habits: d.habits, wf: d.wf, duels: d.duels });
 }
 
 // put a merged result into this device's save. Existing cards and books are updated in place (not
@@ -122,7 +122,7 @@ function applyMerged(m) {
   state.playlists = reuse(state.playlists, m.playlists, p => p.id);
   state.books = reuse(state.books, m.books, b => b.id);
   state.deleted = m.deleted;
-  Object.assign(state, m.settings, { settingsT: m.settingsT, sessions: m.sessions, newDate: m.newDate, newDone: m.newDone, packDate: m.packDate, packCount: m.packCount, journey: m.journey, courses: m.courses, bar: m.bar, habits: m.habits, wf: m.wf });
+  Object.assign(state, m.settings, { settingsT: m.settingsT, sessions: m.sessions, newDate: m.newDate, newDone: m.newDone, packDate: m.packDate, packCount: m.packCount, journey: m.journey, courses: m.courses, bar: m.bar, habits: m.habits, wf: m.wf, duels: m.duels });
   if (!state.books.some(b => b.id === state.readingBook)) state.readingBook = "";
   save(true);   // quiet: these came from syncing
   // keep the screen in step with what arrived
