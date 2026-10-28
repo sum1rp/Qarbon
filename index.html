@@ -282,11 +282,12 @@
     <div class="howsec">
       <h3>☁ Account and sync</h3>
       <ul>
-        <li>In <b>⚙</b> settings, <b>Create account</b> (an email and a password of 6 or more characters) on your first device, then <b>Sign in</b> with the same email and password on your others.</li>
+        <li>In <b>⚙</b> settings, <b>Create account</b> (an email and a password of 6 or more characters) on your first device. We email you a <b>6-digit code</b>: type it in to confirm the account. Then pick your <b>@username</b> (3 to 20 letters, numbers or _, one per person: it's how friends will find you). On your other devices, <b>Sign in</b> with the same email and password.</li>
+        <li><b>Forgot your password?</b> Type your email, tap <b>Forgot password?</b>, enter the code from the email and choose a new one. Signed in, <b>Account settings</b> (in ⚙) lets you change your email (a code goes to the new one) or password, or <b>Delete my account</b> (your account, username and online save go for good; the device keeps its copy).</li>
         <li>Your cards, decks, books, reading time and settings then <b>sync between your devices</b>: when the app opens, a few seconds after you change something, and when you're back online. <b>Sync now</b> does it right away.</li>
         <li>Each card, deck and book keeps <b>the newest version</b> from either device, so reviewing on your phone and adding a book on your Mac keeps both. Deleting something on one device deletes it on the others.</li>
         <li>Offline? Everything still works and is saved on the device; it syncs when you're back online. The status line at the bottom of the study page shows when it last synced.</li>
-        <li><b>Sign out</b> keeps your progress on that device. Your saved progress is private: only your account can read it.</li>
+        <li><b>Sign out</b> keeps your progress on that device. Your saved progress is private: only your account can read it. What Qarbon keeps and why: <a href="privacy.html" target="_blank" rel="noopener">Privacy and terms</a>.</li>
       </ul>
     </div>
 
@@ -351,25 +352,79 @@
     <span id="voiceinfo"></span>
     <button id="export">Export backup</button>
     <label>Restore backup <input type="file" id="restore" accept=".json"></label>
-    <!-- account & syncing: sign in so your progress follows you between devices -->
+    <!-- account & syncing: sign in so your progress follows you between devices (js/account.js).
+         Only one of the views below shows at a time (acctView in the script picks it) -->
     <div id="account">
       <b>☁ Account &amp; sync</b>
-      <form id="acct-form">
+      <!-- signed out: sign in or make an account -->
+      <form id="acct-form" class="acct-view">
         <input type="email" id="acct-email" placeholder="Email" autocomplete="username" autocapitalize="off" spellcheck="false">
         <input type="password" id="acct-pass" placeholder="Password (6 or more characters)" autocomplete="current-password">
         <div class="acctbtns">
           <button type="submit" id="acct-signin">Sign in</button>
           <button type="button" id="acct-create">Create account</button>
         </div>
+        <div class="acctlinks"><button type="button" class="linkbtn" id="acct-forgot">Forgot password?</button>
+          <a class="linkbtn" href="privacy.html" target="_blank" rel="noopener">Privacy &amp; terms</a></div>
+        <p class="acct-small">Creating an account means you agree to the <a href="privacy.html" target="_blank" rel="noopener">privacy policy and terms</a>.</p>
       </form>
-      <div id="acct-in" hidden>
-        <span>Signed in as <b id="acct-who"></b></span>
+      <!-- a 6-digit code from an email: to confirm a new account, reset a password, or confirm a new email address -->
+      <form id="acct-code" class="acct-view" hidden>
+        <span id="acct-codeq"></span>
+        <input id="acct-codein" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="6-digit code" aria-label="Code from the email">
+        <div class="acctbtns">
+          <button type="submit" id="acct-codego">Confirm</button>
+          <button type="button" id="acct-resend">Send a new code</button>
+        </div>
+        <button type="button" class="linkbtn" id="acct-codeback">‹ Back</button>
+      </form>
+      <!-- after a forgotten password: choose a new one -->
+      <form id="acct-newpass" class="acct-view" hidden>
+        <span>Choose a new password for <b id="acct-npwho"></b></span>
+        <input type="password" id="acct-np" placeholder="New password (6 or more characters)" autocomplete="new-password">
+        <button type="submit" id="acct-npgo">Save new password</button>
+      </form>
+      <!-- signed in without a username yet: pick one (it's what friends and leaderboards will see) -->
+      <form id="acct-name" class="acct-view" hidden>
+        <span>Pick your username. It's how friends will find you, and what leaderboards will show.</span>
+        <div class="acct-at"><span aria-hidden="true">@</span><input id="acct-namein" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="20" placeholder="username" aria-label="Username"></div>
+        <span class="acct-small" id="acct-namecheck">3 to 20 letters, numbers or _</span>
+        <button type="submit" id="acct-namego" disabled>Save username</button>
+      </form>
+      <!-- signed in -->
+      <div id="acct-in" class="acct-view" hidden>
+        <span>Signed in as <b id="acct-handle"></b> <span class="acct-small" id="acct-who"></span></span>
         <div class="acctbtns">
           <button id="acct-sync">Sync now</button>
           <button id="acct-out">Sign out</button>
         </div>
+        <details id="acct-more">
+          <summary>Account settings</summary>
+          <form id="acct-chemail">
+            <b>Change email</b>
+            <input type="email" id="acct-newemail" placeholder="New email" autocomplete="email" autocapitalize="off" spellcheck="false">
+            <button type="submit">Send a code to it</button>
+          </form>
+          <form id="acct-chpass">
+            <b>Change password</b>
+            <input type="password" id="acct-oldpass" placeholder="Current password" autocomplete="current-password">
+            <input type="password" id="acct-newpass1" placeholder="New password (6 or more characters)" autocomplete="new-password">
+            <button type="submit">Change password</button>
+          </form>
+          <div id="acct-del">
+            <b>Delete my account</b>
+            <span class="acct-small">Removes your account, your username and your online save for good. This device keeps its own copy of your progress.</span>
+            <button type="button" id="acct-delask" class="acct-danger">Delete my account…</button>
+            <form id="acct-delsure" hidden>
+              <label for="acct-deltype">Type <b>DELETE</b> to confirm</label>
+              <input id="acct-deltype" autocomplete="off" autocapitalize="characters" spellcheck="false">
+              <div class="acctbtns"><button type="submit" class="acct-danger">Delete forever</button><button type="button" id="acct-delno">Cancel</button></div>
+            </form>
+          </div>
+          <a class="linkbtn" href="privacy.html" target="_blank" rel="noopener">Privacy &amp; terms</a>
+        </details>
       </div>
-      <p id="acct-status"></p>
+      <p id="acct-status" role="status"></p>
     </div>
     <button id="setdone">Done</button>
   </div>

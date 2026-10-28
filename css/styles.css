@@ -1038,6 +1038,25 @@
   .acctbtns button { flex:1; min-height:44px; }
   #acct-signin, #acct-sync { background:linear-gradient(135deg,var(--accent-fill),var(--accent-fill-2)); color:#fff; border:none; }
   #acct-form[hidden], #acct-in[hidden] { display:none; }
+  /* the other views (build 78): a code from an email, a new password, picking a username, account settings */
+  .acct-view { display:flex; flex-direction:column; gap:8px; }
+  .acct-view input, #acct-more input { font-size:16px; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:var(--surface); color:var(--text); }
+  #acct-codein { font-size:1.4rem; letter-spacing:.3em; text-align:center; font-variant-numeric:tabular-nums; }
+  #acct-codego, #acct-npgo, #acct-namego { background:linear-gradient(135deg,var(--accent-fill),var(--accent-fill-2)); color:#fff; border:none; min-height:44px; }
+  #acct-namego:disabled { opacity:.45; cursor:default; }
+  .acct-at { display:flex; align-items:center; gap:6px; }
+  .acct-at span { font-size:1.2rem; color:var(--muted); }
+  .acct-at input { flex:1; min-width:0; }
+  .acct-small { color:var(--muted); font-size:.85rem; margin:0; }
+  .acct-small a { color:var(--text); }
+  .acctlinks { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+  #account .linkbtn { padding:4px 0; font-size:.9rem; align-self:flex-start; }
+  #acct-more { border-top:1px solid var(--line); padding-top:8px; }
+  #acct-more summary { cursor:pointer; color:var(--muted); padding:6px 0; }
+  #acct-more form, #acct-del { display:flex; flex-direction:column; gap:8px; margin:10px 0 14px; }
+  #acct-more form button { min-height:44px; }
+  .acct-danger { color:#ffb3bd; border-color:rgba(255,90,110,.45); }
+  #acct-delsure .acct-danger { background:#b3263a; color:#fff; border:none; }
   #acct-status { margin:0; font-size:.85rem; }
   #acct-status:empty { display:none; }
 
