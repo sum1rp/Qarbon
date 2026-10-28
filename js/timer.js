@@ -65,6 +65,7 @@ function startTimer() {
   try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) {}
   endAt = Date.now() + remaining * 1000;
   ticking = setInterval(tick, 500);
+  if (phase === "focus" && typeof timerSession === "function") timerSession(true);   // a focus part is a 🌍 Habits session (js/habits.js)
   $("timer").classList.remove("done");
   setStartLabel("Pause");
   showTime();
@@ -73,6 +74,7 @@ function startTimer() {
 function pauseTimer() {
   updateRemaining();
   clearInterval(ticking); ticking = null;
+  if (typeof timerSession === "function") timerSession(false);
   setStartLabel("Resume");
   showTime();
 }
@@ -80,6 +82,7 @@ function pauseTimer() {
 // back to the start of a fresh round (used by Reset, switching style, and restoring a backup)
 function resetTimer() {
   clearInterval(ticking); ticking = null;
+  if (typeof timerSession === "function") timerSession(false);
   phase = "focus"; cycle = 0;
   remaining = phaseSeconds();
   $("timer").classList.remove("done");
@@ -90,6 +93,7 @@ function resetTimer() {
 // Skip: jump straight to the next part. A skipped focus session isn't counted as done.
 function skipPhase() {
   clearInterval(ticking); ticking = null;
+  if (typeof timerSession === "function") timerSession(false);
   phase = phase === "focus" ? "break" : "focus";
   remaining = phaseSeconds();
   setStartLabel("Start");
@@ -115,6 +119,7 @@ function chooseTimerMode(value) {
 // a focus or break ran out: chime, then line up the next phase (press Start when you're ready)
 function finishPhase() {
   clearInterval(ticking); ticking = null;
+  if (typeof timerSession === "function") timerSession(false);
   const wasFocus = phase === "focus";
   if (wasFocus) { state.sessions = (state.sessions || 0) + 1; cycle++; save(); }
   try { chime(); } catch (e) {}

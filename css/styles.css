@@ -1490,3 +1490,107 @@ html.spacefull-on .ipod { visibility:hidden; }   /* (it's under the stars anyway
 @keyframes mwsway { from { transform:rotate(-3deg); } to { transform:rotate(3deg); } }
 @keyframes mwring { 0% { opacity:0; } 25% { opacity:.9; } 100% { opacity:0; } }
 @media (prefers-reduced-motion: reduce) { #w-media .mw-sway, #w-media .mw-orbits, #w-media .mw-e, #w-media .mw-ring path { animation:none; } #w-media .mw-ring path { opacity:.6; } }
+
+/* ---------- 🌍 Habits (js/habits.js): today's goal ring, sessions, the streak and stats (build 77) ---------- */
+/* the home Earth: a thin ring around the globe fills with today's minutes (gold once the goal is met) */
+#w-earth .hring { position:absolute; inset:-12%; pointer-events:none; }
+#w-earth .hring svg { inset:0; width:100%; height:100%; overflow:visible; }
+#w-earth .hring circle { fill:none; }
+#w-earth .hring .trk { stroke:rgba(255,255,255,.10); stroke-width:1.6; }
+#w-earth .hring .fill { stroke:var(--accent); stroke-width:2.2; stroke-linecap:round; filter:drop-shadow(0 0 3px rgba(123,108,255,.8)); }
+#w-earth .hring .fill.met { stroke:#ffc94a; filter:drop-shadow(0 0 3px rgba(255,201,74,.8)); }
+
+/* the session bar under the Mode menu (every mode but Habits) */
+#sessionbar { width:100%; max-width:340px; box-sizing:border-box; display:flex; gap:8px; margin:-4px 0 12px; }
+#sessionbar button { min-height:40px; padding:6px 14px; border-radius:999px; font-size:.95rem; }
+#sb-open { flex:1; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-color:rgba(123,108,255,.5); }
+#sb-time { font-variant-numeric:tabular-nums; }
+.sb-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#ff5a5a; margin-right:8px; vertical-align:middle;
+          box-shadow:0 0 8px #ff5a5a; animation:sbpulse 1.6s ease-in-out infinite; }
+@keyframes sbpulse { 50% { opacity:.35; } }
+/* "✓ Today's goal met · 🔥 4 days", for a few seconds at the top */
+#hb-toast { position:fixed; z-index:30; top:calc(env(safe-area-inset-top) + 10px); left:50%; transform:translateX(-50%); max-width:90vw;
+            padding:8px 16px; border-radius:999px; font-weight:600; font-size:.95rem; pointer-events:none; white-space:nowrap;
+            color:#2a2000; background:linear-gradient(135deg, #ffe58a, #ffc94a); box-shadow:0 4px 16px rgba(255,201,74,.35); }
+#hb-toast.show { animation:hbtoast 3.5s ease forwards; }
+@keyframes hbtoast { 0% { opacity:0; transform:translate(-50%, -8px); } 8%, 85% { opacity:1; transform:translate(-50%, 0); } 100% { opacity:0; } }
+
+/* the page */
+#habits { width:100%; max-width:480px; display:flex; flex-direction:column; gap:14px; }
+.hb-top { display:flex; align-items:center; justify-content:center; gap:22px; }
+.hb-today { position:relative; width:min(52vw, 210px); aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.hb-today svg { position:absolute; inset:0; width:100%; height:100%; }
+.hb-today circle { fill:none; stroke-width:7; }
+.hb-today .track { stroke:rgba(255,255,255,.08); }
+.hb-today .bar { stroke:var(--accent); stroke-linecap:round; transition:stroke-dashoffset .6s ease; }
+.hb-today.met .bar { stroke:#ffc94a; }
+.hb-today .lo { fill:var(--text); stroke:none; }
+#hb-min { font-size:clamp(2.4rem, 13vw, 3.4rem); line-height:1; font-variant-numeric:tabular-nums; }
+.hb-today span { color:var(--muted); font-size:.9rem; }
+.hb-today small { color:var(--muted); font-size:.8rem; margin-top:2px; }
+.hb-streak { display:flex; flex-direction:column; align-items:center; text-align:center; }
+.hb-fire { font-size:1.8rem; line-height:1; }
+#hb-streak { font-size:2.2rem; line-height:1.1; font-variant-numeric:tabular-nums; }
+.hb-streak span, .hb-streak small { color:var(--muted); font-size:.85rem; }
+#hb-status { text-align:center; margin:-4px 0 0; font-weight:600; }
+.hb-panel { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:14px; display:flex; flex-direction:column; gap:10px; }
+.hb-panel h3 { margin:0; font-size:1.05rem; }
+.hb-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.hb-head > button { width:40px; height:40px; padding:0; border-radius:50%; font-size:1.3rem; flex:none; }
+.hb-head > button:disabled { opacity:.3; cursor:default; }
+.hb-pick { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.hb-pick label, .hb-goal { display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.85rem; }
+.hb-pick select { width:100%; padding:10px; font-size:1rem; }
+.hb-goal { flex-direction:row; align-items:center; justify-content:center; gap:10px; font-size:.95rem; }
+.hb-primary, #hb-stop { min-height:50px; width:100%; font-weight:600; }
+.hb-primary { background:linear-gradient(135deg,var(--accent-fill),var(--accent-fill-2)); color:#fff; border:none; }
+.hb-run { display:flex; align-items:center; gap:4px; font-size:1.1rem; }
+.hb-run b { flex:1; }
+#hb-rtime { font-size:1.6rem; font-weight:700; font-variant-numeric:tabular-nums; }
+.hb-small { margin:0; color:var(--muted); font-size:.85rem; }
+.hb-small:empty { display:none; }
+.hb-note { color:var(--text); }
+.hb-empty { margin:0; color:var(--muted); font-size:.9rem; }
+
+/* the calendar: one shade of the accent, deeper with more minutes (0 nothing, 1 some, 2 goal met, 3 the whole range) */
+.hb-cal { display:grid; grid-template-columns:repeat(7, 1fr); gap:5px; }
+.hb-wd { text-align:center; color:var(--muted); font-size:.75rem; }
+.hb-day { aspect-ratio:1; padding:0; border-radius:8px; font-size:.85rem; font-variant-numeric:tabular-nums; position:relative;
+          border:1px solid transparent; background:rgba(255,255,255,.04); color:var(--muted); }
+.hb-day[data-l="1"] { background:rgba(123,108,255,.22); color:var(--text); }
+.hb-day[data-l="2"] { background:rgba(100,87,232,.65); color:#fff; }
+.hb-day[data-l="3"] { background:var(--accent-fill); color:#fff; font-weight:700; }
+.hb-day[data-l="2"]::after, .hb-day[data-l="3"]::after { content:""; position:absolute; left:50%; bottom:3px; width:4px; height:4px; margin-left:-2px;
+          border-radius:50%; background:#ffc94a; }
+.hb-day[aria-current="date"] { border-color:var(--text); }
+.hb-day.picked { box-shadow:0 0 0 2px #ffc94a; }
+.hb-day:disabled { background:none; opacity:.35; cursor:default; }
+.hb-detail { margin:0; padding:10px 12px; border-radius:10px; background:var(--raised); font-size:.9rem; }
+
+/* horizontal bars (time by activity, mastery): the name, the bar, the number */
+.hb-act { display:grid; grid-template-columns:7.5em 1fr auto; align-items:center; gap:10px; font-size:.9rem; min-height:26px; }
+.hb-act span { color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.hb-act i { height:10px; border-radius:0 4px 4px 0; background:var(--accent); width:max(3px, calc(var(--f) * 100%)); }
+.hb-act b { font-weight:600; font-variant-numeric:tabular-nums; min-width:2em; text-align:right; }
+/* mastery steps: one hue, deeper for steps further along */
+.hb-m[data-m="0"] i { background:rgba(123,108,255,.35); }
+.hb-m[data-m="1"] i { background:rgba(123,108,255,.55); }
+.hb-m[data-m="2"] i { background:rgba(123,108,255,.75); }
+.hb-m[data-m="3"] i { background:var(--accent); }
+.hb-m[data-m="4"] i { background:#ffc94a; }
+.hb-seg { display:flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; }
+.hb-seg button { border:none; border-radius:0; padding:6px 12px; font-size:.85rem; background:none; color:var(--muted); }
+.hb-seg button[aria-pressed="true"] { background:var(--accent-fill); color:#fff; }
+.hb-big { margin:0; display:flex; align-items:baseline; gap:10px; color:var(--muted); font-size:.85rem; }
+.hb-big b { font-size:2rem; color:var(--text); }
+
+/* columns (cards per day, coming up): tap one and its number shows in the caption */
+.hb-cols { display:flex; align-items:stretch; gap:3px; height:120px; }
+.hb-col { flex:1; min-width:0; padding:0; border:none; background:none; border-radius:6px; display:flex; flex-direction:column; justify-content:flex-end;
+          align-items:stretch; gap:4px; }
+.hb-col i { display:block; height:calc(var(--f) * (100% - 20px)); min-height:2px; border-radius:4px 4px 0 0; background:var(--accent); opacity:.7; }
+.hb-col span { font-size:.7rem; color:var(--muted); text-align:center; height:16px; overflow:hidden; }
+.hb-col.picked i { opacity:1; box-shadow:0 0 10px rgba(123,108,255,.6); }
+.hb-col.picked span { color:var(--text); font-weight:700; }
+.hb-cap { margin:0; font-weight:600; font-size:.95rem; min-height:1.3em; }
+@media (prefers-reduced-motion: reduce) { .sb-dot { animation:none; } }

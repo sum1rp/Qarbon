@@ -47,3 +47,6 @@ const TIMER_MODES = {
   hour:     { label: "1 hour",              focus: 60, short: 10, long: 10, every: 1 }
 };
 const CUSTOM_LIMITS = { focus: [1, 180], short: [1, 60], long: [1, 90], every: [1, 12] };   // [smallest, largest]
+// 🌍 Habits (js/habits.js): the daily goal is a range of minutes. Reaching the low end = the day counts (✓, your streak goes on);
+// the ring keeps filling up to the high end. "10-20" is where everyone starts.
+const GOALS = { "5-10": [5, 10], "10-20": [10, 20], "20-30": [20, 30], "30-45": [30, 45], "45-60": [45, 60], "60-90": [60, 90] };

@@ -87,10 +87,12 @@
           <span class="body world" id="w-sun" aria-hidden="true"><img class="photo" alt="" data-src="img/sun.jpg"><span class="shock"></span><span class="flash"></span></span>
           <span class="wname">B.A.R. Exam</span><span class="wsub"></span>
         </button>
-        <!-- 🃏 Review: the Earth, live, last (after B.A.R., the user's order in build 71; the carousel wraps, so it also sits just before the Solar System) (a still photo until the live globe is ready) -->
-        <button class="slide" data-mode="daily">
-          <span class="body world" id="w-earth" aria-hidden="true"><img class="photo" alt="" data-src="img/earth.jpg"></span>
-          <span class="wname">Review</span><span class="wtime" id="ws-time"></span><span class="wsub" id="ws-daily"></span>
+        <!-- 🌍 Habits: the Earth, live, last (the carousel wraps, so it also sits just before the Solar System) (a still photo until the
+             live globe is ready). It was Review until build 77: Review now starts from the Solar System map. The ring around it fills
+             with today's minutes, gold once the goal is met (habitsWorldSVG in js/habits.js) -->
+        <button class="slide" data-mode="habits">
+          <span class="body world" id="w-earth" aria-hidden="true"><img class="photo" alt="" data-src="img/earth.jpg"><span class="hring" id="w-hring"></span></span>
+          <span class="wname">Habits</span><span class="wtime" id="ws-time"></span><span class="wsub" id="ws-habits"></span>
         </button>
       </div>
       <button class="arrow" id="nextworld" aria-label="Next world">›</button>
@@ -115,7 +117,8 @@
     <div class="howsec">
       <h3>Getting started</h3>
       <ul>
-        <li>The home screen shows one world at a time, starting with the Solar System. It moves on to the next world by itself every 5 seconds, like a little tour. Touching it pauses the tour; leave it alone for 10 seconds and it carries on (not with Reduce Motion on). Swipe left or right to move between them yourself, or tap a dot (or slide your finger along the dots) to jump (on a computer: the ‹ › buttons or the arrow keys). In order: the <b>Solar System</b> (your map, the Qarbon atom with planets around it), <b>Review</b> the Earth (with today's date and your time: it's lit where the Sun is right now), <b>Qarbon Media Player</b> the atom wearing headphones, <b>Decks</b> a fan of Qarbon cards, <b>Translate</b> the Tower of Babel, <b>Reading</b> the Moon, <b>Focus</b> the Crab Nebula and <b>B.A.R. Exam</b> the Sun (tap it and watch). Tap a world to go straight there. The small line under each world shows where you are on the map, cards due, your deck, or tonight's Moon and the books you're reading. <b>🔁 Practice</b> buttons are on the map and in the Binder.</li>
+        <li>The home screen shows one world at a time, starting with the Solar System. It moves on to the next world by itself every 5 seconds, like a little tour. Touching it pauses the tour; leave it alone for 10 seconds and it carries on (not with Reduce Motion on). Swipe left or right to move between them yourself, or tap a dot (or slide your finger along the dots) to jump (on a computer: the ‹ › buttons or the arrow keys). In order: the <b>Solar System</b> (your map, the Qarbon atom with planets around it), <b>Qarbon Media Player</b> the atom wearing headphones, <b>Decks</b> a fan of Qarbon cards, <b>Translate</b> the Tower of Babel, <b>Reading</b> the Moon, <b>Focus</b> the Crab Nebula <b>B.A.R. Exam</b> the Sun (tap it and watch) and <b>Habits</b> the Earth (with today's date and your time: it's lit where the Sun is right now). Tap a world to go straight there. The small line under each world shows where you are on the map and cards due, your deck, tonight's Moon and the books you're reading, or your streak. <b>Review</b> starts from the Solar System: tap the world you're at (or 🃏 Review in the Mode menu). <b>🔁 Practice</b> buttons are on the map and in the Binder.</li>
+        <li><b>🌍 Habits:</b> Qarbon counts your study time. Being in a study mode (Review, Decks, the Solar System, Translate, B.A.R. Exam, Focus, Reading) counts the whole time Qarbon is on screen; the Qpod alone doesn't. Pick a <b>daily goal</b> as a range (like 10–20 min): reaching the low end counts the day ✓ and keeps your <b>streak</b> going, and the ring fills on to the high end. Studying away from the screen, like a paper book? Start a <b>session</b> on the Habits page (open-ended or 15 min to 1 h 30): everything counts toward it until you stop, even on the Qpod or with the phone locked, and a red dot bar shows it in every mode. An open-ended session stops itself after 3 hours. The ⏱ Focus timer and 📖 Read are sessions too. The ring around the home Earth fills with today's minutes (gold once the goal is met). The Habits page also has a calendar (tap a day), time by activity, cards answered per day, how well you remember, and the cards coming up. Your time syncs: each device keeps its own record and they add up.</li>
         <li>They're all real: the planets are NASA photos, and the Earth is live: it turns, and it's lit where the Sun really is right now, with city lights on the night side. The Moon shows <b>tonight's actual phase</b>, and the stars behind everything are the real night sky (see <b>Space images</b> below).</li>
         <li>The app opens on the deck you used last (the <b>French</b> course the first time).</li>
         <li>Pick what you're doing from the <b>Mode</b> menu at the top: <b>🃏 Review</b>, <b>🗂 Decks</b>, <b>🔥 B.A.R. Exam</b>, <b>⏱ Focus</b>, <b>📖 Reading</b>, <b>🌐 Translate</b> or <b>🎧 Qarbon Media Player</b>.</li>
@@ -373,6 +376,7 @@
     <label for="modeselect">Mode</label>
     <select id="modeselect">
       <option value="daily">🃏 Review</option>
+      <option value="habits">🌍 Habits</option>
       <option value="deck">🗂 Decks</option>
       <option value="solar">🪐 Solar System</option>
       <option value="translate">🌐 Translate</option>
@@ -385,6 +389,12 @@
     </select>
     <span class="arrow" aria-hidden="true">▾</span>
   </div>
+  <!-- a session that's running (🌍 Habits, js/habits.js): shown in every mode, so you always see it's counting -->
+  <div id="sessionbar" hidden>
+    <button id="sb-open"><span class="sb-dot" aria-hidden="true"></span><span id="sb-label"></span> · <b id="sb-time"></b></button>
+    <button id="sb-stop">Stop</button>
+  </div>
+  <div id="hb-toast" hidden></div>
 
   <!-- ===== ⏱ Focus mode: the study timer, for any kind of studying =====
        It's the same timer as the small timer dropdown at the bottom of Review. Music lives in 🎧 Qarbon Media Player. -->
@@ -815,6 +825,79 @@
     </div>
   </div>
 
+  <!-- ===== 🌍 Habits: today's goal, sessions, your streak and stats (js/habits.js) ===== -->
+  <section id="habits" hidden>
+    <div class="hb-top">
+      <!-- today: a ring that fills with your minutes up to the top of your goal; the small dot marks the low end (the part that counts) -->
+      <div class="hb-today" id="hb-today">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="track" cx="60" cy="60" r="52"></circle>
+          <circle id="hb-bar" class="bar" cx="60" cy="60" r="52" transform="rotate(-90 60 60)"></circle>
+          <circle id="hb-lo" class="lo" r="3.5" cx="60" cy="8"></circle>
+        </svg>
+        <b id="hb-min">0</b><span>min today</span><small id="hb-goaltxt"></small>
+      </div>
+      <div class="hb-streak"><span class="hb-fire" aria-hidden="true">🔥</span><b id="hb-streak">0</b><span>day streak</span><small id="hb-best"></small></div>
+    </div>
+    <p id="hb-status"></p>
+
+    <!-- sessions: for studying away from the screen (a paper book, homework). Everything counts toward it until it stops -->
+    <div class="hb-panel">
+      <h3>Session</h3>
+      <div id="hb-start">
+        <div class="hb-pick">
+          <label>What <select id="hb-act"></select></label>
+          <label>How long <select id="hb-len"></select></label>
+        </div>
+        <button id="hb-go" class="hb-primary">Start session</button>
+        <p class="hb-small">For studying away from the screen, like a paper book. All your time counts toward it until you stop, even on the Qpod or with the phone locked. The ⏱ Focus timer and 📖 Read are sessions too.</p>
+      </div>
+      <div id="hb-running" hidden>
+        <div class="hb-run"><span class="sb-dot" aria-hidden="true"></span><b id="hb-rlabel"></b><span id="hb-rtime"></span></div>
+        <button id="hb-stop">Stop session</button>
+        <p class="hb-small" id="hb-rsub"></p>
+      </div>
+      <p class="hb-small hb-note" id="hb-note"></p>
+    </div>
+
+    <label class="hb-goal">Daily goal <select id="hb-goal"></select></label>
+
+    <div class="hb-panel">
+      <div class="hb-head"><button id="hb-prev" aria-label="Previous month">‹</button><h3 id="hb-month"></h3><button id="hb-next" aria-label="Next month">›</button></div>
+      <div class="hb-cal" id="hb-cal"></div>
+      <p class="hb-small" id="hb-calsum"></p>
+      <p class="hb-detail" id="hb-detail" hidden></p>
+    </div>
+
+    <div class="hb-panel">
+      <div class="hb-head"><h3>Time by activity</h3>
+        <span class="hb-seg" id="hb-range"><button data-n="7">7 days</button><button data-n="30">30 days</button></span></div>
+      <div id="hb-acts"></div>
+      <p class="hb-small" id="hb-actsum"></p>
+    </div>
+
+    <div class="hb-panel">
+      <h3>Cards answered per day</h3>
+      <div class="hb-cols" id="hb-reviews"></div>
+      <p class="hb-cap" id="hb-revcap"></p>
+      <p class="hb-small" id="hb-revsum"></p>
+    </div>
+
+    <div class="hb-panel">
+      <h3>How well you remember</h3>
+      <p class="hb-big"><b id="hb-ret"></b> <span id="hb-retsub"></span></p>
+      <div id="hb-mastery"></div>
+      <p class="hb-small" id="hb-mastsub"></p>
+    </div>
+
+    <div class="hb-panel">
+      <h3>Coming up</h3>
+      <div class="hb-cols" id="hb-forecast"></div>
+      <p class="hb-cap" id="hb-fcap"></p>
+      <p class="hb-small" id="hb-fsub"></p>
+    </div>
+  </section>
+
   <div id="msg"></div>
   <div id="diag"></div>
   </main>
@@ -865,6 +948,7 @@
 <script src="js/app.js?v=76"></script>
 <script src="js/collection.js?v=76"></script>
 <script src="js/reading.js?v=76"></script>
+<script src="js/habits.js?v=76"></script>
 <script src="js/translate.js?v=76"></script>
 <script src="js/account.js?v=76"></script>
 <script src="js/start.js?v=76"></script>

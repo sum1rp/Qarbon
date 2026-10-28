@@ -6,7 +6,7 @@ let storageOK = true;
 try { localStorage.setItem("_qtest", "1"); localStorage.removeItem("_qtest"); } catch (e) { storageOK = false; }
 
 const FRESH = { cards: [], decks: [], playlists: [], music: "", directions: {}, books: [], readingBook: "", stackId: "", courseId: COURSE_ID, courses: {}, newPerDay: 10, newDate: "", newDone: 0, packDate: "", packCount: 0, journey: 0, voice: "female", sessions: 0, timerMode: "pomodoro",
-                bar: {}, barLevel: "medium", typeAnswer: {} };
+                bar: {}, barLevel: "medium", typeAnswer: {}, habits: {}, goal: "10-20", session: null };
 
 // where you stopped reading a book: { ch: chapter (from 0), y: how far down it (0 to 1) } or { page } for a PDF
 function cleanPlace(p) {
@@ -75,6 +75,47 @@ function mergeBar(a, b) {
     out[k] = { best, last: [...seen.values()].sort((m, n) => n.id - m.id).slice(0, BAR_KEEP) };
   }
   return out;
+}
+
+// 🌍 Habits (js/habits.js): your study time, per device, per day: { "dev-…": { "2026-10-28": { s: { review: 340, reading: 1200 }, r: 42, ok: 37 } } }
+// s = seconds per activity, r = cards answered, ok = answered right (Hard, Good or Easy). Each device only ever adds to its
+// own record, so syncing can't count the same minute twice: the totals add up every device's record.
+const HABIT_DAYS = 400;   // days kept per device (a bit over a year)
+const dayRx = /^\d{4}-\d\d-\d\d$/;
+function cleanHabits(h) {
+  const out = {};
+  for (const [dev, days] of Object.entries(h && typeof h === "object" ? h : {})) {
+    if (!/^[\w-]{1,40}$/.test(dev) || !days || typeof days !== "object") continue;
+    const keep = Object.keys(days).filter(d => dayRx.test(d)).sort().slice(-HABIT_DAYS);
+    out[dev] = Object.fromEntries(keep.map(d => {
+      const x = days[d] && typeof days[d] === "object" ? days[d] : {}, s = {};
+      for (const [k, v] of Object.entries(x.s && typeof x.s === "object" ? x.s : {}))
+        if (/^[a-z]{1,12}$/.test(k) && Number(v) > 0) s[k] = Math.min(86400, Math.round(Number(v) * 10) / 10);   // seconds, to a tenth
+      return [d, { s, r: Math.max(0, Math.round(Number(x.r)) || 0), ok: Math.max(0, Math.round(Number(x.ok)) || 0) }];
+    }));
+  }
+  return out;
+}
+// two copies of the habit records: for each device and day, the bigger number of each kind (a record only grows)
+function mergeHabits(a, b) {
+  const out = {};
+  for (const dev of new Set([...Object.keys(a || {}), ...Object.keys(b || {})])) {
+    const x = (a || {})[dev] || {}, y = (b || {})[dev] || {};
+    out[dev] = {};
+    for (const d of new Set([...Object.keys(x), ...Object.keys(y)])) {
+      const p = x[d] || { s: {} }, q = y[d] || { s: {} }, s = {};
+      for (const k of new Set([...Object.keys(p.s), ...Object.keys(q.s)])) s[k] = Math.max(p.s[k] || 0, q.s[k] || 0);
+      out[dev][d] = { s, r: Math.max(p.r || 0, q.r || 0), ok: Math.max(p.ok || 0, q.ok || 0) };
+    }
+  }
+  return out;
+}
+// a session running on this device (js/habits.js): { act, start, end (0 = open-ended), counted (time counted up to), timer (the Focus timer) }
+function cleanSession(x) {
+  if (!x || typeof x !== "object" || !/^[a-z]{1,12}$/.test(x.act) || !(Number(x.start) > 0)) return null;
+  const start = Number(x.start);
+  return { act: x.act, start, end: Number(x.end) > start ? Number(x.end) : 0,
+           counted: Math.max(start, Number(x.counted) || start), timer: x.timer === true };
 }
 
 function cleanPlaylists(list) {
@@ -199,6 +240,9 @@ function clean(data) {
   // "Type the answer" in Review, per deck: { french: true, "d-…": true } (⚙, synced with your settings)
   s.typeAnswer = Object.fromEntries(Object.entries(s.typeAnswer && typeof s.typeAnswer === "object" ? s.typeAnswer : {})
     .filter(([k, v]) => v === true && k.length < 80));
+  s.habits = cleanHabits(s.habits);   // 🌍 Habits: study time per day (synced)
+  s.goal = GOALS[s.goal] ? s.goal : "10-20";   // the daily goal range (synced with your settings)
+  s.session = cleanSession(s.session);         // a session running on this device (not synced)
   if (!VOICES.fr[s.voice]) s.voice = "female";
   if (!TIMER_MODES[s.timerMode] && s.timerMode !== "custom") s.timerMode = "pomodoro";
   // your Custom timer: each length is kept between its smallest and largest allowed value
@@ -221,7 +265,7 @@ function load() {
 // spelling in two languages ("piano") is two different cards
 const langKey = (lang, word) => (lang && lang !== "fr" ? lang + ":" : "") + word.trim().toLowerCase();
 const cardKey = c => c.key || langKey(c.lang, c.front);   // same as wordKey(): the key a card is known by
-const SYNCED_SETTINGS = ["newPerDay", "voice", "timerMode", "customTimer", "music", "directions", "typeAnswer"];
+const SYNCED_SETTINGS = ["newPerDay", "voice", "timerMode", "customTimer", "music", "directions", "typeAnswer", "goal"];
 const settingsOf = s => Object.fromEntries(SYNCED_SETTINGS.map(k => [k, s[k]]));
 
 // a "fingerprint" (JSON text) of every item, without its t, by "kind:id"
@@ -272,6 +316,9 @@ function loadAuth() {
 }
 let auth = loadAuth();
 let syncTimer = null, syncing = false, syncAgain = false;
+// study time (js/habits.js) changes every second, so it doesn't start a sync by itself: it goes along with the next one,
+// and leaving the app syncs it if this is true
+let habitsUnsynced = false;
 
 // ----- merging two saves: this device's and the copy online -----
 // For each card, deck and book: the newer version wins. If both have the same time (e.g. old saves from
@@ -388,7 +435,8 @@ function mergeStates(a, b) {   // a = this device, b = online (both already clea
     newDone: a.newDate === b.newDate ? Math.max(a.newDone, b.newDone) : later.newDone,
     ...mergeProgress(a, b),   // French's packs and place on the map
     courses: Object.fromEntries(Object.keys(a.courses).map(id => [id, mergeProgress(a.courses[id], b.courses[id] || {})])),   // Spanish's
-    bar: mergeBar(a.bar, b.bar)   // B.A.R. Exam scores: best of both, newest 10 rounds
+    bar: mergeBar(a.bar, b.bar),   // B.A.R. Exam scores: best of both, newest 10 rounds
+    habits: mergeHabits(a.habits, b.habits)   // 🌍 study time: every device's own record
   };
 }
 // one course's packs today and place on the map, from two devices

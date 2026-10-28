@@ -353,14 +353,15 @@ $("direction").onchange = e => {
 
 // the small lines under the worlds: where you are on the map, cards due, the deck you're on, books you're reading
 function worldInfo() {
-  const all = allStacks(), s = all.find(x => x.id === state.stackId) || all[0], t = today();
-  const cards = cardsOf(s);
-  const due = cards.filter(c => active(c) && dirsOf(s).some(d => { const x = sideOf(c, d); return x.reviews > 0 && x.due <= t; })).length;
+  const all = allStacks(), s = all.find(x => x.id === state.stackId) || all[0], k = course(), t = today();
+  const cards = cardsOf(k);   // the course you're on: its map is where Review starts
+  const due = cards.filter(c => active(c) && dirsOf(k).some(d => { const x = sideOf(c, d); return x.reviews > 0 && x.due <= t; })).length;
   // today's pack, if it's still sealed (js/collection.js)
-  const packWaiting = s.course && !packsOpened() && cards.some(c => active(c) && !inBinder(c) && !isOwn(c) && worldOpen(c));
-  $("ws-daily").textContent = [due ? due + " due" : "", packWaiting ? "today's pack is ready" : ""].filter(Boolean).join(" · ");
+  const packWaiting = !packsOpened() && cards.some(c => active(c) && !inBinder(c) && !isOwn(c) && worldOpen(c));
   $("ws-deck").textContent = s.name;
-  $("ws-solar").textContent = course().name + " · at " + named(WORLDS[prog().journey]);   // where you are on the trip (js/collection.js)
+  // where you are on the trip (js/collection.js), then cards due: Review starts from the map since build 77
+  $("ws-solar").textContent = [course().name + " · at " + named(WORLDS[prog().journey]), due ? due + " due" : "", packWaiting ? "pack ready" : ""].filter(Boolean).join(" · ");
+  habitsWorld();   // under the Earth: your streak and today's minutes, and the ring around it (js/habits.js)
   // under the Moon: always tonight's Moon ("Waxing gibbous · 73% lit tonight", js/worlds.js), then the books you're reading
   const reading = state.books.filter(b => !isFinished(b)).length;
   $("ws-reading").textContent = moonLine() + (reading ? " · " + reading + (reading === 1 ? " book" : " books") : "");

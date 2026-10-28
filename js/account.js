@@ -89,13 +89,13 @@ async function signIn(create) {
 function syncedPart() {
   return { v: 1, cards: state.cards, decks: state.decks, playlists: state.playlists, books: state.books, deleted: state.deleted,
            settings: settingsOf(state), settingsT: state.settingsT, sessions: state.sessions,
-           newDate: state.newDate, newDone: state.newDone, packDate: state.packDate, packCount: state.packCount, journey: state.journey, courses: state.courses, bar: state.bar };
+           newDate: state.newDate, newDone: state.newDone, packDate: state.packDate, packCount: state.packCount, journey: state.journey, courses: state.courses, bar: state.bar, habits: state.habits };
 }
 
 // tidy up the online copy the same way a loaded save is tidied (see clean)
 function cleanRemote(d) {
   return clean({ ...(d.settings || {}), cards: d.cards, decks: d.decks, playlists: d.playlists, books: d.books, deleted: d.deleted,
-                 settingsT: d.settingsT, sessions: d.sessions, newDate: d.newDate, newDone: d.newDone, packDate: d.packDate, packCount: d.packCount, journey: d.journey, courses: d.courses, bar: d.bar });
+                 settingsT: d.settingsT, sessions: d.sessions, newDate: d.newDate, newDone: d.newDone, packDate: d.packDate, packCount: d.packCount, journey: d.journey, courses: d.courses, bar: d.bar, habits: d.habits });
 }
 
 // put a merged result into this device's save. Existing cards and books are updated in place (not
@@ -122,7 +122,7 @@ function applyMerged(m) {
   state.playlists = reuse(state.playlists, m.playlists, p => p.id);
   state.books = reuse(state.books, m.books, b => b.id);
   state.deleted = m.deleted;
-  Object.assign(state, m.settings, { settingsT: m.settingsT, sessions: m.sessions, newDate: m.newDate, newDone: m.newDone, packDate: m.packDate, packCount: m.packCount, journey: m.journey, courses: m.courses, bar: m.bar });
+  Object.assign(state, m.settings, { settingsT: m.settingsT, sessions: m.sessions, newDate: m.newDate, newDone: m.newDone, packDate: m.packDate, packCount: m.packCount, journey: m.journey, courses: m.courses, bar: m.bar, habits: m.habits });
   if (!state.books.some(b => b.id === state.readingBook)) state.readingBook = "";
   save(true);   // quiet: these came from syncing
   // keep the screen in step with what arrived
@@ -157,6 +157,7 @@ async function syncNow() {
     if (!r.ok) throw new Error("server");
     const online = r.data && r.data[0] && r.data[0].data;
     if (online) applyMerged(mergeStates(state, cleanRemote(online)));
+    habitsUnsynced = false;   // the study time going up now is the latest
     const w = await api("POST", "/rest/v1/qarbon_state",
                         { user_id: auth.id, data: syncedPart(), updated_at: new Date().toISOString() }, token);
     if (!w.ok) throw new Error(w.status === 401 ? "signed-out" : "server");
@@ -197,7 +198,7 @@ $("acct-out").onclick = async () => {
 window.addEventListener("online", () => syncNow());
 document.addEventListener("visibilitychange", () => {
   if (!auth) return;
-  if (document.hidden) { if (syncTimer) syncNow(); }   // leaving with unsynced changes: sync them now
+  if (document.hidden) { if (syncTimer || habitsUnsynced) syncNow(); }   // leaving with unsynced changes (or study time): sync them now
   else if (Date.now() - (auth.lastSync || 0) > 60000) syncNow();
 });
 
