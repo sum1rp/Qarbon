@@ -361,6 +361,7 @@ function worldInfo() {
   $("ws-deck").textContent = s.name;
   // where you are on the trip (js/collection.js), then cards due: Review starts from the map since build 77
   $("ws-solar").textContent = [course().name + " · at " + named(WORLDS[prog().journey]), due ? due + " due" : "", packWaiting ? "pack ready" : ""].filter(Boolean).join(" · ");
+  arcadeLine();    // under the Arcade: its games, your best Wordfighter score (js/arcade.js)
   habitsWorld();   // under the Earth: your streak and today's minutes, and the ring around it (js/habits.js)
   // under the Moon: always tonight's Moon ("Waxing gibbous · 73% lit tonight", js/worlds.js), then the books you're reading
   const reading = state.books.filter(b => !isFinished(b)).length;
@@ -508,16 +509,14 @@ function enterWorld() {
   $("home").classList.add("launching");
   s.classList.add("go");
   document.documentElement.classList.add("zooming");
-  // the Sun's supernova takes a little longer than the usual zoom
-  const wait = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : s.dataset.mode === "burn" ? 1500 : 700;
+  const wait = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 700;   // (the Sun's supernova lives in the Arcade now)
   setTimeout(() => {
     $("home").classList.remove("launching");
     document.documentElement.classList.remove("zooming");
     launching = false;
     openApp();   // opens Review on your last deck…
     const m = s.dataset.mode;   // …then switches to the world you tapped
-    if (m === "burn") startBurn();
-    else if (m !== "daily") setMode(m);
+    setMode(m);
   }, wait);
 }
 

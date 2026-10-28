@@ -69,7 +69,7 @@ function setMode(m, list, name) {
   if (m !== "daily") setMapBack(false);   // ‹ goes back to the map only while you're in the Review the map opened (js/collection.js)
   if (m === "deck" && mode !== "deck") showBinder(true);   // Decks opens on the binder; List is one tap away (js/collection.js)
   mode = m;
-  if (m === "deck" || m === "focus" || m === "reading" || m === "media" || m === "translate" || m === "solar" || m === "habits") { render(); return; }
+  if (m === "deck" || m === "focus" || m === "reading" || m === "media" || m === "translate" || m === "solar" || m === "habits" || m === "arcade" || m === "fighter") { render(); return; }
   if (m === "daily") queue = dailyList();
   if (m === "practice") {
     queue = shuffle(list.flatMap(c => dirsOf(stack).map(dir => ({ c, dir }))));
@@ -123,6 +123,9 @@ function render() {
   $("solar").hidden = mode !== "solar";
   $("burnview").hidden = mode !== "burn";
   $("habits").hidden = mode !== "habits";
+  $("arcade").hidden = mode !== "arcade";
+  $("fighter").hidden = mode !== "fighter";
+  if (mode !== "fighter" && typeof wfLeave === "function") wfLeave();   // leaving Wordfighter mid-game pauses it (js/wordfighter.js)
   if (typeof showSession === "function") showSession();   // the running session's bar, in every mode but Habits (js/habits.js)
   $("modeselect").value = mode;           // the Mode menu always shows where you are
   if (typeof miniQpod === "function") miniQpod();   // the mini Qpod (js/media.js) shows in the other modes while music is loaded
@@ -132,7 +135,9 @@ function render() {
   if (mode === "media") { renderMedia(); return; }
   if (mode === "translate") { renderTranslate(); return; }
   if (mode === "solar") { renderSolar(); return; }
-  if (mode === "habits") { renderHabits(); return; }   // 🌍 Habits: your study time and stats (js/habits.js)   // 🪐 the Solar System map (js/collection.js)
+  if (mode === "habits") { renderHabits(); return; }
+  if (mode === "arcade") { renderArcade(); return; }   // 🕹 the Arcade's games (js/arcade.js)
+  if (mode === "fighter") { openFighter(); return; }   // 👾 Wordfighter, loaded the first time (js/arcade.js)   // 🌍 Habits: your study time and stats (js/habits.js)   // 🪐 the Solar System map (js/collection.js)
   if (mode === "burn" || mode === "focus") return;   // these draw their own screens
 
   if (typeof packBanner === "function") packBanner();   // "Today's pack is ready" above the card (js/collection.js)

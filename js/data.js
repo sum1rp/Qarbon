@@ -6,7 +6,7 @@ let storageOK = true;
 try { localStorage.setItem("_qtest", "1"); localStorage.removeItem("_qtest"); } catch (e) { storageOK = false; }
 
 const FRESH = { cards: [], decks: [], playlists: [], music: "", directions: {}, books: [], readingBook: "", stackId: "", courseId: COURSE_ID, courses: {}, newPerDay: 10, newDate: "", newDone: 0, packDate: "", packCount: 0, journey: 0, voice: "female", sessions: 0, timerMode: "pomodoro",
-                bar: {}, barLevel: "medium", typeAnswer: {}, habits: {}, goal: "10-20", session: null };
+                bar: {}, barLevel: "medium", typeAnswer: {}, habits: {}, goal: "10-20", session: null, wf: {} };
 
 // where you stopped reading a book: { ch: chapter (from 0), y: how far down it (0 to 1) } or { page } for a PDF
 function cleanPlace(p) {
@@ -108,6 +108,14 @@ function mergeHabits(a, b) {
       out[dev][d] = { s, r: Math.max(p.r || 0, q.r || 0), ok: Math.max(p.ok || 0, q.ok || 0) };
     }
   }
+  return out;
+}
+// 👾 Wordfighter's best score per course (js/wordfighter.js): { french: 12400, spanish: 3100 }. Two devices: the higher one.
+const cleanBest = b => Object.fromEntries(Object.entries(b && typeof b === "object" ? b : {})
+  .filter(([k, v]) => k.length < 80 && Number(v) > 0).map(([k, v]) => [k, Math.min(1e8, Math.round(Number(v)))]));
+function mergeBest(a, b) {
+  const out = { ...a };
+  for (const [k, v] of Object.entries(b || {})) out[k] = Math.max(out[k] || 0, v);
   return out;
 }
 // a session running on this device (js/habits.js): { act, start, end (0 = open-ended), counted (time counted up to), timer (the Focus timer) }
@@ -240,6 +248,7 @@ function clean(data) {
   // "Type the answer" in Review, per deck: { french: true, "d-…": true } (⚙, synced with your settings)
   s.typeAnswer = Object.fromEntries(Object.entries(s.typeAnswer && typeof s.typeAnswer === "object" ? s.typeAnswer : {})
     .filter(([k, v]) => v === true && k.length < 80));
+  s.wf = cleanBest(s.wf);              // 👾 Wordfighter: your best score per course (synced)
   s.habits = cleanHabits(s.habits);   // 🌍 Habits: study time per day (synced)
   s.goal = GOALS[s.goal] ? s.goal : "10-20";   // the daily goal range (synced with your settings)
   s.session = cleanSession(s.session);         // a session running on this device (not synced)
@@ -277,7 +286,7 @@ function snapshot(s) {
   s.playlists.forEach(p => add("playlist:" + p.id, p));
   s.books.forEach(b => add("book:" + b.id, b));
   out.settings = JSON.stringify(settingsOf(s));
-  out.counters = JSON.stringify([s.sessions, s.newDate, s.newDone, s.packDate, s.packCount, s.journey, s.courses, s.bar]);   // not stamped, but worth syncing
+  out.counters = JSON.stringify([s.sessions, s.newDate, s.newDone, s.packDate, s.packCount, s.journey, s.courses, s.bar, s.wf]);   // not stamped, but worth syncing
   return out;
 }
 let snap = {};   // the fingerprints at the last save
@@ -436,7 +445,8 @@ function mergeStates(a, b) {   // a = this device, b = online (both already clea
     ...mergeProgress(a, b),   // French's packs and place on the map
     courses: Object.fromEntries(Object.keys(a.courses).map(id => [id, mergeProgress(a.courses[id], b.courses[id] || {})])),   // Spanish's
     bar: mergeBar(a.bar, b.bar),   // B.A.R. Exam scores: best of both, newest 10 rounds
-    habits: mergeHabits(a.habits, b.habits)   // 🌍 study time: every device's own record
+    habits: mergeHabits(a.habits, b.habits),  // 🌍 study time: every device's own record
+    wf: mergeBest(a.wf, b.wf)                 // 👾 Wordfighter: the higher best score
   };
 }
 // one course's packs today and place on the map, from two devices

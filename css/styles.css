@@ -106,10 +106,10 @@
   #w-sun .flash { width:60%; height:60%; margin:-30% 0 0 -30%; background:radial-gradient(circle, #fff 0 20%, rgba(255,230,190,.9) 40%, rgba(255,140,60,0) 70%); }
   /* tapping the Sun: it goes supernova. It swells and glows hotter, its core collapses, then it blows apart:
      a burst of white light and a blast wave racing outward, before B.A.R. Exam opens (enterWorld waits for it) */
-  .slide[data-mode="burn"].go .body { transition:none; animation:none; transform:none; opacity:1; }
-  .slide[data-mode="burn"].go .photo { animation:supernova 1.5s cubic-bezier(.4,0,.2,1) forwards; }
-  .slide[data-mode="burn"].go .shock { animation:shockwave 1.5s ease-out forwards; }
-  .slide[data-mode="burn"].go .flash { animation:sunflash 1.5s ease-out forwards; }
+  /* (since build 77 the Sun is B.A.R. Exam's tile in the 🕹 Arcade, #ar-bar; js/arcade.js adds .go and waits for it) */
+  #ar-bar.go .photo { animation:supernova 1.5s cubic-bezier(.4,0,.2,1) forwards; }
+  #ar-bar.go .shock { animation:shockwave 1.5s ease-out forwards; }
+  #ar-bar.go .flash { animation:sunflash 1.5s ease-out forwards; }
   @keyframes supernova {
     0%   { transform:translate(-50%, -50%) scale(1);    filter:drop-shadow(0 0 18px rgba(255,90,30,.45)) brightness(1); opacity:1; }
     35%  { transform:translate(-50%, -50%) scale(1.18); filter:drop-shadow(0 0 40px rgba(255,140,60,.9)) brightness(1.8) saturate(1.3); opacity:1; }
@@ -1594,3 +1594,66 @@ html.spacefull-on .ipod { visibility:hidden; }   /* (it's under the stars anyway
 .hb-col.picked span { color:var(--text); font-weight:700; }
 .hb-cap { margin:0; font-weight:600; font-size:.95rem; min-height:1.3em; }
 @media (prefers-reduced-motion: reduce) { .sb-dot { animation:none; } }
+
+/* ---------- 🕹 the Arcade (js/arcade.js) and 👾 Wordfighter (js/wordfighter.js), build 77 ---------- */
+/* the home world: the glowing cabinet (arcadeWorldSVG in js/worlds.js); its little shot flies up now and then */
+#w-arcade svg { inset:0; width:100%; height:100%; overflow:visible; }
+#w-arcade .ar-shot { animation:arshot 1.6s steps(6) infinite; }
+@keyframes arshot { 0% { transform:translateY(4px); opacity:1; } 80% { transform:translateY(-12px); opacity:1; } 81%, 100% { opacity:0; } }
+#w-arcade .ar-bugs { animation:arbugs 2s steps(2) infinite; }
+@keyframes arbugs { 50% { transform:translateX(1.5px); } }
+
+/* the Arcade page: one tile per game */
+#arcade { width:100%; max-width:480px; display:flex; flex-direction:column; gap:14px; }
+.ar-title { margin:0; text-align:center; font-family:"Courier New", monospace; letter-spacing:.2em; text-transform:uppercase; color:var(--accent); }
+.ar-games { display:flex; flex-direction:column; gap:12px; }
+.ar-game { display:flex; align-items:center; gap:14px; text-align:left; padding:14px; border-radius:16px; background:var(--surface);
+           border:1px solid var(--line); color:var(--text); }
+.ar-game:hover { --btn-bg:var(--raised); border-color:rgba(123,108,255,.5); }
+.ar-pic { position:relative; flex:none; width:84px; height:84px; border-radius:50%; }
+.ar-px { border-radius:14px; background:#030306; border:1px solid rgba(123,108,255,.35); }
+.ar-px svg { position:absolute; inset:8px; width:calc(100% - 16px); height:calc(100% - 16px); }
+.ar-text { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.ar-text b { font-size:1.15rem; }
+.ar-text span { color:var(--muted); font-size:.9rem; }
+.ar-text small { color:var(--text); font-size:.85rem; font-weight:600; }
+.ar-soon { opacity:.55; cursor:default; }
+.ar-note { margin:0; text-align:center; color:var(--muted); font-size:.85rem; }
+/* B.A.R.'s Sun on its tile: room for the blast to spread over the page (the .go animations are with the Sun's styles) */
+#ar-bar { overflow:visible; position:relative; z-index:2; }
+#ar-bar.go .ar-text { opacity:0; transition:opacity .3s; }
+
+/* Wordfighter's cabinet: the score bar, the field (its height set by wfFit), the English, the controls */
+#fighter { width:100%; max-width:480px; display:flex; flex-direction:column; gap:8px; user-select:none; -webkit-user-select:none;
+           -webkit-tap-highlight-color:transparent; font-family:VT323, "Courier New", monospace; }
+.wf-hud { display:flex; justify-content:space-between; align-items:center; font-family:"Press Start 2P", "Courier New", monospace; font-size:10px; }
+#wf-score { color:#FFD166; font-variant-numeric:tabular-nums; }
+#wf-wave { color:var(--muted); }
+#wf-lives { color:var(--accent); letter-spacing:.2em; }
+.wf-field { position:relative; height:420px; border:1px solid var(--line); border-radius:6px; overflow:hidden; background:#030306; touch-action:none; }
+#wf-cv { position:absolute; inset:0; width:100%; height:100%; display:block; image-rendering:pixelated; }
+.wf-over { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:18px;
+           text-align:center; background:rgba(3,3,6,.92); overflow-y:auto; }
+.wf-over h2 { font-family:"Press Start 2P", "Courier New", monospace; font-size:18px; line-height:1.5; margin:0; font-weight:400; }
+.wf-over h2 b { color:var(--accent); font-weight:400; }
+.wf-over p { margin:0; font-size:20px; line-height:1.15; color:var(--muted); max-width:30ch; }
+.wf-over .wf-ctrl { font-size:17px; }
+.wf-tag { font-family:"Press Start 2P", "Courier New", monospace; font-size:8px; color:var(--muted); letter-spacing:.08em; }
+.wf-final { font-family:"Press Start 2P", "Courier New", monospace; font-size:14px; color:#FFD166; }
+.wf-new { font-family:"Press Start 2P", "Courier New", monospace; font-size:10px; color:#5CE1A6; animation:wfnew .6s steps(2) infinite; }
+@keyframes wfnew { 50% { opacity:.3; } }
+.wf-btn, .wf-fire { font-family:"Press Start 2P", "Courier New", monospace; font-size:12px; padding:14px 20px; border-radius:6px; border:0;
+                    background:#5a49e6; color:#fff; box-shadow:0 4px 0 #2e2490; touch-action:manipulation; }
+.wf-btn:active, .wf-fire:active { transform:translateY(3px); box-shadow:0 1px 0 #2e2490; }
+.wf-btn:disabled { opacity:.4; }
+.wf-missed { list-style:none; padding:0; margin:0; width:100%; max-width:300px; display:grid; gap:4px; font-size:22px; text-align:left; }
+.wf-missed li { display:flex; justify-content:space-between; gap:12px; border-bottom:1px dashed var(--line); padding:2px 0; }
+.wf-missed li span:last-child { color:var(--muted); text-align:right; }
+.wf-prompt { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--surface); border:1px solid var(--line); border-radius:6px; min-height:52px; }
+.wf-lab { font-family:"Press Start 2P", "Courier New", monospace; font-size:8px; color:var(--muted); line-height:1.5; flex:none; }
+.wf-en { font-size:32px; line-height:1; min-width:0; overflow-wrap:anywhere; }
+.wf-prompt.good { border-color:#5CE1A6; }
+.wf-prompt.bad { border-color:#FF5470; }
+.wf-controls { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.wf-back { font-size:1rem; padding:10px 16px; border-radius:999px; }
+.wf-fire { padding:16px 28px; }

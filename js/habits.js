@@ -8,10 +8,10 @@
 //     but only while Qarbon is on screen. The 🎧 Qpod alone doesn't count.
 //  2. A session (started on the Habits page, or the Focus timer, or 📖 Read) counts EVERY second until it stops,
 //     whatever you do meanwhile: the Qpod, another app, the phone locked. While one runs, all time goes to its activity.
-const ACTS = { review: "Review", decks: "Decks", map: "Solar System", translate: "Translate", bar: "B.A.R. Exam", focus: "Focus",
+const ACTS = { review: "Review", decks: "Decks", map: "Solar System", translate: "Translate", bar: "B.A.R. Exam", arcade: "Arcade", focus: "Focus",
                reading: "Reading", study: "Studying", writing: "Writing", listening: "Listening", other: "Other" };
 // the mode you're in → its activity (modes not listed, like 🎧 Media and Habits itself, don't count)
-const MODE_ACT = { daily: "review", practice: "review", deck: "decks", solar: "map", translate: "translate", burn: "bar", focus: "focus", reading: "reading" };
+const MODE_ACT = { daily: "review", practice: "review", deck: "decks", solar: "map", translate: "translate", burn: "bar", arcade: "arcade", fighter: "arcade", focus: "focus", reading: "reading" };
 // what you can start a session for, and for how long (0 = open-ended: it runs until you stop it)
 const SESSION_ACTS = [["reading", "📖 Reading"], ["study", "✏️ Studying"], ["writing", "✍️ Writing"], ["listening", "🎧 Listening"], ["other", "✨ Other"]];
 const SESSION_LENGTHS = [[0, "Until I stop it"], [15, "15 min"], [25, "25 min"], [30, "30 min"], [45, "45 min"], [60, "1 hour"], [90, "1 h 30"]];

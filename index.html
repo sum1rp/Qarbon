@@ -81,11 +81,11 @@
           <span class="body world" id="w-crab" aria-hidden="true"><img class="photo" alt="" data-src="img/crab-nebula.jpg"><span class="pulse"></span><span class="glint"></span></span>
           <span class="wname">Focus</span><span class="wsub"></span>
         </button>
-        <!-- 🔥 B.A.R. Exam: the Sun (NASA's Solar Dynamics Observatory). Tap it and it goes supernova, then the exam opens.
-             .shock is the blast wave and .flash the burst of light (see "supernova" in the styles) -->
-        <button class="slide" data-mode="burn">
-          <span class="body world" id="w-sun" aria-hidden="true"><img class="photo" alt="" data-src="img/sun.jpg"><span class="shock"></span><span class="flash"></span></span>
-          <span class="wname">B.A.R. Exam</span><span class="wsub"></span>
+        <!-- 🕹 Arcade (build 77, the user's pick "A"): a glowing arcade cabinet with Wordfighter on its screen (arcadeWorldSVG in js/worlds.js).
+             It holds B.A.R. Exam (whose Sun still goes supernova, as a tile on the Arcade page), Wordfighter and later World Duels -->
+        <button class="slide" data-mode="arcade">
+          <span class="body world" id="w-arcade" aria-hidden="true"></span>
+          <span class="wname">Arcade</span><span class="wsub" id="ws-arcade"></span>
         </button>
         <!-- 🌍 Habits: the Earth, live, last (the carousel wraps, so it also sits just before the Solar System) (a still photo until the
              live globe is ready). It was Review until build 77: Review now starts from the Solar System map. The ring around it fills
@@ -117,11 +117,11 @@
     <div class="howsec">
       <h3>Getting started</h3>
       <ul>
-        <li>The home screen shows one world at a time, starting with the Solar System. It moves on to the next world by itself every 5 seconds, like a little tour. Touching it pauses the tour; leave it alone for 10 seconds and it carries on (not with Reduce Motion on). Swipe left or right to move between them yourself, or tap a dot (or slide your finger along the dots) to jump (on a computer: the ‹ › buttons or the arrow keys). In order: the <b>Solar System</b> (your map, the Qarbon atom with planets around it), <b>Qarbon Media Player</b> the atom wearing headphones, <b>Decks</b> a fan of Qarbon cards, <b>Translate</b> the Tower of Babel, <b>Reading</b> the Moon, <b>Focus</b> the Crab Nebula <b>B.A.R. Exam</b> the Sun (tap it and watch) and <b>Habits</b> the Earth (with today's date and your time: it's lit where the Sun is right now). Tap a world to go straight there. The small line under each world shows where you are on the map and cards due, your deck, tonight's Moon and the books you're reading, or your streak. <b>Review</b> starts from the Solar System: tap the world you're at (or 🃏 Review in the Mode menu). <b>🔁 Practice</b> buttons are on the map and in the Binder.</li>
-        <li><b>🌍 Habits:</b> Qarbon counts your study time. Being in a study mode (Review, Decks, the Solar System, Translate, B.A.R. Exam, Focus, Reading) counts the whole time Qarbon is on screen; the Qpod alone doesn't. Pick a <b>daily goal</b> as a range (like 10–20 min): reaching the low end counts the day ✓ and keeps your <b>streak</b> going, and the ring fills on to the high end. Studying away from the screen, like a paper book? Start a <b>session</b> on the Habits page (open-ended or 15 min to 1 h 30): everything counts toward it until you stop, even on the Qpod or with the phone locked, and a red dot bar shows it in every mode. An open-ended session stops itself after 1 h 30. The ⏱ Focus timer and 📖 Read are sessions too. The ring around the home Earth fills with today's minutes (gold once the goal is met). The Habits page also has a calendar (tap a day), time by activity, cards answered per day, how well you remember, and the cards coming up. Your time syncs: each device keeps its own record and they add up.</li>
+        <li>The home screen shows one world at a time, starting with the Solar System. It moves on to the next world by itself every 5 seconds, like a little tour. Touching it pauses the tour; leave it alone for 10 seconds and it carries on (not with Reduce Motion on). Swipe left or right to move between them yourself, or tap a dot (or slide your finger along the dots) to jump (on a computer: the ‹ › buttons or the arrow keys). In order: the <b>Solar System</b> (your map, the Qarbon atom with planets around it), <b>Qarbon Media Player</b> the atom wearing headphones, <b>Decks</b> a fan of Qarbon cards, <b>Translate</b> the Tower of Babel, <b>Reading</b> the Moon, <b>Focus</b> the Crab Nebula <b>Arcade</b> a glowing arcade cabinet (B.A.R. Exam and Wordfighter) and <b>Habits</b> the Earth (with today's date and your time: it's lit where the Sun is right now). Tap a world to go straight there. The small line under each world shows where you are on the map and cards due, your deck, tonight's Moon and the books you're reading, or your streak. <b>Review</b> starts from the Solar System: tap the world you're at (or 🃏 Review in the Mode menu). <b>🔁 Practice</b> buttons are on the map and in the Binder.</li>
+        <li><b>🌍 Habits:</b> Qarbon counts your study time. Being in a study mode (Review, Decks, the Solar System, Translate, the Arcade, Focus, Reading) counts the whole time Qarbon is on screen; the Qpod alone doesn't. Pick a <b>daily goal</b> as a range (like 10–20 min): reaching the low end counts the day ✓ and keeps your <b>streak</b> going, and the ring fills on to the high end. Studying away from the screen, like a paper book? Start a <b>session</b> on the Habits page (open-ended or 15 min to 1 h 30): everything counts toward it until you stop, even on the Qpod or with the phone locked, and a red dot bar shows it in every mode. An open-ended session stops itself after 1 h 30. The ⏱ Focus timer and 📖 Read are sessions too. The ring around the home Earth fills with today's minutes (gold once the goal is met). The Habits page also has a calendar (tap a day), time by activity, cards answered per day, how well you remember, and the cards coming up. Your time syncs: each device keeps its own record and they add up.</li>
         <li>They're all real: the planets are NASA photos, and the Earth is live: it turns, and it's lit where the Sun really is right now, with city lights on the night side. The Moon shows <b>tonight's actual phase</b>, and the stars behind everything are the real night sky (see <b>Space images</b> below).</li>
         <li>The app opens on the deck you used last (the <b>French</b> course the first time).</li>
-        <li>Pick what you're doing from the <b>Mode</b> menu at the top: <b>🃏 Review</b>, <b>🗂 Decks</b>, <b>🔥 B.A.R. Exam</b>, <b>⏱ Focus</b>, <b>📖 Reading</b>, <b>🌐 Translate</b> or <b>🎧 Qarbon Media Player</b>.</li>
+        <li>Pick what you're doing from the <b>Mode</b> menu at the top: <b>🃏 Review</b>, <b>🌍 Habits</b>, <b>🗂 Decks</b>, <b>🪐 Solar System</b>, <b>🕹 Arcade</b>, <b>⏱ Focus</b>, <b>📖 Reading</b>, <b>🌐 Translate</b> or <b>🎧 Qarbon Media Player</b>.</li>
         <li><b>French</b> is one course: six levels in a row, from <b>Level 1</b> (the 150 most useful words) and <b>Level 2</b> (150 more) through <b>Level 3</b> (300 words for everyday life: home, city, travel, work, health, feelings; A2–B1) to <b>Level 4</b> (B2), <b>Level 5</b> (C1) and <b>Level 6</b> (C2), 75 harder words each, where the rare cards live. You don't pick a level: your packs follow the 🪐 Solar System, and Review has every card you've collected in one queue.</li>
         <li><b>Spanish</b> is a second course that works the same way, with its own trip on the map (it starts at Earth, wherever you are in French) and its own 3 packs a day. It's <b>Mexican Spanish</b> (el carro, la computadora, el boleto) with <b>Level 1</b> to <b>Level 3</b> so far (600 words, the same meanings as French's first three levels, with el / la and an example each); the worlds after Jupiter say <b>Soon</b>.</li>
         <li><b>Switch decks</b> in <b>🗂 Decks</b> mode: tap <b>Switch ▾</b> at the top and pick French, Spanish or one of your own decks. The deck you're in is highlighted. The map, packs, Translate and the voice follow the course you picked last. You can also switch with <b>French | Spanish</b> at the top of the 🪐 Solar System.</li>
@@ -199,7 +199,9 @@
     <div class="howsec">
       <h3>🔥 B.A.R. Exam (Burn After Reading)</h3>
       <ul>
-        <li>Choose <b>🔥 B.A.R. Exam</b> in the Mode menu (or tap the Sun on home). Pick a level: <b>Easy</b> (pick the word out of 4 real words), <b>Medium</b> (out of 4 with traps: an accent trap, a spelling trap and another real word) or <b>Hard</b> (type it; accents count, capitals don't). Each level shows your best score.</li>
+        <li><b>🕹 The Arcade</b> (the cabinet on home, or the Mode menu) holds the games: <b>B.A.R. Exam</b>, <b>👾 Wordfighter</b> and, soon, World Duels. They use the cards in your binder and never change your review schedule.</li>
+        <li><b>👾 Wordfighter:</b> an 8-bit shooter. An English word shows at the bottom; shoot the ship carrying its French (or Spanish) word. Six ships a wave, swaying in formation; one swoops down and fires every few seconds, and each wave (named after a world of the Solar System) is faster. Hit the wrong ship and it shows its English and dives at you. You have 3 lives, lost when a ship or a shot hits you. Points: 100 a word, 200 if it was diving, times your streak (up to ×5), +500 for clearing a wave. Phone: drag on the field to fly, tap it or FIRE to shoot. Mac: ← → to fly, Space to shoot. The words you missed are listed at the end, and your best score per course syncs. Leaving mid-game pauses it. You need at least 4 cards in your binder.</li>
+        <li>Tap the <b>Sun</b> in the 🕹 Arcade (it goes supernova) to start B.A.R. Exam. Pick a level: <b>Easy</b> (pick the word out of 4 real words), <b>Medium</b> (out of 4 with traps: an accent trap, a spelling trap and another real word) or <b>Hard</b> (type it; accents count, capitals don't). Each level shows your best score.</li>
         <li><b>Open the pack:</b> up to 10 cards you've never studied come in a B.A.R. pack. Tear it open like a daily pack, then read each card once (you hear it too) and swipe it away. There's no going back. B.A.R. packs don't count toward your 3 packs a day.</li>
         <li>The cards <b>burn up</b>, and you have <b>1:30</b> for the test. Your answers aren't marked yet: you see them all at the end, with the right spelling under each one you missed (on Hard, wrong letters red, missing ones green, accent slips yellow). Spanish traps drop or move an accent (á é í ó ú, ñ → n) or swap letters that sound alike (b / v, ll / y, c / z / s, a silent h).</li>
         <li>Right counts as Good; wrong, or not reached before the time ran out, counts as Hard, and those words go <b>first in your next Review</b>. The start screen keeps your best on each level and your last 10 rounds, for each course or deck, synced between your devices.</li>
@@ -382,7 +384,10 @@
       <option value="translate">🌐 Translate</option>
       <!-- Practice is started from its buttons (map, Binder, List), so it isn't a choice here: this line only shows while practicing -->
       <option value="practice" hidden disabled>🔁 Practice</option>
-      <option value="burn">🔥 B.A.R. Exam</option>
+      <option value="arcade">🕹 Arcade</option>
+      <!-- the Arcade's games: started from its tiles, so they're not choices here; each line only shows while you're in it -->
+      <option value="burn" hidden disabled>🔥 B.A.R. Exam</option>
+      <option value="fighter" hidden disabled>👾 Wordfighter</option>
       <option value="focus">⏱ Focus</option>
       <option value="reading">📖 Reading</option>
       <option value="media">🎧 Qarbon Media Player</option>
@@ -821,9 +826,59 @@
       <p id="burn-sub" class="burnnote"></p>
       <div id="burn-missed"></div>
       <button id="burn-again" class="burnbig">Play again</button>
-      <button id="burn-back" class="burnplain">Back to review</button>
+      <button id="burn-back" class="burnplain">Back to the Arcade</button>
     </div>
   </div>
+
+  <!-- ===== 🕹 Arcade: the games (js/arcade.js). Nothing here changes your review schedule ===== -->
+  <section id="arcade" hidden>
+    <h2 class="ar-title">Arcade</h2>
+    <div class="ar-games">
+      <!-- B.A.R. Exam: the Sun. Tap it and it goes supernova (the same as on home before build 77), then the exam opens -->
+      <button class="ar-game" id="ar-bar">
+        <span class="ar-pic world" id="w-sun" aria-hidden="true"><img class="photo" alt="" src="img/sun.jpg"><span class="shock"></span><span class="flash"></span></span>
+        <span class="ar-text"><b>B.A.R. Exam</b><span>Read a pack, watch it burn, then a 1:30 test. Easy, Medium or Hard.</span><small id="ar-barbest"></small></span>
+      </button>
+      <button class="ar-game" id="ar-wf">
+        <span class="ar-pic ar-px" id="ar-wfpic" aria-hidden="true"></span>
+        <span class="ar-text"><b>Wordfighter</b><span>An 8-bit shooter: shoot the ship carrying the word for the English at the bottom.</span><small id="ar-wfbest"></small></span>
+      </button>
+      <button class="ar-game ar-soon" disabled>
+        <span class="ar-pic ar-px" id="ar-duelpic" aria-hidden="true"></span>
+        <span class="ar-text"><b>World Duels</b><span>8-bit battles against the worlds of your Solar System.</span><small>Coming soon</small></span>
+      </button>
+    </div>
+    <p class="ar-note">The games use the cards in your binder and never change your review schedule.</p>
+  </section>
+
+  <!-- ===== 👾 Wordfighter (js/wordfighter.js, loaded the first time you open it): the cabinet ===== -->
+  <section id="fighter" hidden>
+    <div class="wf-hud"><span id="wf-score">000000</span><span id="wf-wave">EARTH</span><span id="wf-lives" aria-label="Lives">▲▲▲</span></div>
+    <div class="wf-field" id="wf-field">
+      <canvas id="wf-cv"></canvas>
+      <div class="wf-over" id="wf-start">
+        <span class="wf-tag" id="wf-course"></span>
+        <h2>QARBON<br><b>WORDFIGHTER</b></h2>
+        <p id="wf-how"></p>
+        <p>Hit the wrong ship and it dives at you. Ships swoop and fire, so keep moving.</p>
+        <button class="wf-btn" id="wf-go">START</button>
+        <p class="wf-ctrl">Phone: drag to fly, tap the field or FIRE to shoot.<br>Mac: ← → to fly, Space to shoot.</p>
+        <span class="wf-tag" id="wf-best"></span>
+      </div>
+      <div class="wf-over" id="wf-pause" hidden><h2>PAUSED</h2><button class="wf-btn" id="wf-resume">GO ON</button></div>
+      <div class="wf-over" id="wf-end" hidden>
+        <h2>GAME OVER</h2>
+        <span class="wf-final" id="wf-final">0</span>
+        <span class="wf-new" id="wf-new" hidden>NEW BEST!</span>
+        <p id="wf-sum"></p>
+        <span class="wf-tag" id="wf-mtag">WORDS TO PRACTICE</span>
+        <ul class="wf-missed" id="wf-missed"></ul>
+        <button class="wf-btn" id="wf-again">PLAY AGAIN</button>
+      </div>
+    </div>
+    <div class="wf-prompt" id="wf-prompt"><span class="wf-lab" id="wf-lab">SHOOT<br>THE<br>FRENCH</span><span class="wf-en" id="wf-en">…</span></div>
+    <div class="wf-controls" id="wf-controls"><button class="wf-back" id="wf-back">‹ Arcade</button><button class="wf-fire" id="wf-fire" aria-label="Fire">FIRE</button></div>
+  </section>
 
   <!-- ===== 🌍 Habits: today's goal, sessions, your streak and stats (js/habits.js) ===== -->
   <section id="habits" hidden>
@@ -949,6 +1004,7 @@
 <script src="js/collection.js?v=76"></script>
 <script src="js/reading.js?v=76"></script>
 <script src="js/habits.js?v=76"></script>
+<script src="js/arcade.js?v=76"></script>
 <script src="js/translate.js?v=76"></script>
 <script src="js/account.js?v=76"></script>
 <script src="js/start.js?v=76"></script>

@@ -283,4 +283,4 @@ function burnEnd(round, results, r, timeUp, newBest) {
 }
 
 $("burn-again").onclick = burnStart;
-$("burn-back").onclick = () => setMode("daily");
+$("burn-back").onclick = () => setMode("arcade");   // B.A.R. lives in the 🕹 Arcade since build 77

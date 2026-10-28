@@ -2,10 +2,11 @@
 // The script files run in the order index.html lists them, and share one set of variables.
 //
 //   Solar System the logo atom as a sun, with real planet photos circling it (drawn here, below)
-//   Review      the Earth, live: NASA maps on a turning globe, lit where the Sun really is right now
+//   Habits      the Earth, live: NASA maps on a turning globe, lit where the Sun really is right now (a ring of today's minutes, js/habits.js)
 //   Media       the logo atom wearing headphones · Decks a fan of Qarbon card backs
 //   Translate   Bruegel's Tower of Babel · Reading the Moon in tonight's real phase · Focus the Crab Nebula (Hubble photo)
-//   B.A.R. Exam the Sun (Solar Dynamics Observatory; it goes supernova when you tap it, in the styles)
+//   Arcade      a glowing arcade cabinet with Wordfighter on its screen (drawn here); B.A.R. Exam's Sun (it goes supernova
+//               when you tap it, in the styles) is a tile inside the Arcade since build 77
 //
 // The Solar System (the first world you see) is drawn right away; the photos of the others load
 // just after the home screen appears, so starting the app isn't slower.
@@ -53,6 +54,36 @@ function moonSVG() {
 function decksWorldHTML() {
   return '<div class="fan-glow"></div>' +
     [-2, -1, 0, 1, 2].map(k => '<div class="fan-card" style="--k:' + k + '">' + cardBackHTML("earth", true) + '</div>').join("");
+}
+
+// ================= the Arcade: a glowing cabinet (the user's pick "A", build 77) =================
+// 8-bit pictures as rows of letters: each letter is one pixel, its color looked up by the letter ("." = nothing).
+// The same sprites are used by the game itself (js/wordfighter.js): the invaders by word type, and your ship.
+const WF_SPRITES = {
+  noun: ["..C.....C..", "...C...C...", "..CCCCCCC..", ".CC.CCC.CC.", "CCCCCCCCCCC", "C.CCCCCCC.C", "C.C.....C.C", "...CC.CC..."],
+  verb: ["...C...C...", "C..CCCCC..C", "C.CC.C.CC.C", "CCCCCCCCCCC", ".CCCCCCCCC.", "..C.....C..", ".C.......C.", "C.........C"],
+  other: ["....CCC....", ".CCCCCCCCC.", "CC..CCC..CC", "CCCCCCCCCCC", "..CC...CC..", ".CC.CCC.CC.", "CC.......CC", "..........."],
+  ship: [".....W.....", ".....W.....", "....WPW....", "....WPW....", ".W.WWPWW.W.", ".WWWPPPWWW.", "WWPWWWWWPWW", "WW.WWWWW.WW", "W...O.O...W"]
+};
+// a sprite as SVG squares, its top left corner at (x, y), each pixel p units big
+const pixelSVG = (rows, colors, x, y, p) => rows.map((r, j) => [...r].map((ch, i) => colors[ch]
+  ? `<rect x="${(x + i * p).toFixed(2)}" y="${(y + j * p).toFixed(2)}" width="${p}" height="${p}" fill="${colors[ch]}"/>` : "").join("")).join("");
+function arcadeWorldSVG() {
+  return `<svg viewBox="0 0 100 100" shape-rendering="crispEdges" aria-hidden="true">
+    <defs><radialGradient id="ar-glow" r=".5"><stop offset="0" stop-color="#7b6cff" stop-opacity=".55"/><stop offset=".6" stop-color="#3b5bd0" stop-opacity=".14"/><stop offset="1" stop-opacity="0"/></radialGradient>
+      <linearGradient id="ar-cab" x1="0" x2="1"><stop offset="0" stop-color="#1a1530"/><stop offset=".5" stop-color="#2a2150"/><stop offset="1" stop-color="#14102a"/></linearGradient></defs>
+    <circle cx="50" cy="50" r="62" fill="url(#ar-glow)" shape-rendering="auto"/>
+    <path d="M26 8 H74 L76 18 H24 Z" fill="#5a49e6"/>
+    <text x="50" y="15.6" font-family="'Courier New', monospace" font-size="6" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="1.2" shape-rendering="auto">ARCADE</text>
+    <path d="M24 18 H76 V58 L84 70 V96 H16 V70 L24 58 Z" fill="url(#ar-cab)" stroke="#7b6cff" stroke-width=".8"/>
+    <rect x="29" y="22" width="42" height="33" rx="2" fill="#030306" stroke="#9a8cff" stroke-width=".6"/>
+    <g class="ar-bugs">${pixelSVG(WF_SPRITES.noun, { C: "#6FB7FF" }, 33, 26, .9)}${pixelSVG(WF_SPRITES.verb, { C: "#5CE1A6" }, 45, 26, .9)}${pixelSVG(WF_SPRITES.noun, { C: "#FF8FD0" }, 57, 26, .9)}</g>
+    <rect class="ar-shot" x="49.6" y="38" width=".9" height="4" fill="#FFD166"/>
+    ${pixelSVG(WF_SPRITES.ship, { W: "#E8E8F4", P: "#7b6cff", O: "#FFD166" }, 45, 45, .9)}
+    <rect x="20" y="70" width="60" height="9" fill="#0d0b1c" stroke="#7b6cff" stroke-width=".5"/>
+    <g shape-rendering="auto"><circle cx="32" cy="74.5" r="2.4" fill="#FF5470"/><rect x="31.3" y="70.5" width="1.4" height="4" fill="#ccc"/>
+      <circle cx="58" cy="74.5" r="2" fill="#FFD166"/><circle cx="65" cy="74.5" r="2" fill="#5CE1A6"/></g>
+  </svg>`;
 }
 
 // ================= the Earth: a live globe (WebGL) =================
@@ -215,6 +246,7 @@ function setUpWorlds() {
   $("w-moon").innerHTML = moonSVG();
   $("w-media").innerHTML = mediaWorldSVG();
   $("w-decks").innerHTML = decksWorldHTML();
+  $("w-arcade").innerHTML = arcadeWorldSVG();
   // the Earth: the still photo shows first; the live globe replaces it once its maps have loaded
   loadScript("js/earth-maps.js?v=" + BUILD.match(/build (\d+)/)[1])
     .then(() => Promise.all([EARTH_MAPS.day, EARTH_MAPS.clouds, EARTH_MAPS.night].map(loadImage)))
