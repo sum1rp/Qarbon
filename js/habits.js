@@ -15,7 +15,7 @@ const MODE_ACT = { daily: "review", practice: "review", deck: "decks", solar: "m
 // what you can start a session for, and for how long (0 = open-ended: it runs until you stop it)
 const SESSION_ACTS = [["reading", "📖 Reading"], ["study", "✏️ Studying"], ["writing", "✍️ Writing"], ["listening", "🎧 Listening"], ["other", "✨ Other"]];
 const SESSION_LENGTHS = [[0, "Until I stop it"], [15, "15 min"], [25, "25 min"], [30, "30 min"], [45, "45 min"], [60, "1 hour"], [90, "1 h 30"]];
-const SESSION_CAP = 3 * 3600e3;   // an open-ended session stops itself after 3 hours, so a forgotten one can't count all night
+const SESSION_CAP = 90 * 60e3;   // an open-ended session stops itself after 1 h 30 (the user's choice), so a forgotten one can't count all night
 
 // this device's name in the records (made once, kept apart from the save so a restored backup doesn't copy it)
 const DEVICE = (() => {
@@ -109,7 +109,7 @@ function beginSession(act, mins, timerEnd) {
   showSession();
 }
 
-// stop the session. why: "stop" (you), "done" (its time ran out), "cap" (3 hours open-ended), "timer", "replaced"
+// stop the session. why: "stop" (you), "done" (its time ran out), "cap" (open-ended, 1 h 30), "timer", "replaced"
 function endSession(why) {
   const s = state.session;
   if (!s) return;
@@ -117,7 +117,7 @@ function endSession(why) {
   state.session = null;
   const took = Math.round((s.counted - s.start) / 60e3);
   if (why === "done") { habitNote = "Your " + ACTS[s.act] + " session is done: " + mins(took) + "."; try { chime(); } catch (e) {} }
-  else if (why === "cap") habitNote = "Your " + ACTS[s.act] + " session stopped itself after 3 hours (" + mins(took) + " counted). Start a new one if you're still going.";
+  else if (why === "cap") habitNote = "Your " + ACTS[s.act] + " session stopped itself after 1 h 30 (" + mins(took) + " counted). Start a new one if you're still going.";
   else if (why === "stop") habitNote = "Session saved: " + mins(took) + " of " + ACTS[s.act] + ".";
   save();
   showSession();
